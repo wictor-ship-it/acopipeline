@@ -2,8 +2,9 @@ import { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAppState } from "./state";
 import { ROLES, navForRole, homePathForRole, type Role } from "./roles";
-import "./Sidebar.css";
 
+/* Sidebar — literal from fragment 00 lines 166-207; SIDE_BASE (rounded
+   floating 230px glass panel) from logic-and-data.js line 3602. */
 export function Sidebar() {
   const { viewAs, setViewAs, signOut, inboxUnread } = useAppState();
   const navigate = useNavigate();
@@ -11,80 +12,61 @@ export function Sidebar() {
   const [viewAsOpen, setViewAsOpen] = useState(false);
   const items = navForRole(viewAs);
 
-  function onRoleChange(role: Role) {
-    setViewAs(role);
-    setViewAsOpen(false);
+  function onRole(r: Role) {
+    setViewAs(r);
     setMenuOpen(false);
-    navigate(homePathForRole(role));
+    setViewAsOpen(false);
+    navigate(homePathForRole(r));
   }
-
   const roleLabel = ROLES.find((r) => r.id === viewAs)?.label ?? "Admin";
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">
-        <div className="logo">A/CO</div>
-        <div className="sidebar-subtitle">Pipeline Intelligence</div>
+    <aside className="sb">
+      <div className="sb-brand">
+        <div className="sb-logo">A/CO</div>
+        <div className="sb-sub">Pipeline Intelligence</div>
       </div>
 
-      <nav className="sidebar-nav">
-        {items.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) => (isActive ? "nav-item active" : "nav-item")}
-          >
-            <span>{item.label}</span>
-            {item.badge === "inbox-unread" && inboxUnread > 0 && (
-              <span className="nav-badge">{inboxUnread}</span>
-            )}
+      <nav className="sb-nav">
+        {items.map((it) => (
+          <NavLink key={it.path} to={it.path} className={({ isActive }) => (isActive ? "sb-item active" : "sb-item")}>
+            <span>{it.label}</span>
+            {it.badge === "inbox-unread" && inboxUnread > 0 && <span className="sb-badge">{inboxUnread}</span>}
           </NavLink>
         ))}
       </nav>
 
-      <div className="sidebar-spacer" />
-
-      <div className="sidebar-footer">
-        <div className="sidebar-profile-wrap">
+      <div className="sb-footer">
+        <div className="sb-profile-wrap">
           {menuOpen && (
             <>
-              <div className="sidebar-menu-scrim" onClick={() => { setMenuOpen(false); setViewAsOpen(false); }} />
-              <div className="sidebar-menu">
-                <div className="sidebar-menu-item" onClick={() => { setMenuOpen(false); navigate("/settings"); }}>Settings</div>
-                <div className="sidebar-menu-item" onClick={() => setViewAsOpen((o) => !o)}>
-                  View as <span className="sidebar-menu-role">{roleLabel} ▸</span>
+              <div className="sb-menu-scrim" onClick={() => { setMenuOpen(false); setViewAsOpen(false); }} />
+              <div className="sb-menu">
+                <div className="sb-menu-item" onClick={() => { setMenuOpen(false); navigate("/settings"); }}>Settings</div>
+                <div className="sb-menu-item" onClick={() => setViewAsOpen((o) => !o)}>
+                  <span>View as</span><span className="sb-menu-role">{roleLabel} ▸</span>
                 </div>
-                {viewAsOpen &&
-                  ROLES.map((r) => (
-                    <div
-                      key={r.id}
-                      className={`sidebar-menu-sub${viewAs === r.id ? " active" : ""}`}
-                      onClick={() => onRoleChange(r.id)}
-                    >
-                      {r.label}
-                    </div>
-                  ))}
-                <div className="sidebar-menu-item danger" onClick={signOut}>Sign out</div>
+                {viewAsOpen && ROLES.map((r) => (
+                  <div key={r.id} className={`sb-menu-sub${viewAs === r.id ? " active" : ""}`} onClick={() => onRole(r.id)}>{r.label}</div>
+                ))}
+                <div className="sb-menu-item danger" onClick={signOut}>Sign out</div>
               </div>
             </>
           )}
-          <div className="sidebar-profile" onClick={() => setMenuOpen((o) => !o)}>
-            <div className="sidebar-profile-top">
-              <span className="sidebar-profile-name">Wictor Arraes</span>
-              <span className="sidebar-profile-gear">⚙</span>
+          <div className="sb-profile" onClick={() => setMenuOpen((o) => !o)}>
+            <div className="sb-profile-top">
+              <span className="sb-profile-name">Wictor Arraes</span>
+              <span className="sb-gear">⚙</span>
             </div>
-            <div className="sidebar-profile-role">Principal · viewing as {roleLabel}</div>
+            <div className="sb-profile-role">Principal</div>
           </div>
         </div>
 
-        <div className="sidebar-status">
-          <div className="sidebar-agent">
-            <span className="sidebar-agent-dot" />
-            <span>Agent · active</span>
-          </div>
-          <div className="sidebar-chips">
-            <span className="sidebar-chip" title="Shortcuts">?</span>
-            <span className="sidebar-chip" title="Command palette">⌘K</span>
+        <div className="sb-status">
+          <div className="sb-agent"><span className="sb-agent-dot" /><span>Agent · active</span></div>
+          <div className="sb-chips">
+            <span className="sb-chip" title="Shortcuts">?</span>
+            <span className="sb-chip" title="Command palette">⌘K</span>
           </div>
         </div>
       </div>

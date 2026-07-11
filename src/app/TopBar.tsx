@@ -1,7 +1,30 @@
-import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { titleForPath } from "./titles";
-import { NOTIFICATIONS, TODAY_LABEL } from "./chrome-content";
+
+/* Top bar — literal from fragment 00 lines 864-925.
+   padding 34px 48px 0; hidden on inbox; title 19px + date; right actions.
+   Note: notification-center + contact actions get wired with their screens. */
+
+const TITLES: Record<string, string> = {
+  "/welcome": "Welcome",
+  "/intelligence": "Intelligence",
+  "/contacts": "Contacts",
+  "/opportunities": "Opportunities",
+  "/marketing": "Marketing",
+  "/reports": "Reports",
+  "/settings": "Settings",
+  "/transactions": "Transactions",
+  "/activities": "Activities",
+  "/partner/dashboard": "Dashboard",
+  "/partner/pipeline": "Pipeline",
+  "/partner/new-referral": "New Referral",
+  "/partner/collaterals": "Collaterals",
+};
+
+function titleFor(p: string): string {
+  if (TITLES[p]) return TITLES[p];
+  const hit = Object.keys(TITLES).filter((k) => p.startsWith(k)).sort((a, b) => b.length - a.length)[0];
+  return hit ? TITLES[hit] : "A/CO";
+}
 
 function BellIcon() {
   return (
@@ -12,96 +35,28 @@ function BellIcon() {
   );
 }
 
-/** Record-screen breadcrumb + actions. */
-function isContactRecord(p: string) { return p.startsWith("/contact/"); }
-function isDealRecord(p: string) { return p.startsWith("/deal/") || p.startsWith("/dealpage/"); }
-function isRecord(p: string) { return isContactRecord(p) || isDealRecord(p); }
-
-function breadcrumb(p: string): { arrow: string; title: string } | null {
-  if (isContactRecord(p)) return { arrow: "‹ ", title: "Contact" };
-  if (p.startsWith("/dealpage/")) return { arrow: "‹ ", title: "Deal Record" };
-  if (p.startsWith("/deal/")) return { arrow: "‹ ", title: "Deal Detail" };
-  return null;
-}
-
 export function TopBar() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  const [notifOpen, setNotifOpen] = useState(false);
-  const [logOpen, setLogOpen] = useState(false);
-  const [read, setRead] = useState(false);
 
-  // Inbox is a full-bleed two-pane surface — no top bar (README §5, v5).
+  // Hidden on Inbox (topBarStyle = display:none; fragment/​logic line 394)
   if (pathname.startsWith("/inbox")) return null;
 
-  const bc = breadcrumb(pathname);
-  const title = bc ? bc.title : titleForPath(pathname);
-  const unread = read ? 0 : NOTIFICATIONS.length;
-
-  const isWelcome = pathname.startsWith("/welcome");
+  const isCommand = pathname.startsWith("/welcome");
 
   return (
-    <header className="tb">
-      <div className="tb-left">
-        <h1 className="tb-title">
-          {bc && <span className="arrow" onClick={() => navigate(-1)}>{bc.arrow}</span>}
-          {title}
-        </h1>
-        <span className="tb-date">{TODAY_LABEL}</span>
-      </div>
-
-      <div className="tb-right">
-        {isContactRecord(pathname) && (
-          <>
-            <button className="tb-action">Brief me</button>
-            <div className="tb-menu-wrap">
-              <button className="tb-action" onClick={() => setLogOpen((o) => !o)}>Log touch ▾</button>
-              {logOpen && (
-                <div className="tb-menu" onMouseLeave={() => setLogOpen(false)}>
-                  {["Call", "WhatsApp", "Email", "Showing", "Note", "Task"].map((t) => (
-                    <div key={t} className="tb-menu-item" onClick={() => { setLogOpen(false); navigate("/activities"); }}>{t}</div>
-                  ))}
-                </div>
-              )}
-            </div>
-            <button className="tb-action" onClick={() => navigate("/opportunities")}>New Deal</button>
-          </>
-        )}
-        {isWelcome && <button className="tb-action" onClick={() => navigate("/intelligence")}>Day brief ↗</button>}
-
-        <div style={{ position: "relative" }}>
-          <div className="tb-bell" title="Notifications" onClick={() => setNotifOpen((o) => !o)}>
-            <BellIcon />
-            {unread > 0 && <span className="tb-bell-badge">{unread}</span>}
-          </div>
-          {notifOpen && (
-            <>
-              <div className="tb-notif-scrim" onClick={() => setNotifOpen(false)} />
-              <div className="tb-notif">
-                <div className="tb-notif-head">
-                  <span className="tb-notif-title">Notifications</span>
-                  {unread > 0 ? (
-                    <span className="tb-notif-clear" onClick={() => setRead(true)}>Mark all read</span>
-                  ) : (
-                    <span className="tb-notif-clear" style={{ color: "var(--accent)" }}>All clear</span>
-                  )}
-                </div>
-                {NOTIFICATIONS.map((n) => (
-                  <div key={n.id} className={`tb-notif-row${read ? " read" : ""}`} onClick={() => { setNotifOpen(false); if (n.to) navigate(n.to); }}>
-                    <span className="tb-notif-dot" style={{ background: n.dot }} />
-                    <div>
-                      <div className="tb-notif-text">{n.text}</div>
-                      <div className="tb-notif-time">{n.time}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
+    <>
+      <div className="tb">
+        <div className="tb-left">
+          <h1 className="tb-title">{titleFor(pathname)}</h1>
+          <span className="tb-date">Monday, July 06 2026</span>
+        </div>
+        <div className="tb-right">
+          {isCommand && <button className="tb-action" onClick={() => navigate("/intelligence")}>Day brief ↗</button>}
+          <div className="tb-bell" title="Notifications"><BellIcon /></div>
         </div>
       </div>
-    </header>
+      <div className="tb-divider" />
+    </>
   );
 }
-
-export { isRecord };
