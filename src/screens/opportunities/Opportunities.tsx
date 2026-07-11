@@ -1,0 +1,432 @@
+import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { recordAction } from "../../data/repository";
+import { SANS, deltaCell } from "../contacts/data";
+import {
+  ALL_ORDER, type Card, CLOSED_HEAD, CLOSED_ROWS, COLL_PIPES, type Column, OPP_DELTAS,
+  PEEK_CURATED, PIPE_NAMES, PIPE_REF, PIPES, tagsFor, WEEK_DAYS,
+} from "./data";
+import "./Opportunities.css";
+
+/* ================= SCREEN 2 · PIPELINE (fragment 02) ================= */
+
+const initials = (n: string) => n.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+
+type Sort = "weighted" | "budget" | "prob" | "due" | "name";
+const CMP: Record<Sort, (a: Card, b: Card) => number> = {
+  weighted: (a, b) => b.weightedNum - a.weightedNum, budget: (a, b) => b.budgetNum - a.budgetNum,
+  prob: (a, b) => b.probNum - a.probNum, due: (a, b) => a.dueRank - b.dueRank, name: (a, b) => a.name.localeCompare(b.name),
+};
+
+function buildPeek(c: Card) {
+  const isRental = /\/mo/.test(c.budget);
+  const isInv = /Investor/.test(c.opp);
+  const side = /Seller|Listing|Staging|Marketing/.test(c.opp + " " + (c.stage ?? "")) ? "Listing · seller side" : /Tenant|Lease/.test(c.opp) ? "Rental" : isInv ? "Investment · Capital division" : "Purchase · buyer side";
+  const gciNum = isRental ? c.budgetNum : c.budgetNum * (isInv ? 10 : 30);
+  const gciStr = isRental ? `$${c.budgetNum}K · one month` : `$${Math.round(gciNum)}K · ${isInv ? "1%" : "3%"}`;
+  const wGciStr = `$${Math.round((gciNum * c.probNum) / 100)}K`;
+  const cur = PEEK_CURATED[c.name];
+  const contacts = (cur?.contacts ?? [[c.name.split("·")[0].trim() || "Principal", isInv ? "Investor · principal" : "Principal"], ["Listing agent — co-broke", "Counterparty"], ["A/CO TC", "Transaction support"]]).map(([n, r]) => ({ n, r, initials: initials(n) }));
+  const acts = (cur?.acts ?? [["Jul 05", `Next action set — ${c.next}`], ["Jul 01", "Touch logged · WhatsApp — client responsive"], ["Jun 24", `Moved to ${c.stage} · playbook cadence attached`]]).map(([d, t]) => ({ d, t }));
+  const dues = (cur?.dues ?? [[c.next, c.due], ["Cadence touch — agent-run", "T+7d"], ["Re-qualify if no response", "T+21d"]]).map(([l, d], i) => ({ l, d, dColor: i === 0 ? c.dueColor : "#8F8F8F" }));
+  return { name: c.name, stage: c.stage ?? "", status: c.status, side, dot: c.dot, budget: c.budget, gci: gciStr, wGci: wGciStr, probLabel: `${c.prob} probability`, address: cur?.address ?? c.name.split("·")[0].trim(), specs: cur?.specs ?? (isInv ? "Commercial asset · OM + rent roll on file" : "On file"), ppsf: cur?.ppsf ?? "—", delivery: cur?.delivery ?? `${c.stage} · ${c.opp}`, contacts, acts, dues };
+}
+
+export function Opportunities() {
+  const navigate = useNavigate();
+  const [collPipe, setCollPipe] = useState("all");
+  const [viewSel, setViewSel] = useState<"board" | "list" | "week">("board");
+  const [sort, setSort] = useState<Sort>("weighted");
+  const [query, setQuery] = useState("");
+  const [peek, setPeek] = useState<Card | null>(null);
+  const [refDecided, setRefDecided] = useState<null | "accepted" | "declined">(null);
+  const [closedSeg, setClosedSeg] = useState<"won" | "lost">("won");
+
+  const view = collPipe === "all" ? (viewSel === "week" ? "week" : "list") : viewSel;
+  const matchQ = (c: Card) => !query.trim() || (c.name + " " + c.opp).toLowerCase().includes(query.trim().toLowerCase());
+
+  /* current pipeline columns (tag/query filtered + sorted) */
+  const columns: Column[] = useMemo(() => {
+    const raw = collPipe === "all"
+      ? ALL_ORDER.map((st) => {
+          const cards = (["purchases", "listings", "rentals", "investments", "offmarket"] as const).flatMap((p) => {
+            const c0 = PIPES[p].find((x) => x.stage === st);
+            return c0 ? c0.cards.map((cc) => ({ ...cc, pipeName: PIPE_NAMES[p] })) : [];
+          });
+          return cards.length ? { stage: st, cards } : null;
+        }).filter(Boolean) as Column[]
+      : (PIPES[collPipe] ?? PIPES.purchases).map((c0) => ({ stage: c0.stage, cards: c0.cards.map((c) => ({ ...c, pipeName: PIPE_NAMES[collPipe] })) }));
+    return raw.map((c0) => ({ ...c0, cards: c0.cards.map((c) => ({ ...c, tags: tagsFor(c) })).filter(matchQ).sort(CMP[sort]) }));
+  }, [collPipe, sort, query]);
+
+  const allCards = columns.flatMap((c) => c.cards);
+  const isRent = collPipe === "rentals";
+  const openCount = columns.filter((c) => c.stage !== "Won" && c.stage !== "Lost").reduce((s, c) => s + c.cards.length, 0);
+  const wonCount = columns.find((c) => c.stage === "Won")?.cards.length ?? 0;
+  const lostCount = columns.find((c) => c.stage === "Lost")?.cards.length ?? 0;
+  const moneyCards = allCards.filter((c) => !/\/mo/.test(c.budget));
+  const valM = moneyCards.reduce((s, c) => s + c.budgetNum, 0);
+  const wgtM = moneyCards.reduce((s, c) => s + c.weightedNum, 0);
+  const sumBudget = allCards.reduce((s, c) => s + c.budgetNum, 0);
+  const sumWeighted = allCards.reduce((s, c) => s + c.weightedNum, 0);
+  const feeRate = collPipe === "investments" ? 0.01 : collPipe === "all" ? 0.028 : 0.03;
+  const gciM2 = wgtM * feeRate;
+  const repVal = isRent ? `$${Math.round(sumBudget)}K/mo` : `$${valM.toFixed(1)}M`;
+  const repWgt = isRent ? `$${Math.round(sumWeighted)}K/mo` : `$${wgtM.toFixed(1)}M`;
+  const repGci = isRent ? `$${Math.round(sumWeighted)}K` : gciM2 >= 1 ? `$${gciM2.toFixed(1)}M` : `$${Math.round(gciM2 * 1000)}K`;
+  const winRate = wonCount + lostCount ? Math.round((wonCount * 100) / (wonCount + lostCount)) : 0;
+
+  const dl = OPP_DELTAS[collPipe] ?? OPP_DELTAS.all;
+  const mkD = (v: string, arr: string[]) => ({ v, d30: arr[0], dQ: arr[1], dY: arr[2] });
+  const reports = collPipe === "closed"
+    ? [
+        { label: "Closed Deals", sub: "2026 year to date", m: { v: "14", d30: "+2", dQ: "+5", dY: "+14" }, inv: false },
+        { label: "Closed Volume", sub: "realized · YTD", m: { v: "$128M", d30: "+9.8%", dQ: "+24.0%", dY: "+36.5%" }, inv: false },
+        { label: "Realized GCI", sub: "booked · YTD", m: { v: "$3.1M", d30: "+8.9%", dQ: "+22.3%", dY: "+34.8%" }, inv: false },
+        { label: "Avg Days to Close", sub: "contract → close", m: { v: "41", d30: "-3", dQ: "-6", dY: "-9" }, inv: true },
+        { label: "Referrals from Closed", sub: "post-sale engine", m: { v: "9", d30: "+1", dQ: "+3", dY: "+6" }, inv: false },
+      ]
+    : [
+        { label: "Opportunities", sub: "open · pre-close", m: mkD(String(openCount), dl.opps), inv: false },
+        { label: isRent ? "Rent Roll" : "Pipeline Value", sub: isRent ? "monthly · open leases" : "gross volume", m: mkD(repVal, dl.value), inv: false },
+        { label: "Weighted Value", sub: "probability-adjusted", m: mkD(repWgt, dl.weighted), inv: false },
+        { label: "Projected GCI", sub: isRent ? "one-month fee" : "at close", m: mkD(repGci, dl.gci), inv: false },
+        { label: "Win Rate", sub: "won vs. lost · YTD", m: mkD(`${winRate}%`, dl.win), inv: false },
+      ];
+  const reportMeta = collPipe === "closed" ? "Closed · 2026 YTD · trend vs. same period last year" : `${collPipe === "all" ? "All pipelines" : PIPE_NAMES[collPipe] ?? ""} · ${openCount} open · trend vs. prior period`;
+
+  const showClosedSec = collPipe === "all" || collPipe === "closed";
+  const secPipes = collPipe === "all" ? [] : collPipe === "closed" ? [] : [collPipe];
+  const viewDefs: Array<[string, string]> = collPipe === "all" ? [["List", "list"], ["Week", "week"]] : [["Board", "board"], ["List", "list"], ["Week", "week"]];
+
+  const lostRows = (["purchases", "listings", "rentals", "investments", "offmarket"] as const).flatMap((p) => {
+    const c0 = PIPES[p].find((x) => x.stage === "Lost");
+    return c0 ? c0.cards.map((cc) => ({ name: cc.name, pipe: PIPE_NAMES[p], budget: cc.budget, when: cc.due, reason: cc.next })) : [];
+  });
+
+  const allDeals = columns.flatMap((c) => c.cards.map((cc) => ({ ...cc, stage: c.stage }))).sort(CMP[sort]);
+  const weekCols = [
+    ...WEEK_DAYS.map(([label, date]) => ({ label, date, cards: allDeals.filter((c) => !["Won", "Lost", "Placed"].includes(c.stage!) && c.due === date) })),
+    { label: "Later", date: "beyond Fri", cards: allDeals.filter((c) => !["Won", "Lost", "Placed"].includes(c.stage!) && !WEEK_DAYS.some((d) => d[1] === c.due)) },
+  ];
+
+  const colGci = (c: Column) => isRent ? "" : `$${c.cards.reduce((s, x) => s + x.weightedNum, 0).toFixed(1)}M`;
+  const openCard = (c: Card) => setPeek(c);
+
+  const decideRef = (d: "accepted" | "declined") => { setRefDecided(d); void recordAction({ actor: "user", skill: "compliance", action: `Partner referral ${d} — ${PIPE_REF.name} (§3.3 timestamp priority)` }, "referral/rosen", () => setRefDecided(null)); };
+
+  const p = peek ? buildPeek(peek) : null;
+
+  return (
+    <div style={{ padding: "0 48px 140px" }}>
+      {/* REPORT BAR */}
+      <div style={{ margin: "26px 0 26px" }}>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+          <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D" }}>Opportunities report</span>
+          <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{reportMeta}</span>
+        </div>
+        <div style={{ display: "grid", overflowX: "auto", gridTemplateColumns: "repeat(5,minmax(170px,1fr))", gap: 12 }}>
+          {reports.map((r) => (
+            <div key={r.label} className="op-card" style={{ borderRadius: 12, padding: "16px 18px" }}>
+              <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", whiteSpace: "nowrap" }}>{r.label}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 28, lineHeight: 1, marginTop: 12, color: "#0D0D0D" }}>{r.m.v}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.01em", color: "#B8B8B8", marginTop: 5 }}>{r.sub}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,minmax(0,1fr))", gap: 8, marginTop: 14, borderTop: "1px solid #E3E3E3", paddingTop: 12 }}>
+                {[deltaCell("30 D", r.m.d30, r.inv), deltaCell("QTR", r.m.dQ, r.inv), deltaCell("1 YR", r.m.dY, r.inv)].map((d) => (
+                  <div key={d.period} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 8.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#B8B8B8" }}>{d.period}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 9.5, color: d.color }}>{d.disp}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* FILTER ROW */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 12, background: "rgba(255,255,255,0.55)", border: "1px solid #E3E3E3", padding: "16px 24px", marginBottom: 24 }}>
+        <div style={{ display: "flex", gap: "14px 26px", flexWrap: "wrap" }}>
+          {COLL_PIPES.map(([label, id]) => (
+            <div key={id} onClick={() => setCollPipe(id)} style={{ fontFamily: SANS, fontWeight: collPipe === id ? 600 : 400, fontSize: 13, letterSpacing: "0.02em", color: collPipe === id ? "#0D0D0D" : "#8F8F8F", paddingBottom: 5, borderBottom: `1.5px solid ${collPipe === id ? "#0D0D0D" : "transparent"}`, cursor: "pointer", transition: "color 150ms" }}>{label}</div>
+          ))}
+        </div>
+        {collPipe !== "closed" && (
+          <div style={{ display: "flex", gap: 18 }}>
+            {viewDefs.map(([label, id]) => (
+              <div key={id} onClick={() => setViewSel(id as "board" | "list" | "week")} style={{ fontFamily: SANS, fontWeight: view === id ? 600 : 400, fontSize: 12.5, letterSpacing: "0.02em", color: view === id ? "#0D0D0D" : "#8F8F8F", paddingBottom: 5, borderBottom: `1.5px solid ${view === id ? "#0D0D0D" : "transparent"}`, cursor: "pointer", transition: "color 150ms" }}>{label}</div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* BOARD */}
+      {view === "board" && collPipe !== "closed" && (
+        <>
+          {refDecided === null ? (
+            <div className="op-refbanner" style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", borderRadius: 12, borderLeft: "2px solid #B45309", padding: "14px 18px", marginBottom: 22 }}>
+              <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#B45309" }} />
+              <div style={{ flex: 1, minWidth: 240 }}>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#0D0D0D" }}><span style={{ fontWeight: 600 }}>Partner referral — {PIPE_REF.name}</span> · by {PIPE_REF.by} · {PIPE_REF.reg}</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", marginTop: 3 }}>{PIPE_REF.want} · timestamp priority §3.3 · decline window 5 business days §9</div>
+              </div>
+              <div style={{ display: "flex", gap: 8, flex: "none" }}>
+                <button onClick={() => decideRef("accepted")} className="op-btn-solid" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "8px 16px", fontFamily: SANS, fontWeight: 500, fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Accept — protection starts</button>
+                <button onClick={() => decideRef("declined")} className="op-btn-decline" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "8px 14px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#D0342C", cursor: "pointer" }}>Decline — in book</button>
+              </div>
+            </div>
+          ) : (
+            <div className="op-refbanner" style={{ display: "flex", alignItems: "center", gap: 14, borderRadius: 12, borderLeft: "2px solid #B45309", padding: "14px 18px", marginBottom: 22 }}>
+              <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#B45309" }} />
+              <div style={{ flex: 1 }}><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#0D0D0D" }}><span style={{ fontWeight: 600 }}>Partner referral — {PIPE_REF.name}</span></div></div>
+              <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 11, color: refDecided === "accepted" ? "#10A37F" : "#D0342C" }}>{refDecided === "accepted" ? "Accepted ✓ · protection to Jul 07, 2027 · partner auto-updates ON" : "Declined — partner notified with reason (§9)"}</span>
+            </div>
+          )}
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 38 }}>
+            {secPipes.map((pid) => {
+              const cols = columns; // specific pipeline → columns already scoped
+              const openN = cols.filter((c) => c.stage !== "Won" && c.stage !== "Lost").reduce((s, c) => s + c.cards.length, 0);
+              const val = cols.flatMap((c) => c.cards).reduce((s, c) => s + c.budgetNum, 0);
+              const meta = `${openN} open · ${isRent ? `$${Math.round(val)}K/mo` : `$${val.toFixed(1)}M`}`;
+              return (
+                <div key={pid}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, paddingBottom: 11, borderBottom: "1px solid #0D0D0D", marginBottom: 16 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                      <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>{PIPE_NAMES[pid]}</span>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{meta}</span>
+                    </div>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#B8B8B8" }}>{pid === "offmarket" ? "" : "Pipeline → stages"}</span>
+                  </div>
+                  <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, alignItems: "flex-start" }}>
+                    {cols.map((cx) => (
+                      <div key={cx.stage} style={{ width: 250, flex: "none" }}>
+                        <div style={{ paddingBottom: 12, borderBottom: "1px solid #E3E3E3", marginBottom: 14 }}>
+                          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                            <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0D0D0D" }}>{cx.stage}</div>
+                            <span title="Review this stage's playbook" className="op-playbook" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#B8B8B8", cursor: "pointer", border: "1px solid #E3E3E3", borderRadius: 999, padding: "2px 8px", whiteSpace: "nowrap", transition: "all 150ms" }}>Playbook</span>
+                          </div>
+                          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
+                            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", whiteSpace: "nowrap" }}>{cx.cards.length} opps</span>
+                            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#5D5D5D" }}>{colGci(cx)}</span>
+                          </div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                          {cx.cards.map((c) => (
+                            <div key={c.name} onClick={() => openCard({ ...c, stage: cx.stage })} className="op-dealcard" style={{ borderRadius: 12, padding: "15px 15px 13px", cursor: "pointer", transition: "background 150ms" }}>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                                <span onClick={(e) => { e.stopPropagation(); navigate("/opportunities"); }} title="Open deal record" className="op-dealname" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", cursor: "pointer" }}>{c.name}</span>
+                                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", flex: "none" }}>{c.budget}</span>
+                              </div>
+                              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 4 }}>{c.opp}</div>
+                              {(c.tags?.length ?? 0) > 0 && (
+                                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 9 }}>
+                                  {c.tags!.slice(0, 3).map((tg) => <span key={tg} style={{ border: "1px solid #E3E3E3", borderRadius: 999, padding: "1px 8px", fontFamily: SANS, fontSize: 9.5, color: "#5D5D5D", background: "rgba(249,249,249,0.55)" }}>{tg}</span>)}
+                                </div>
+                              )}
+                              <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 12 }}>
+                                <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot, flex: "none" }} />
+                                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{c.status} · {c.prob}</span>
+                              </div>
+                              <div style={{ height: 0.5, background: "#E3E3E3", margin: "12px 0 10px" }} />
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
+                                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#5D5D5D", lineHeight: 1.35 }}>{c.next}</span>
+                                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: c.dueColor, flex: "none" }}>{c.due}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+
+      {/* LIST */}
+      {view === "list" && collPipe !== "closed" && (
+        <div style={{ borderTop: "1px solid #E3E3E3", overflowX: "auto" }}>
+          <div style={{ display: "grid", minWidth: 920, gridTemplateColumns: "1.5fr 0.8fr 1.2fr 1fr 0.7fr 0.55fr 1.5fr 0.7fr", padding: "13px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)", alignItems: "center" }}>
+            <input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search deals" className="op-search" style={{ width: "85%", background: "transparent", border: "none", borderBottom: "1px solid #C9C9C9", padding: "2px 0", fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#0D0D0D", outline: "none" }} />
+            {["Pipeline", "Opportunity", "Stage", "Budget", "Prob", "Next Action", "Due"].map((h) => (
+              <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>
+            ))}
+          </div>
+          {allDeals.map((c) => (
+            <div key={c.name} onClick={() => openCard(c)} className="op-listrow" style={{ display: "grid", minWidth: 920, gridTemplateColumns: "1.5fr 0.8fr 1.2fr 1fr 0.7fr 0.55fr 1.5fr 0.7fr", padding: "16px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center", cursor: "pointer", transition: "background 150ms" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot, flex: "none" }} />
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{c.name}</span>
+              </div>
+              <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, letterSpacing: "0.02em", color: "#0D0D0D" }}>{c.pipeName}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.opp}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.stage}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{c.budget}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.prob}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.next}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: c.dueColor }}>{c.due}</div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* WEEK */}
+      {view === "week" && collPipe !== "closed" && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 12, alignItems: "start" }}>
+          {weekCols.map((w) => (
+            <div key={w.label}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, paddingBottom: 10, borderBottom: "1px solid #0D0D0D", marginBottom: 12 }}>
+                <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>{w.label} <span style={{ fontWeight: 400, color: "#8F8F8F" }}>{w.date}</span></span>
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, color: "#8F8F8F" }}>{w.cards.length}</span>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {w.cards.map((c) => (
+                  <div key={c.name} onClick={() => openCard(c)} className="op-dealcard" style={{ borderRadius: 10, padding: "11px 12px", cursor: "pointer", transition: "background 150ms" }}>
+                    <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, color: "#0D0D0D", lineHeight: 1.35 }}>{c.name}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#5D5D5D", lineHeight: 1.45, marginTop: 4 }}>{c.next}</div>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginTop: 9, paddingTop: 8, borderTop: "1px solid rgba(0,0,0,0.05)" }}>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#0D0D0D" }}>{c.budget}</span>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", color: c.dueColor }}>{c.due}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* CLOSED */}
+      {showClosedSec && (
+        <div style={{ marginTop: 38 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, paddingBottom: 11, borderBottom: "1px solid #0D0D0D", marginBottom: 2 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>Closed</span>
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>2026 YTD · 14 won · $3.1M GCI realized · {lostRows.length} lost</span>
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              {([["Won", "won"], ["Lost", "lost"]] as const).map(([label, id]) => {
+                const active = closedSeg === id;
+                return <div key={id} onClick={() => setClosedSeg(id)} style={{ display: "inline-flex", alignItems: "center", borderRadius: 999, padding: "5px 13px", fontFamily: SANS, fontWeight: active ? 500 : 400, fontSize: 10.5, letterSpacing: "0.05em", textTransform: "uppercase", cursor: "pointer", transition: "all 150ms", background: active ? "#E9E8E4" : "transparent", color: active ? "#0D0D0D" : "#8F8F8F", border: `1px solid ${active ? "#0D0D0D" : "#E3E3E3"}` }}>{label}</div>;
+              })}
+            </div>
+          </div>
+          {closedSeg === "won" ? (
+            <>
+              <div style={{ borderTop: "1px solid #E3E3E3" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1.2fr 0.8fr 0.8fr 0.8fr 1.4fr", padding: "13px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)" }}>
+                  {CLOSED_HEAD.map((h) => <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>)}
+                </div>
+                {CLOSED_ROWS.map((r) => (
+                  <div key={r.name} className="op-listrow" style={{ display: "grid", gridTemplateColumns: "1.5fr 1.2fr 0.8fr 0.8fr 0.8fr 1.4fr", padding: "16px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center", transition: "background 150ms" }}>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{r.name}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.asset}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.closed}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{r.volume}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{r.gci}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: r.postColor }}>{r.post}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, lineHeight: 1.6, color: "#8F8F8F", marginTop: 16 }}>Closed relationships feed referral mining · anniversary gestures · cross-sell radar. Post-sale cadence: quarterly.</div>
+            </>
+          ) : (
+            <>
+              <div style={{ borderTop: "1px solid #E3E3E3" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1.5fr 0.9fr 0.7fr 0.7fr 1.8fr", padding: "13px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)" }}>
+                  {["Deal", "Pipeline", "Value", "Lost", "Reason · last note"].map((h) => <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>)}
+                </div>
+                {lostRows.map((r) => (
+                  <div key={r.name} className="op-listrow" style={{ display: "grid", gridTemplateColumns: "1.5fr 0.9fr 0.7fr 0.7fr 1.8fr", padding: "16px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center", transition: "background 150ms" }}>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{r.name}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, letterSpacing: "0.02em", color: "#0D0D0D" }}>{r.pipe}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.budget}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.when}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.reason}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, lineHeight: 1.6, color: "#8F8F8F", marginTop: 16 }}>Lost deals move to quarterly nurture — the agent tags loss reasons and watches for re-entry signals.</div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* PEEK DRAWER */}
+      {p && (
+        <>
+          <div onClick={() => setPeek(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.32)", zIndex: 80 }} />
+          <div className="op-peek">
+            <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid #E3E3E3" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8F8F8F" }}>{p.stage} · {p.side}</span>
+                <span onClick={() => setPeek(null)} className="op-peek-x" style={{ width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", borderRadius: 8, fontFamily: SANS, fontSize: 13, color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>×</span>
+              </div>
+              <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 22, letterSpacing: "-0.01em", color: "#0D0D0D", marginTop: 8 }}>{p.name}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 7 }}>
+                <span style={{ width: 6, height: 6, borderRadius: "50%", background: p.dot }} />
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D" }}>{p.status} · {p.probLabel}</span>
+              </div>
+            </div>
+            <div style={{ flex: 1, overflowY: "auto" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderBottom: "1px solid #E3E3E3" }}>
+                {[{ l: "Budget", v: p.budget }, { l: "Est. GCI", v: p.gci }, { l: "Weighted GCI", v: p.wGci }].map((n, i) => (
+                  <div key={n.l} style={{ padding: i === 0 ? "16px 0 16px 28px" : "16px 0 16px 20px", borderRight: i < 2 ? "1px solid #E3E3E3" : "none" }}>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>{n.l}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 19, color: "#0D0D0D", marginTop: 5 }}>{n.v}</div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: "18px 28px", borderBottom: "1px solid #E3E3E3" }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", marginBottom: 10 }}>Due dates</div>
+                {p.dues.map((d) => (
+                  <div key={d.l} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "7px 0", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#303030" }}>{d.l}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, color: d.dColor, whiteSpace: "nowrap" }}>{d.d}</span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: "18px 28px", borderBottom: "1px solid #E3E3E3" }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", marginBottom: 10 }}>Property</div>
+                <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 14, color: "#0D0D0D" }}>{p.address}</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#5D5D5D", marginTop: 5 }}>{p.specs}</div>
+                <div style={{ display: "flex", gap: 18, marginTop: 8 }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{p.ppsf}</span>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{p.delivery}</span>
+                </div>
+              </div>
+              <div style={{ padding: "18px 28px", borderBottom: "1px solid #E3E3E3" }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", marginBottom: 10 }}>Related contacts</div>
+                {p.contacts.map((c) => (
+                  <div key={c.n} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 0", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
+                    <span className="op-avatar" style={{ width: 28, height: 28, flex: "none", display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 12, fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.05em", color: "#5D5D5D" }}>{c.initials}</span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 13, color: "#0D0D0D" }}>{c.n}</div>
+                      <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", marginTop: 1 }}>{c.r}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div style={{ padding: "18px 28px 24px" }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", marginBottom: 10 }}>Activity log</div>
+                {p.acts.map((a, i) => (
+                  <div key={i} style={{ display: "flex", gap: 14, padding: "7px 0" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#8F8F8F", flex: "none", width: 44 }}>{a.d}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, lineHeight: 1.5, color: "#303030" }}>{a.t}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 10, padding: "16px 28px", borderTop: "1px solid #E3E3E3", background: "rgba(255,255,255,0.62)" }}>
+              <button onClick={() => { setPeek(null); navigate("/opportunities"); }} className="op-btn-solid" style={{ flex: 1, background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "11px 0", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Open full record</button>
+              <button onClick={() => { setPeek(null); navigate("/activities"); }} className="op-btn-outline" style={{ flex: 1, background: "transparent", border: "1px solid #E3E3E3", padding: "11px 0", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Log activity</button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
