@@ -9,6 +9,8 @@ import { Contacts } from "../screens/contacts/Contacts";
 import { ContactDetail } from "../screens/contact/ContactDetail";
 import { Opportunities } from "../screens/opportunities/Opportunities";
 import { DealDetail } from "../screens/deal/DealDetail";
+import { Transactions } from "../screens/transactions/Transactions";
+import { Settings } from "../screens/settings/Settings";
 import { Placeholder } from "../screens/Placeholder";
 import { homePathForRole } from "./roles";
 
@@ -35,10 +37,11 @@ export function App() {
         <Route path="/contact/:id" element={<ContactDetail />} />
         <Route path="/opportunities" element={<Opportunities />} />
         <Route path="/deal/:id" element={<DealDetail />} />
+        <Route path="/transactions" element={<Transactions />} />
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/marketing" element={<Placeholder name="Marketing" />} />
         <Route path="/reports" element={<Placeholder name="Reports" />} />
-        <Route path="/settings" element={<Placeholder name="Settings" />} />
+        <Route path="/settings" element={<Settings />} />
         <Route path="/activities" element={<Placeholder name="Activities" />} />
 
         {/* Partner portal (README §6) */}

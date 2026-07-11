@@ -51,13 +51,26 @@ const PARTNER_NAV: NavItem[] = [
   { path: "/partner/collaterals", label: "Collaterals" },
 ];
 
+/** Transaction Coordinator sees the contract-centric Transactions screen
+ *  (README §6 `tc`), reached by view-as per §5's "view as filters the nav". */
+const TC_NAV: NavItem[] = [
+  { path: "/welcome", label: "Welcome" },
+  { path: "/intelligence", label: "Intelligence" },
+  { path: "/transactions", label: "Transactions" },
+  { path: "/contacts", label: "Contacts" },
+  { path: "/opportunities", label: "Opportunities" },
+  { path: "/inbox", label: "Inbox", badge: "inbox-unread" },
+  { path: "/settings", label: "Settings" },
+];
+
 /**
- * Nav per role. README §5 only specifies that Referral Partner swaps to the
- * partner nav; the four internal roles are shown the full internal nav for
- * now (the prototype's exact per-role internal filtering is not documented).
+ * Nav per role. README §5 specifies the standard 8-item internal nav and the
+ * Referral Partner swap; the Transaction Coordinator surfaces Transactions.
  */
 export function navForRole(role: Role): NavItem[] {
-  return role === "referral-partner" ? PARTNER_NAV : INTERNAL_NAV;
+  if (role === "referral-partner") return PARTNER_NAV;
+  if (role === "transaction-coordinator") return TC_NAV;
+  return INTERNAL_NAV;
 }
 
 export function homePathForRole(role: Role): string {

@@ -1,0 +1,57 @@
+/* Settings — sectioned config (v5). Autonomy matrix read from the store. */
+
+.st-wrap { display: flex; gap: 52px; padding: 24px 48px 80px; align-items: flex-start; }
+.st-rail { width: 200px; flex: none; position: sticky; top: 24px; }
+.st-rail-title { font-weight: 600; font-size: 11.5px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-meta); padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.st-rail-item { display: flex; gap: 10px; align-items: baseline; padding: 10px 6px; cursor: pointer; border-radius: 8px; transition: background var(--transition); }
+.st-rail-item:hover { background: rgba(255,255,255,0.5); }
+.st-rail-num { font-weight: 200; font-size: 12px; letter-spacing: 0.1em; color: var(--gray-hint); }
+.st-rail-label { font-weight: 400; font-size: 13px; color: var(--gray-secondary); }
+.st-rail-item.active .st-rail-label { color: var(--ink); font-weight: 500; }
+
+.st-content { flex: 1; min-width: 0; max-width: 1080px; }
+.st-section { margin-bottom: 44px; }
+.st-sec-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 6px; }
+.st-sec-num { font-weight: 200; font-size: 13px; letter-spacing: 0.12em; color: var(--gray-meta); }
+.st-sec-title { font-weight: 600; font-size: 16px; color: var(--ink); }
+.st-sec-desc { font-weight: 400; font-size: 13px; color: var(--gray-meta); margin-bottom: 18px; }
+
+.st-grid { border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 0 60px; }
+.st-field { display: flex; justify-content: space-between; align-items: baseline; gap: 20px; padding: 14px 4px; border-bottom: 1px solid var(--border); }
+.st-field-label { font-weight: 400; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-meta); flex: none; }
+.st-field-value { font-weight: 400; font-size: 14px; color: var(--body); text-align: right; }
+
+/* Autonomy */
+.st-auto-group { margin-top: 8px; }
+.st-auto-h { font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-secondary); margin: 18px 0 8px; }
+.st-auto-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+.st-auto-text { font-size: 13.5px; color: var(--ink); }
+.st-toggle { width: 42px; height: 24px; border-radius: 999px; border: 1px solid var(--border-input); position: relative; cursor: pointer; flex: none; transition: background var(--transition); background: var(--border); }
+.st-toggle.on { background: var(--accent); border-color: var(--accent); }
+.st-toggle::after { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: transform var(--transition); }
+.st-toggle.on::after { transform: translateX(18px); }
+.st-auto-note { font-size: 11.5px; color: var(--gray-meta); font-style: italic; margin-top: 12px; }
+
+/* Chips (contact types, cadences) */
+.st-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.st-chip { border: 1px solid var(--border-input); border-radius: 999px; padding: 6px 14px; font-size: 12px; color: var(--ink); background: rgba(255,255,255,0.5); }
+.st-cad-row { display: flex; justify-content: space-between; align-items: baseline; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+.st-cad-status { font-weight: 500; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink); }
+.st-cad-value { font-size: 13px; color: var(--gray-secondary); }
+
+/* Integrations */
+.st-int-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 4px; border-bottom: 1px solid var(--border); }
+.st-int-name { font-weight: 500; font-size: 14px; color: var(--ink); }
+.st-int-desc { font-size: 12px; color: var(--gray-meta); margin-top: 2px; }
+.st-int-status { font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.st-int-status.mock { color: var(--gray-meta); }
+
+/* Audit log */
+.st-audit-row { display: grid; grid-template-columns: 90px 60px 1fr 150px; gap: 12px; align-items: baseline; padding: 10px 4px; border-bottom: 1px solid var(--border); }
+.st-audit-actor { font-weight: 600; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; }
+.st-audit-actor.agent { color: var(--accent); }
+.st-audit-actor.user { color: var(--ink); }
+.st-audit-skill { font-size: 10px; color: var(--gray-hint); }
+.st-audit-action { font-size: 12.5px; color: var(--body); }
+.st-audit-time { font-size: 11px; color: var(--gray-meta); text-align: right; font-variant-numeric: tabular-nums; }
+.st-audit-empty { padding: 16px 4px; font-size: 13px; color: var(--gray-meta); }

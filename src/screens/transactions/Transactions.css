@@ -1,0 +1,43 @@
+/* Transactions — In Contract → close (v5 SCREEN 4). */
+
+.tc-wrap { padding: 24px 48px 100px; }
+.tc-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 26px; }
+.tc-kpi { border-radius: 12px; background: var(--glass-card-bg); backdrop-filter: var(--glass-blur); -webkit-backdrop-filter: var(--glass-blur); border: 1px solid rgba(255,255,255,0.65); box-shadow: var(--shadow-card); padding: 16px 18px; }
+.tc-kpi-label { font-weight: 600; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); }
+.tc-kpi-value { font-weight: 300; font-size: 26px; color: var(--ink); margin-top: 8px; }
+
+.tc-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 14px; }
+.tc-title { font-weight: 600; font-size: 15px; color: var(--ink); }
+.tc-meta { font-size: 12px; color: var(--gray-meta); }
+
+.tc-table { border-top: 1px solid var(--border); }
+.tc-thead, .tc-row { display: grid; grid-template-columns: 2fr 1.4fr 1fr 1fr 0.8fr 1fr; align-items: center; }
+.tc-thead { padding: 12px 16px; background: rgba(236,236,236,0.5); border-bottom: 1px solid var(--border); }
+.tc-th { font-weight: 600; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-meta); cursor: pointer; }
+.tc-th:hover { color: var(--ink); }
+.tc-row { padding: 16px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
+.tc-row:hover { background: rgba(255,255,255,0.55); }
+.tc-cell { font-size: 13px; color: var(--gray-secondary); }
+.tc-prop { display: flex; flex-direction: column; gap: 3px; }
+.tc-prop-name { font-weight: 500; font-size: 14px; color: var(--ink); }
+.tc-prop-meta { font-size: 11.5px; color: var(--gray-meta); }
+.tc-progress { display: flex; flex-direction: column; gap: 5px; }
+.tc-progress-label { font-size: 11.5px; color: var(--gray-secondary); }
+.tc-progress-bar { height: 3px; background: var(--border); border-radius: 999px; }
+.tc-progress-bar > span { display: block; height: 3px; border-radius: 999px; background: var(--ink); }
+.tc-status { font-weight: 500; font-size: 12px; }
+.tc-gci { font-weight: 500; font-size: 13px; color: var(--ink); }
+
+/* Detail drawer */
+.tc-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.32); z-index: 80; }
+.tc-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 520px; max-width: 92vw; background: rgba(255,255,255,0.72); backdrop-filter: blur(30px) saturate(1.8); -webkit-backdrop-filter: blur(30px) saturate(1.8); border-left: 1px solid rgba(255,255,255,0.7); z-index: 81; display: flex; flex-direction: column; box-shadow: -24px 0 60px rgba(0,0,0,0.18); overflow-y: auto; }
+.tc-drawer-head { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); }
+.tc-drawer-close { position: absolute; top: 22px; right: 24px; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--gray-meta); cursor: pointer; background: none; }
+.tc-drawer-name { font-weight: 300; font-size: 22px; color: var(--ink); }
+.tc-drawer-meta { font-size: 12px; color: var(--gray-meta); margin-top: 6px; }
+.tc-milestones { padding: 22px 28px; }
+.tc-ms-title { font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-secondary); margin-bottom: 14px; }
+.tc-ms-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.tc-ms-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+.tc-ms-label { flex: 1; font-size: 13px; color: var(--ink); }
+.tc-ms-due { font-size: 11.5px; color: var(--gray-meta); }
