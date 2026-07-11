@@ -27,7 +27,8 @@
       "Bash(wc -l \"design-reference/Pipeline Intelligence v5.dc.html\")",
       "Bash(grep -oE '>[A-Z][^<{]{8,}<')",
       "Bash(git commit -q -m 'Step 2: persisted data layer + prototype seed + audit_log + Undo *)",
-      "Bash(git commit -q -m 'Step 3: AgentService contract + Fase 1 mock \\(README §12\\) *)"
+      "Bash(git commit -q -m 'Step 3: AgentService contract + Fase 1 mock \\(README §12\\) *)",
+      "Bash(git commit -q -m 'Step 4a: Contacts directory screen \\(README §6\\) *)"
     ]
   }
 }

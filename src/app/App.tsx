@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAppState } from "./state";
 import { AppShell } from "./AppShell";
 import { Login } from "../screens/login/Login";
+import { Contacts } from "../screens/contacts/Contacts";
 import { Placeholder } from "../screens/Placeholder";
 import { homePathForRole } from "./roles";
 
@@ -27,7 +28,7 @@ export function App() {
           path="/intelligence"
           element={<Placeholder name="Intelligence" />}
         />
-        <Route path="/contacts" element={<Placeholder name="Contacts" />} />
+        <Route path="/contacts" element={<Contacts />} />
         <Route
           path="/opportunities"
           element={<Placeholder name="Opportunities" />}
