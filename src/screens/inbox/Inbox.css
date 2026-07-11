@@ -1,6 +1,6 @@
 /* Inbox — message center (v5). Two-pane; sending = approving. */
 
-.ib-wrap { display: flex; height: 100vh; background: rgba(255,255,255,0.62); }
+.ib-wrap { display: flex; height: calc(100vh - 120px); min-height: 480px; background: rgba(255,255,255,0.62); }
 
 /* Threads */
 .ib-threads { width: 344px; flex: none; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; background: rgba(249,249,249,0.55); }

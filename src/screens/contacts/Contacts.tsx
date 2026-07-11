@@ -118,12 +118,17 @@ export function Contacts() {
               <div className="ct-card-sub">{r.sub}</div>
               {r.deltas.length > 0 && (
                 <div className="ct-card-deltas">
-                  {r.deltas.map(([p, v]) => (
-                    <div className="ct-delta" key={p}>
-                      <span className="ct-delta-period">{p}</span>
-                      <span className="ct-delta-val">{v}</span>
-                    </div>
-                  ))}
+                  {r.deltas.map(([p, v]) => {
+                    const down = v.startsWith("-");
+                    return (
+                      <div className="ct-delta" key={p}>
+                        <span className="ct-delta-period">{p}</span>
+                        <span className="ct-delta-val" style={{ color: down ? "var(--risk)" : "var(--accent)" }}>
+                          {down ? "↓" : "↑"} {v}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>

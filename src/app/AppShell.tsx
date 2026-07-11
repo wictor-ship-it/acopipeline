@@ -1,16 +1,14 @@
 import { useEffect } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import { Sidebar } from "./Sidebar";
+import { TopBar } from "./TopBar";
+import { GlobalChrome } from "./GlobalChrome";
 import { UndoBar } from "./UndoBar";
 import { undoStack } from "../data/repository";
-import { titleForPath, topbarHidden } from "./titles";
 import "./AppShell.css";
+import "./chrome.css";
 
 export function AppShell() {
-  const { pathname } = useLocation();
-  const title = titleForPath(pathname);
-  const hideTop = topbarHidden(pathname);
-
   // ⌘Z / Ctrl+Z outside inputs = undo last action (Law 3, prototype parity)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -35,16 +33,15 @@ export function AppShell() {
     <>
       <Sidebar />
       <div className="app-content">
-        {!hideTop && (
-          <header className="topbar">
-            <span className="topbar-title">{title}</span>
-          </header>
-        )}
-        <main className="app-main">
-          <Outlet />
+        <main className="app-canvas">
+          <TopBar />
+          <div className="app-scroll">
+            <Outlet />
+          </div>
         </main>
       </div>
       <UndoBar />
+      <GlobalChrome />
     </>
   );
 }

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import content from "../../data/seed/content.json";
 import type { Contact, ContactStatus } from "../../domain/types";
 import { getById, recordAction, save } from "../../data/repository";
@@ -13,7 +13,6 @@ const STATUS_LABEL: Record<ContactStatus, string> = { hot: "Hot", warm: "Warm", 
 
 export function ContactDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
   const [seg, setSeg] = useState<Seg>("now");
   const [contact, setContact] = useState<Contact | null>(null);
 
@@ -35,11 +34,6 @@ export function ContactDetail() {
 
   return (
     <div>
-      <div className="cd-actionbar">
-        <button className="cd-back" onClick={() => navigate("/contacts")}>‹ Contacts</button>
-        <button className="cd-layout-toggle">Full file · one scroll</button>
-      </div>
-
       <div className="cd-header">
         <div className="cd-head-top">
           <span className="cd-name">{contact.name}</span>

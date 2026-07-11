@@ -1,4 +1,4 @@
-/* App shell layout — content column offset by the fixed 230px sidebar. */
+/* App shell layout — fixed 230px sidebar + rounded floating main canvas. */
 
 .app-content {
   margin-left: 230px;
@@ -7,46 +7,31 @@
   flex-direction: column;
 }
 
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 20;
-  display: flex;
-  align-items: center;
-  min-height: 60px;
-  padding: 0 48px;
-  background: var(--glass-sticky-bg);
-  backdrop-filter: blur(26px) saturate(1.7);
-  -webkit-backdrop-filter: blur(26px) saturate(1.7);
-  border-bottom: 1px solid var(--border);
-}
-
-.topbar-title {
-  font-family: var(--font-brand);
-  font-weight: 400;
-  font-size: 14px;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--ink);
-}
-
-.topbar-back {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--font-ui);
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  color: var(--gray-secondary);
-  background: transparent;
-  border: none;
-  transition: color var(--transition);
-}
-.topbar-back:hover {
-  color: var(--ink);
-}
-
-.app-main {
+/* The main canvas is a rounded glass panel floating on the flat bg (v5). */
+.app-canvas {
   flex: 1;
+  min-width: 0;
+  margin: 14px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Top bar sits inside the canvas, sticky; a hairline divider under it. */
+.app-canvas .tb {
+  border-bottom: 1px solid var(--border);
+  background: rgba(252, 252, 251, 0.6);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.app-scroll {
+  flex: 1;
+  overflow-y: auto;
+  /* room for the fixed command bar so content isn't hidden behind it */
+  padding-bottom: 84px;
 }

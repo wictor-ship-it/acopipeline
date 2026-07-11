@@ -41,7 +41,7 @@ const LCOLS: LCol[] = [
 export function Opportunities() {
   const { items: opps } = useCollection<Opportunity>("opportunities");
   const [pipe, setPipe] = useState<Pipeline | "all" | "closed">("all");
-  const [view, setView] = useState<"board" | "list">("board");
+  const [view, setView] = useState<"board" | "list" | "week">("board");
   const [peek, setPeek] = useState<Opportunity | null>(null);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -90,6 +90,36 @@ export function Opportunities() {
     else { setSortKey(key); setSortDir(1); }
   }
 
+  // Week view — bucket by due date relative to the reference day (Jul 06).
+  const weekBuckets = useMemo(() => {
+    const REF = 6;
+    const dayOf = (o: Opportunity): number | null => {
+      const m = (o.next_due ?? "").match(/([A-Za-z]{3})\s+(\d{1,2})/);
+      if (!m) return null;
+      const mi = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].indexOf(m[1]);
+      return mi === 6 ? Number(m[2]) : mi < 6 ? -1 : 99;
+    };
+    const cols = [
+      { key: "overdue", label: "Overdue", items: [] as Opportunity[] },
+      { key: "today", label: "Today · Jul 06", items: [] as Opportunity[] },
+      { key: "tomorrow", label: "Tomorrow · Jul 07", items: [] as Opportunity[] },
+      { key: "thisweek", label: "This week", items: [] as Opportunity[] },
+      { key: "nextweek", label: "Next week", items: [] as Opportunity[] },
+      { key: "later", label: "Later", items: [] as Opportunity[] },
+    ];
+    for (const o of filtered) {
+      if (o.stage === "Won" || o.stage === "Lost") continue;
+      const d = dayOf(o);
+      if (o.overdue || (d !== null && d >= 0 && d < REF)) cols[0].items.push(o);
+      else if (d === REF) cols[1].items.push(o);
+      else if (d === REF + 1) cols[2].items.push(o);
+      else if (d !== null && d >= REF + 2 && d <= 12) cols[3].items.push(o);
+      else if (d !== null && d >= 13 && d <= 19) cols[4].items.push(o);
+      else cols[5].items.push(o);
+    }
+    return cols;
+  }, [filtered]);
+
   const R = content.pipelineExtras.oppReportsClosed;
 
   return (
@@ -106,9 +136,15 @@ export function Opportunities() {
               <div className="op-card-value">{r.value}</div>
               <div className="op-card-sub">{r.sub}</div>
               <div className="op-card-deltas">
-                {[["30 D", r.d30], ["QTR", r.dQ], ["1 YR", r.dY]].map(([p, v]) => (
-                  <div className="op-delta" key={p}><span className="op-delta-p">{p}</span><span className="op-delta-v">{v}</span></div>
-                ))}
+                {[["30 D", r.d30], ["QTR", r.dQ], ["1 YR", r.dY]].map(([p, v]) => {
+                  const down = v.startsWith("-");
+                  return (
+                    <div className="op-delta" key={p}>
+                      <span className="op-delta-p">{p}</span>
+                      <span className="op-delta-v" style={{ color: down ? "var(--risk)" : "var(--accent)" }}>{down ? "↓" : "↑"} {v}</span>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -126,6 +162,7 @@ export function Opportunities() {
         <div className="op-views">
           <div className={`op-view${view === "board" ? " active" : ""}`} onClick={() => setView("board")}>Board</div>
           <div className={`op-view${view === "list" ? " active" : ""}`} onClick={() => setView("list")}>List</div>
+          <div className={`op-view${view === "week" ? " active" : ""}`} onClick={() => setView("week")}>Week</div>
         </div>
       </div>
 
@@ -165,6 +202,27 @@ export function Opportunities() {
                   </div>
                 ))}
               </div>
+            </div>
+          ))}
+        </div>
+      ) : view === "week" ? (
+        <div className="op-week">
+          {weekBuckets.map((col) => (
+            <div className="op-week-col" key={col.key}>
+              <div className="op-week-head">
+                <span>{col.label}</span>
+                <span className="op-week-count">{col.items.length}</span>
+              </div>
+              {col.items.map((c) => (
+                <div className="op-week-card" key={c.id} onClick={() => setPeek(c)}>
+                  <div className="op-week-name">{c.name}</div>
+                  <div className="op-week-next">{c.next_action}</div>
+                  <div className="op-week-foot">
+                    <span>{c.budget}</span>
+                    <span style={{ color: dueColor(c) }}>{c.next_due}</span>
+                  </div>
+                </div>
+              ))}
             </div>
           ))}
         </div>
