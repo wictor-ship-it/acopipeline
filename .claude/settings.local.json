@@ -41,7 +41,8 @@
       "Bash(git commit -q -m 'Step 4j: Partner Portal \\(dashboard, board, new referral, collaterals\\) *)",
       "Bash(git commit -q -m 'Chrome pass: global top bar, command bar, notifications, palette, shortcuts *)",
       "Bash(git commit -q -m 'Fidelity pass: contact header essence + Google Contacts triage banner *)",
-      "Bash(git commit -q -m 'Fidelity pass 2: Inbox chrome + deal breadcrumb + context chip *)"
+      "Bash(git commit -q -m 'Fidelity pass 2: Inbox chrome + deal breadcrumb + context chip *)",
+      "Bash(git commit -q -m 'Fidelity pass 3: Marketing structure \\(tabs + KPI band + WhatsApp rules\\) *)"
     ]
   }
 }

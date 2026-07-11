@@ -1,6 +1,25 @@
 /* Marketing — campaign & collateral hub (v5). */
 
-.mk-wrap { padding: 24px 48px 100px; display: flex; flex-direction: column; gap: 36px; }
+.mk-wrap { padding: 24px 48px 100px; display: flex; flex-direction: column; gap: 30px; }
+
+.mk-tabs { display: flex; gap: 8px; }
+.mk-tab { font-weight: 500; font-size: 12px; letter-spacing: 0.02em; border-radius: 999px; padding: 8px 16px; border: 1px solid transparent; color: var(--gray-secondary); cursor: pointer; transition: all var(--transition); }
+.mk-tab:hover { color: var(--ink); }
+.mk-tab.active { background: #fff; border-color: var(--border); color: var(--ink); box-shadow: var(--shadow-card); }
+
+.mk-kpis { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.42); }
+.mk-kpi { padding: 18px 20px; border-right: 1px solid var(--border); }
+.mk-kpi:last-child { border-right: none; }
+.mk-kpi-label { font-weight: 600; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); }
+.mk-kpi-value { font-weight: 300; font-size: 28px; color: var(--ink); margin-top: 10px; }
+.mk-kpi-sub { font-size: 11px; color: var(--gray-hint); margin-top: 6px; }
+
+.mk-rules { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; border: 1px solid var(--border); border-radius: 12px; padding: 14px 20px; background: rgba(255,255,255,0.42); }
+.mk-rules-label { font-weight: 600; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-meta); }
+.mk-rule { display: flex; align-items: baseline; gap: 8px; }
+.mk-rule-status { font-weight: 600; font-size: 11px; letter-spacing: 0.04em; }
+.mk-rule-text { font-size: 12.5px; color: var(--gray-secondary); }
+.mk-rule-note { font-size: 11.5px; font-style: italic; color: var(--gray-hint); margin-left: auto; }
 .mk-sec-title { font-weight: 600; font-size: 15px; color: var(--ink); margin-bottom: 4px; }
 .mk-sec-desc { font-size: 12.5px; color: var(--gray-meta); margin-bottom: 16px; }
 
