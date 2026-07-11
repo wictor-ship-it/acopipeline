@@ -1,0 +1,1277 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN CONTACT DETAIL
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN · CONTACT DETAIL ================= -->
+    <sc-if value="{{ isContact }}" hint-placeholder-val="{{ false }}">
+    <div style="position:sticky;top:0;z-index:45;background:rgba(252,252,251,0.82);backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6);box-shadow:0 1px 0 rgba(255,255,255,0.6) inset;">
+    <!-- ===== IDENTITY + STATS · pinned across all tabs ===== -->
+    <div style="padding:20px 48px 16px;border-bottom:1px solid #E3E3E3;">
+      <div>
+        <div style="min-width:0;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8F8F8F;">{{ ctTypeVal }} · {{ ct.location }} · since {{ ct.since }} <span onClick="{{ ctGoProfile }}" title="Classification is edited in the Profile tab" style="cursor:pointer;color:#C9C7C1;" style-hover="color:#0D0D0D;">· edit ›</span></div>
+
+          <div style="display:flex;align-items:center;gap:20px;margin-top:4px;">
+            <div style="position:relative;">
+              <div onClick="{{ ctGoProfile }}" title="Identity file — opens in the Profile tab" style="display:flex;align-items:center;gap:12px;padding:2px 0;cursor:pointer;" style-hover="opacity:0.75;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:28px;letter-spacing:-0.01em;color:#0D0D0D;">{{ ct.name }}</span>
+              </div>
+        
+            </div>
+            <div style="display:flex;align-items:center;gap:8px;flex:none;">
+              <span style="width:6px;height:6px;border-radius:50%;background:{{ ctStatusDot }};"></span>
+              <select value="{{ ctStatusVal }}" onChange="{{ onCtStatus }}" title="Status — changing it arms the default follow-up cadence" style="appearance:none;-webkit-appearance:none;background:transparent;border:none;border-bottom:1px dashed transparent;padding:1px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#5D5D5D;outline:none;cursor:pointer;transition:border-color 150ms;" style-hover="color:#0D0D0D;border-bottom:1px dashed #C9C7C1;">
+                <sc-for list="{{ ctStatusOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+              </select>
+              <span style="display:none;">{{ ct.status }}</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin-top:7px;">
+            <sc-for list="{{ ctSubItems }}" as="i" hint-placeholder-count="3">
+              <div onMouseEnter="{{ i.onEnter }}" onMouseLeave="{{ i.onLeave }}" style="position:relative;">
+                <span onClick="{{ i.onCopy }}" title="Click to copy" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;letter-spacing:0.01em;color:#5D5D5D;cursor:pointer;transition:color 150ms;" style-hover="color:#0D0D0D;text-decoration:underline;text-underline-offset:3px;">{{ i.v }}</span>
+                <sc-if value="{{ i.hovOn }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;left:0;top:100%;padding-top:6px;z-index:65;">
+                    <div style="display:flex;gap:5px;background:rgba(255,255,255,0.97);backdrop-filter:blur(20px) saturate(1.6);-webkit-backdrop-filter:blur(20px) saturate(1.6);border:1px solid rgba(255,255,255,0.65);border-radius:999px;box-shadow:0 12px 32px rgba(0,0,0,0.16);padding:5px 6px;white-space:nowrap;">
+                      <sc-for list="{{ i.acts }}" as="a" hint-placeholder-count="2">
+                        <span onClick="{{ a.onGo }}" style="border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;" style-hover="background:#0D0D0D;border-color:#0D0D0D;color:#FFFFFF;">{{ a.label }}</span>
+                      </sc-for>
+                    </div>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;line-height:1.5;color:#5D5D5D;margin-top:8px;max-width:560px;text-wrap:pretty;">{{ ctEssence }}</div>
+          <sc-if value="{{ ctHasRef }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;padding:2px 0;">
+            <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#10A37F;"></span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;">Referral — <span style="font-weight:600;color:#0D0D0D;">{{ ctRefBy }}</span> · registered {{ ctRefReg }} · protected to {{ ctRefEnds }}</span>
+            <div style="flex:1;min-width:110px;height:4px;border-radius:2px;background:rgba(13,13,13,0.07);overflow:hidden;"><div style="height:100%;width:{{ ctRefPw }};background:#10A37F;"></div></div>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#0D0D0D;white-space:nowrap;">{{ ctRefLeft }}</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#5D5D5D;border:1px solid #E3E3E3;border-radius:999px;padding:4px 10px;white-space:nowrap;">fee 25% · §6</span>
+            <span onClick="{{ ctRefAutoToggle }}" title="Every milestone & interaction is e-mailed to the partner automatically" style="display:inline-flex;align-items:center;gap:6px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:{{ ctRefAutoColor }};border:1px solid #E3E3E3;border-radius:999px;padding:4px 10px;cursor:pointer;user-select:none;white-space:nowrap;"><span style="width:5px;height:5px;border-radius:50%;background:{{ ctRefAutoColor }};"></span>{{ ctRefAutoLabel }}</span>
+          </div>
+        </sc-if>
+        <sc-if value="{{ ctNoRef }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:9px;padding:2px 0;">
+            <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#D9D9D9;"></span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">Referral origin — none</span>
+            <sc-if value="{{ ctRefPickClosed }}" hint-placeholder-val="{{ true }}">
+              <span onClick="{{ ctRefPickToggle }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;" style-hover="text-decoration:underline;text-underline-offset:3px;">Assign registered partner ▾</span>
+            </sc-if>
+            <sc-if value="{{ ctRefPickOpen }}" hint-placeholder-val="{{ false }}">
+              <sc-for list="{{ ctRefPartners }}" as="rp" hint-placeholder-count="1">
+                <span onClick="{{ rp.onPick }}" style="display:inline-flex;align-items:center;gap:7px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;color:#0D0D0D;background:rgba(255,255,255,0.62);border:1px solid #D9D9D9;border-radius:999px;padding:6px 13px;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;"><span style="width:5px;height:5px;border-radius:50%;background:#10A37F;"></span>{{ rp.name }} · {{ rp.lic }} ✓</span>
+              </sc-for>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">only registered partners with a signed agreement — §3, §8 ·</span>
+              <span onClick="{{ ctRefManage }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#0D0D0D;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">manage partners ›</span>
+            </sc-if>
+          </div>
+        </sc-if>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #E3E3E3;margin-top:16px;">
+          <sc-for list="{{ ctHeadStats }}" as="s" hint-placeholder-count="4">
+            <div style="{{ s.style }}">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;white-space:nowrap;">{{ s.label }}</div>
+              <div style="display:flex;align-items:flex-end;gap:18px;">
+                <sc-if value="{{ s.hasValue }}" hint-placeholder-val="{{ true }}">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:24px;color:{{ s.color }};padding-top:5px;">{{ s.value }}</div>
+                </sc-if>
+                <sc-if value="{{ s.hasPeriods }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:16px;padding-bottom:3px;">
+                    <sc-for list="{{ s.periods }}" as="pp" hint-placeholder-count="2">
+                      <div>
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:8.5px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;white-space:nowrap;">{{ pp.p }}</div>
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12px;color:#10A37F;padding-top:2px;white-space:nowrap;">{{ pp.v }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+              <sc-if value="{{ s.hasSub }}" hint-placeholder-val="{{ false }}">
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;color:#B8B8B8;padding-top:3px;white-space:nowrap;">{{ s.sub }}</div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </div>
+    </div>
+    <div style="display:flex;justify-content:center;padding:14px 48px 0;">
+      <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);border-radius:999px;padding:3px;box-shadow:0 6px 22px rgba(0,0,0,0.05);">
+        <sc-for list="{{ ctSegments }}" as="sg" hint-placeholder-count="4">
+          <div onClick="{{ sg.onClick }}" style="{{ sg.style }}">{{ sg.label }}</div>
+        </sc-for>
+      </div>
+    </div>
+    <div style="padding:2px 48px 0;max-width:960px;margin:0 auto;box-sizing:border-box;">
+        
+    </div>
+
+    <sc-if value="{{ ctAgentTab }}" hint-placeholder-val="{{ false }}">
+      <div onDragOver="{{ onDocDragOver }}" onDragLeave="{{ onDocDragLeave }}" onDrop="{{ onDocDrop }}" style="padding:26px 48px 42px;max-width:1020px;">
+        <div style="display:flex;flex-direction:column;gap:16px;">
+          <sc-for list="{{ ctChatRows }}" as="m" hint-placeholder-count="1">
+            <sc-if value="{{ m.isA }}" hint-placeholder-val="{{ true }}">
+              <div style="display:flex;gap:11px;align-items:flex-start;max-width:780px;">
+                <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#0D0D0D;margin-top:8px;"></span>
+                <div style="min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:8.5px;letter-spacing:0.16em;text-transform:uppercase;color:#8F8F8F;">A/CO Agent · this relationship</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;line-height:1.65;color:#303030;background:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.75);box-shadow:0 4px 16px rgba(0,0,0,0.04);border-radius:4px 16px 16px 16px;padding:13px 18px;margin-top:6px;white-space:pre-wrap;">{{ m.txt }}</div>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ m.isU }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;justify-content:flex-end;">
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;line-height:1.6;color:#FFFFFF;background:#0D0D0D;border-radius:16px 4px 16px 16px;padding:12px 17px;max-width:560px;white-space:pre-wrap;">{{ m.txt }}</div>
+              </div>
+            </sc-if>
+          </sc-for>
+          <sc-if value="{{ ctChatTyping }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;gap:11px;align-items:center;">
+              <span style="width:7px;height:7px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;font-style:italic;color:#8F8F8F;">thinking…</span>
+            </div>
+          </sc-if>
+          <div data-chat-end="1"></div>
+        </div>
+        <div style="display:flex;gap:7px;flex-wrap:wrap;margin-top:24px;">
+          <sc-for list="{{ ctChatChips }}" as="c" hint-placeholder-count="5">
+            <span onClick="{{ c.onClick }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#303030;background:rgba(255,255,255,0.55);border:1px solid #E3E3E3;border-radius:999px;padding:6px 13px;cursor:pointer;transition:all 150ms;white-space:nowrap;" style-hover="border-color:#8F8F8F;color:#0D0D0D;">{{ c.label }}</span>
+          </sc-for>
+        </div>
+        <div style="position:sticky;bottom:16px;margin-top:14px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.6);backdrop-filter:blur(26px) saturate(1.7);-webkit-backdrop-filter:blur(26px) saturate(1.7);border:1px solid rgba(255,255,255,0.75);border-radius:28px;padding:8px 8px 8px 22px;box-shadow:0 10px 32px rgba(0,0,0,0.10);">
+          <label title="Attach a file — the agent files it in this contact&#39;s Drive folder and logs it" style="flex:none;display:inline-flex;align-items:center;gap:6px;cursor:pointer;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:#8F8F8F;transition:color 150ms;" style-hover="color:#0D0D0D;">
+            <input type="file" multiple="" onChange="{{ onDocPick }}" style="display:none;">
+            <span style="font-size:15px;font-weight:300;line-height:1;">＋</span><span>File · or drop anywhere</span>
+          </label>
+          <input value="{{ ctChatInput2 }}" onInput="{{ onCtChatInput }}" onKeyDown="{{ onCtChatKeyD }}" placeholder="Ask about this relationship — strategy, next move, matching, expansion…" style="flex:1;min-width:0;background:transparent;border:none;outline:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;" />
+          <button onClick="{{ ctChatGo }}" style="width:38px;height:38px;border-radius:50%;background:#E9E8E4;border:1px solid #E0DFDA;color:#0D0D0D;font-size:15px;cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center;transition:opacity 150ms;" style-hover="opacity:0.85;">↑</button>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ ctNowVisible }}" hint-placeholder-val="{{ true }}">
+
+    <!-- PRE-MEETING BRIEF OVERLAY -->
+    <sc-if value="{{ briefOpen }}" hint-placeholder-val="{{ false }}">
+      <div onClick="{{ toggleBrief }}" style="position:fixed;inset:0;z-index:80;background:rgba(0,0,0,0.32);"></div>
+      <div style="position:fixed;top:0;right:0;bottom:0;z-index:81;width:520px;max-width:92vw;background:rgba(255,255,255,0.62);border-left:1px solid #D9D9D9;overflow-y:auto;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;padding:28px 32px 20px;border-bottom:1px solid #E3E3E3;">
+          <div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;letter-spacing:0;color:#0D0D0D;">Pre-Meeting Brief</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#8F8F8F;margin-top:6px;">{{ briefFor }} · generated by agent · 30 min before</div>
+          </div>
+          <span onClick="{{ toggleBrief }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:20px;color:#8F8F8F;cursor:pointer;line-height:1;" style-hover="color:#0D0D0D;">×</span>
+        </div>
+        <div style="padding:8px 32px 48px;">
+          <sc-for list="{{ briefSections }}" as="s" hint-placeholder-count="5">
+            <div style="padding:22px 0;border-bottom:1px solid #E3E3E3;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;margin-bottom:12px;">{{ s.label }}</div>
+              <sc-for list="{{ s.items }}" as="it" hint-placeholder-count="2">
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;line-height:1.65;color:#303030;padding:3px 0;">{{ it }}</div>
+              </sc-for>
+            </div>
+          </sc-for>
+          <div style="margin-top:24px;border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);border-left:2px solid #0D0D0D;padding:22px 24px;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Objective of this conversation</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;line-height:1.65;color:#303030;margin-top:12px;">{{ briefObjective }}</div>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+    <!-- ===== PROFILE · client file — full record, inline editable ===== -->
+    <sc-if value="{{ ctProfileTab }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:960px;margin:0 auto;padding:30px 48px 90px;">
+      <div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+        <span onClick="{{ pfAllToggle }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;border:1px solid #E3E3E3;border-radius:999px;padding:5px 13px;user-select:none;transition:all 150ms;" style-hover="color:#0D0D0D;border-color:#8F8F8F;">{{ pfAllLabel }}</span>
+      </div>
+
+      <div onClick="{{ secPfMand.toggle }}" style="display:flex;align-items:baseline;gap:10px;cursor:pointer;user-select:none;">
+        <span style="width:10px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#8F8F8F;">{{ secPfMand.chev }}</span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#10A37F;flex:none;position:relative;top:-1px;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Agent&#39;s Mandate</span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">profile, objective and goals — this writes the plan</span>
+      </div>
+      <sc-if value="{{ secPfMand.open }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #E3E3E3;margin-top:12px;padding:14px 4px 0;">
+        <textarea value="{{ ctMandateVal }}" onInput="{{ onCtMandate }}" rows="3" placeholder="Profile, objective and goals — e.g. 'Oceanfront primary residence, $15–20M, close by Q4. Prefers Rivage. Introduce tax attorney before contract.'" style="width:100%;box-sizing:border-box;border:1px solid transparent;border-radius:8px;background:transparent;padding:8px 10px;margin-left:-10px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.65;color:#303030;outline:none;resize:vertical;" style-hover="border-color:#ECECEC;" style-focus="border-color:#0D0D0D;background:rgba(255,255,255,0.6);"></textarea>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:8px;">
+          <button onClick="{{ saveCtMandate }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:7px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">{{ mandateBtnLabel }}</button>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">{{ mandateNote }}</span>
+        </div>
+      </div>
+
+
+      </sc-if>
+      <div onClick="{{ secPfClass.toggle }}" style="display:flex;align-items:baseline;gap:10px;margin-top:34px;cursor:pointer;user-select:none;">
+        <span style="width:10px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#8F8F8F;">{{ secPfClass.chev }}</span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#0D0D0D;flex:none;position:relative;top:-1px;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Classification</span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">status, type &amp; tags — synced with the header</span>
+      </div>
+      <sc-if value="{{ secPfClass.open }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #E3E3E3;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:18px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+          <span style="width:150px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:#8F8F8F;">Status</span>
+          <select value="{{ ctStatusVal }}" onChange="{{ onCtStatus }}" style="appearance:none;-webkit-appearance:none;background:transparent;border:none;border-bottom:1px dashed #C9C7C1;padding:2px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#0D0D0D;outline:none;cursor:pointer;transition:border-color 150ms;" style-hover="border-bottom:1px dashed #0D0D0D;">
+            <sc-for list="{{ ctStatusOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+          </select>
+          <sc-if value="{{ ctStatusAddOpen }}" hint-placeholder-val="{{ false }}">
+            <input value="{{ ctNewStatus }}" onInput="{{ onCtNewStatus }}" placeholder="New status — e.g. On hold" style="width:170px;box-sizing:border-box;background:transparent;border:1px dashed #C9C7C1;border-radius:999px;padding:3px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#0D0D0D;outline:none;" style-focus="border:1px dashed #0D0D0D;">
+            <span onClick="{{ ctAddStatus }}" title="Add status" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid #E3E3E3;border-radius:50%;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1;color:#8F8F8F;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">+</span>
+            <span onClick="{{ ctStatusAddCancel }}" title="Cancel" style="font-weight:300;font-size:14px;color:#B8B8B8;cursor:pointer;line-height:1;" style-hover="color:#0D0D0D;">×</span>
+          </sc-if>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">→ {{ ctStatusCadence }} · the agent runs it · <span onClick="{{ goSettingsCad }}" style="text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:#5D5D5D;">manage cadences in Settings ›</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+          <span style="width:150px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:#8F8F8F;">Type of contact</span>
+          <select value="{{ ctTypeVal }}" onChange="{{ onCtType }}" style="appearance:none;-webkit-appearance:none;background:transparent;border:none;border-bottom:1px dashed #C9C7C1;padding:2px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#0D0D0D;outline:none;cursor:pointer;transition:border-color 150ms;" style-hover="border-bottom:1px dashed #0D0D0D;">
+            <sc-for list="{{ ctTypeOpts }}" as="o" hint-placeholder-count="3"><option value="{{ o.value }}">{{ o.label }}</option></sc-for>
+          </select>
+          <sc-if value="{{ ctTypeAddOpen }}" hint-placeholder-val="{{ false }}">
+            <input value="{{ ctNewType }}" onInput="{{ onCtNewType }}" placeholder="New type — e.g. Attorney" style="width:170px;box-sizing:border-box;background:transparent;border:1px dashed #C9C7C1;border-radius:999px;padding:3px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#0D0D0D;outline:none;" style-focus="border:1px dashed #0D0D0D;">
+            <span onClick="{{ ctAddType }}" title="Add type" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid #E3E3E3;border-radius:50%;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1;color:#8F8F8F;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">+</span>
+            <span onClick="{{ ctTypeAddCancel }}" title="Cancel" style="font-weight:300;font-size:14px;color:#B8B8B8;cursor:pointer;line-height:1;" style-hover="color:#0D0D0D;">×</span>
+          </sc-if>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;"><span onClick="{{ goSettingsTypes }}" style="text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:#5D5D5D;">manage types in Settings ›</span></span>
+        </div>
+        <div style="display:flex;align-items:center;gap:18px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+          <span style="width:150px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:#8F8F8F;">Tags</span>
+          <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+            <sc-for list="{{ ctTags }}" as="t" hint-placeholder-count="2">
+              <span style="display:inline-flex;align-items:center;gap:5px;border:1px solid #E3E3E3;border-radius:999px;background:rgba(255,255,255,0.5);padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#5D5D5D;">{{ t.label }}<span onClick="{{ t.onRemove }}" title="Remove tag" style="font-weight:300;font-size:11px;color:#B8B8B8;cursor:pointer;line-height:1;" style-hover="color:#D0342C;">×</span></span>
+            </sc-for>
+            <input value="{{ ctNewTag }}" onInput="{{ onCtNewTag }}" placeholder="+ tag" style="width:56px;box-sizing:border-box;background:transparent;border:1px dashed #D9D9D9;border-radius:999px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#303030;outline:none;" style-focus="border:1px dashed #0D0D0D;">
+            <span onClick="{{ ctAddTag }}" title="Add tag" style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border:1px solid #E3E3E3;border-radius:50%;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1;color:#8F8F8F;cursor:pointer;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">+</span>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+      <div onClick="{{ secPfId.toggle }}" style="display:flex;align-items:baseline;gap:10px;cursor:pointer;user-select:none;margin-top:34px;">
+        <span style="width:10px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#8F8F8F;">{{ secPfId.chev }}</span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#0D0D0D;flex:none;position:relative;top:-1px;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Identity file</span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">personal, professional, reachability, family &amp; dates — type to edit, auto-saved</span>
+      </div>
+      <sc-if value="{{ secPfId.open }}" hint-placeholder-val="{{ true }}">
+
+                <div style="border-top:1px solid #E3E3E3;margin-top:12px;padding:4px 0 18px;">
+                  <div style="display:flex;justify-content:flex-end;padding-top:10px;">
+                    <span onClick="{{ ctIdEditToggle }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;border:1px solid #E3E3E3;border-radius:999px;padding:5px 13px;user-select:none;transition:all 150ms;" style-hover="color:#0D0D0D;border-color:#8F8F8F;">{{ ctIdEditLabel }}</span>
+                  </div>
+                  <sc-for list="{{ ctInfoSections }}" as="sec" hint-placeholder-count="6">
+                    <sc-if value="{{ sec.hasVisible }}" hint-placeholder-val="{{ true }}">
+                    <div>
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:14px 0 7px;border-bottom:1px solid #E3E3E3;">
+                        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#0D0D0D;">{{ sec.num }} · {{ sec.label }}</span>
+                        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;color:#B8B8B8;">{{ sec.meta }}</span>
+                      </div>
+                      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0 30px;">
+                        <sc-for list="{{ sec.rows }}" as="f" hint-placeholder-count="4">
+                          <sc-if value="{{ f.show }}" hint-placeholder-val="{{ true }}">
+                          <div style="display:flex;align-items:baseline;gap:10px;padding:7px 2px;border-bottom:1px solid rgba(0,0,0,0.04);transition:background 150ms;" style-hover="background:rgba(255,255,255,0.45);">
+                            <label style="width:108px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">{{ f.label }}</label>
+                            <input value="{{ f.val }}" onInput="{{ f.onInput }}" placeholder="{{ f.ph }}" style="flex:1;min-width:0;border:none;background:transparent;padding:1px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;outline:none;border-bottom:1px solid transparent;transition:border-color 150ms;" style-focus="border-bottom:1px solid #0D0D0D;" />
+                          </div>
+                          </sc-if>
+                        </sc-for>
+                      </div>
+                    </div>
+                    </sc-if>
+                  </sc-for>
+                </div>
+              
+
+
+      </sc-if>
+      <div onClick="{{ secPfPref.toggle }}" style="display:flex;align-items:baseline;gap:10px;cursor:pointer;user-select:none;margin-top:34px;">
+        <span style="width:10px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#8F8F8F;">{{ secPfPref.chev }}</span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#0D0D0D;flex:none;position:relative;top:-1px;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Preferences</span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">what they are looking for — edit inline, auto-saved</span>
+      </div>
+      <sc-if value="{{ secPfPref.open }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #E3E3E3;margin-top:12px;">
+        <sc-for list="{{ ctProfileFields }}" as="pf" hint-placeholder-count="7">
+          <div style="display:flex;align-items:center;gap:18px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+            <span style="width:150px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:8px;letter-spacing:0.16em;text-transform:uppercase;color:#8F8F8F;">{{ pf.label }}</span>
+            <input value="{{ pf.value }}" onInput="{{ pf.onInput }}" style="flex:1;min-width:0;background:transparent;border:none;border-bottom:1px dashed transparent;padding:3px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;transition:border-color 150ms;" style-hover="border-bottom:1px dashed #C9C7C1;" style-focus="border-bottom:1px solid #0D0D0D;">
+          </div>
+        </sc-for>
+      </div>
+
+
+      </sc-if>
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#B8B8B8;margin-top:30px;">Everything here is inline-editable and auto-saved · classification stays in sync with the header · every change is logged.</div>
+    </div>
+    </sc-if>
+
+    <!-- ===== OVERVIEW TAB ===== -->
+    <!-- ===== TIMELINE · now → future → past ===== -->
+    <sc-if value="{{ ctNotProfile }}" hint-placeholder-val="{{ true }}">
+    <div style="max-width:960px;margin:0 auto;padding:30px 48px 90px;">
+
+      <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
+        <span onClick="{{ ctAllToggle }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;border:1px solid #E3E3E3;border-radius:999px;padding:5px 13px;user-select:none;transition:all 150ms;" style-hover="color:#0D0D0D;border-color:#8F8F8F;">{{ ctAllLabel }}</span>
+      </div>
+
+      <!-- NOW -->
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;">
+        <div onClick="{{ secCtNow.toggle }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+          <span style="width:10px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#8F8F8F;">{{ secCtNow.chev }}</span>
+          <span style="width:7px;height:7px;border-radius:50%;background:#D0342C;flex:none;"></span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Now</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">Monday, July 06 · the only action that needs you</span>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:16px;">
+          <sc-if value="{{ hasTlDealLink }}" hint-placeholder-val="{{ false }}"><span onClick="{{ tlDealGo }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#5D5D5D;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" style-hover="color:#0D0D0D;">Open deal · Rivage PH-A →</span></sc-if>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#B8B8B8;">{{ tlActLabel }}</span>
+        </div>
+      </div>
+      <sc-if value="{{ secCtNow.open }}" hint-placeholder-val="{{ true }}">
+      <div style="overflow:hidden;max-height:460px;opacity:1;transition:max-height 320ms ease,opacity 240ms ease;{{ tlCardDyn }}">
+      <div style="border-radius:12px;border:1px solid rgba(255,255,255,0.65);border-left:2px solid #0D0D0D;background:rgba(255,255,255,0.5);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:20px 22px;">
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:15px;color:#0D0D0D;">{{ tlActHead }}</div>
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;line-height:1.6;font-style:italic;color:#5D5D5D;border-left:2px solid #E3E3E3;padding-left:14px;margin-top:12px;">“{{ tlActDraft }}”</div>
+        <sc-if value="{{ tlOpen }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;gap:8px;align-items:center;margin-top:16px;flex-wrap:wrap;">
+            <button onClick="{{ tlApprove }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:9px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">Approve &amp; send · {{ tlActChan }}</button>
+            <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:9px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">Edit draft</button>
+            <button onClick="{{ tlSkip }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:9px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;" style-hover="color:#0D0D0D;">Skip</button>
+          </div>
+        </sc-if>
+      </div>
+      </div>
+      <sc-if value="{{ tlSent }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid #ECECEC;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#10A37F;flex:none;"></span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#10A37F;">Sent ✓ · {{ tlActChan }} · logged — the agent watches for the reply</span>
+          <span style="flex:1;"></span>
+          <span onClick="{{ tlUndo }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" style-hover="color:#0D0D0D;">Undo · ⌘Z</span>
+        </div>
+      </sc-if>
+      <div style="border-top:1px solid #E3E3E3;margin-top:16px;">
+        <sc-for list="{{ tlSignals }}" as="s" hint-placeholder-count="3">
+          <div onClick="{{ s.go }}" style="display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid #ECECEC;cursor:{{ s.cur }};transition:background 150ms;" style-hover="background:rgba(255,255,255,0.45);">
+            <span style="width:6px;height:6px;flex:none;border-radius:50%;background:{{ s.dot }};"></span>
+            <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;">{{ s.t }}</span>
+            <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:13px;color:#8F8F8F;">›</span>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+
+      <sc-if value="{{ tlMlsOpen }}" hint-placeholder-val="{{ false }}">
+
+          <div style="padding:18px 0 4px;">
+
+
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                <span style="width:7px;height:7px;border-radius:50%;background:#D0342C;flex:none;"></span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">MLS Match</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ mlsNewCount }} new · nightly sweep against the profile</span>
+              </div>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#B8B8B8;">IDX · arraescollection.com · last run 03:40</span>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:16px;margin-top:14px;flex-wrap:wrap;">
+              <div style="display:flex;align-items:center;border:1px solid #E3E3E3;border-radius:999px;overflow:hidden;">
+                <span onClick="{{ toggleMlsAuto }}" style="{{ mlsModeNeedsStyle }}">Needs decision</span>
+                <span onClick="{{ toggleMlsAuto }}" style="{{ mlsModeAutoStyle }}">Auto-send</span>
+              </div>
+              <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">{{ mlsModeNote }}</span>
+            </div>
+
+            <!-- Search criteria · collapsible -->
+            <div style="border:1px solid #E3E3E3;border-radius:12px;background:rgba(255,255,255,0.5);margin-bottom:18px;overflow:hidden;">
+              <div onClick="{{ toggleSc }}" style="display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 20px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <div style="display:flex;align-items:baseline;gap:12px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;">Search criteria</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">the profile that drives this sweep — expand to edit &amp; re-run</span>
+                </div>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:13px;color:#8F8F8F;">{{ scChevron }}</span>
+              </div>
+              <sc-if value="{{ scOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="border-top:1px solid #E3E3E3;padding:0 20px;">
+
+          <div style="padding:24px 0 34px;max-width:880px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;letter-spacing:0;color:#0D0D0D;">Buyer Requirement Profile</div>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">Auto-saved</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:40px;margin-bottom:34px;">
+              <p style="margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;line-height:1.6;color:#8F8F8F;max-width:560px;">Capture everything known about the asset this contact is looking for. The richer the profile, the sharper the MLS match.</p>
+              <div onClick="{{ runMlsMatch }}" style="cursor:pointer;flex:none;display:flex;align-items:center;gap:9px;background:#E9E8E4;color:#0D0D0D;padding:11px 20px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;" style-hover="opacity:0.85;"><span style="width:6px;height:6px;border-radius:50%;background:#8F8F8F;"></span>MLS Match</div>
+            </div>
+
+            <!-- SECTION: Asset profile -->
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#0D0D0D;padding-bottom:12px;border-bottom:1px solid #E3E3E3;margin-bottom:26px;">01 · Asset Profile</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px 40px;margin-bottom:44px;">
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Asset Type</label>
+                <input value="{{ ct.prefAsset }}" placeholder="e.g. Penthouse" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Architectural Style</label>
+                <select style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+                  <option>Contemporary</option><option>Modern</option><option>Classic / Traditional</option><option>Mediterranean</option><option>Industrial / Loft</option><option>No preference</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Condition</label>
+                <select style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+                  <option>Turn-key</option><option>Light renovation OK</option><option>Full renovation OK</option><option>New construction</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Purpose</label>
+                <select style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+                  <option>Primary residence</option><option>Investment</option><option>Vacation home</option><option>Relocation</option><option>1031 exchange</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Ownership</label>
+                <select style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+                  <option>Individual</option><option>Trust</option><option>LLC / Entity</option><option>Family office</option>
+                </select>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Occupancy Timeline</label>
+                <select style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+                  <option>Immediate</option><option>Within 3 months</option><option>3–6 months</option><option>6–12 months</option><option>Exploratory</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- SECTION: Location -->
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#0D0D0D;padding-bottom:12px;border-bottom:1px solid #E3E3E3;margin-bottom:26px;">02 · Location</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:26px 40px;margin-bottom:44px;">
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Target Areas / Neighborhoods</label>
+                <input value="{{ ct.prefAreas }}" placeholder="e.g. Brickell, Coconut Grove" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Proximity Priorities</label>
+                <input placeholder="Schools, waterfront, business district…" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+            </div>
+
+            <!-- SECTION: Budget & financing -->
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#0D0D0D;padding-bottom:12px;border-bottom:1px solid #E3E3E3;margin-bottom:26px;">03 · Budget &amp; Financing</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px 40px;margin-bottom:44px;">
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Budget — Min</label>
+                <input placeholder="$" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Budget — Max</label>
+                <input value="{{ ct.prefBudget }}" placeholder="$" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Financing</label>
+                <select style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+                  <option>All cash</option><option>Conventional mortgage</option><option>Jumbo loan</option><option>Portfolio / private bank</option><option>Undecided</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- SECTION: Space -->
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#0D0D0D;padding-bottom:12px;border-bottom:1px solid #E3E3E3;margin-bottom:26px;">04 · Space Requirements</div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px 40px;margin-bottom:44px;">
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Bedrooms (min)</label>
+                <input placeholder="e.g. 3+" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Bathrooms (min)</label>
+                <input placeholder="e.g. 2.5+" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Interior SqFt (min)</label>
+                <input placeholder="e.g. 2,500" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Lot Size</label>
+                <input placeholder="acres / m²" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Parking</label>
+                <input placeholder="spaces" style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Outdoor Space</label>
+                <select style="border:none;border-bottom:1px solid #D9D9D9;background:transparent;padding:8px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;outline:none;">
+                  <option>Balcony / terrace</option><option>Private garden</option><option>Rooftop</option><option>Not required</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- SECTION: Amenities -->
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#0D0D0D;padding-bottom:12px;border-bottom:1px solid #E3E3E3;margin-bottom:22px;">05 · Amenities &amp; Features</div>
+            <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:44px;">
+              <sc-for list="{{ amenityChips }}" as="a" hint-placeholder-count="12">
+                <div onClick="{{ a.onClick }}" style="{{ a.chipStyle }}">{{ a.label }}</div>
+              </sc-for>
+            </div>
+
+            <!-- SECTION: Notes -->
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#0D0D0D;padding-bottom:12px;border-bottom:1px solid #E3E3E3;margin-bottom:26px;">06 · Must-haves, Dealbreakers &amp; Notes</div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:26px 40px;">
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Non-negotiables</label>
+                <textarea rows="3" placeholder="Absolute must-haves…" style="border:1px solid #D9D9D9;background:transparent;padding:12px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;line-height:1.6;color:#303030;outline:none;resize:vertical;"></textarea>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Dealbreakers</label>
+                <textarea rows="3" placeholder="Hard no's…" style="border:1px solid #D9D9D9;background:transparent;padding:12px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;line-height:1.6;color:#303030;outline:none;resize:vertical;"></textarea>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:9px;grid-column:1 / -1;">
+                <label style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Additional Notes</label>
+                <textarea rows="3" style="border:1px solid #D9D9D9;background:transparent;padding:12px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;line-height:1.6;color:#303030;outline:none;resize:vertical;">{{ prefNotes }}</textarea>
+              </div>
+            </div>
+          </div>
+                </div>
+              </sc-if>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr;gap:10px;margin-top:16px;">
+              <sc-for list="{{ mlsMatches }}" as="m" hint-placeholder-count="4">
+                <div onClick="{{ m.onToggle }}" style="{{ m.rowStyle }}border-radius:12px;">
+                  <div style="{{ m.checkStyle }}border-radius:6px;"></div>
+                  <div style="{{ m.imgStyle }}border-radius:8px;"></div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;">
+                      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.addr }}</span>
+                      <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">{{ m.price }}</span>
+                    </div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;margin-top:3px;">{{ m.specs }}</div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;font-style:italic;color:#8F8F8F;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ m.tagline }}</div>
+                    <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px;">
+                      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;color:#10A37F;">{{ m.match }} fit</span>
+                      <span style="{{ m.newBadgeStyle }}">New</span>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:flex;align-items:center;gap:10px;margin-top:18px;flex-wrap:wrap;">
+              <button onClick="{{ mlsSuggest }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:9px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">Suggest selected · {{ mlsSelCount }}</button>
+              <button onClick="{{ mlsShowing }}" style="background:transparent;border:1px solid #0D0D0D;border-radius:999px;padding:9px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">Draft tour · selected</button>
+              <span title="Identified from the contact profile — Identity file · Nationality &amp; Languages" style="display:inline-flex;align-items:center;gap:6px;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;"><span style="width:5px;height:5px;border-radius:50%;background:#10A37F;flex:none;"></span>{{ mlsLangNote }}</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">{{ mlsAckMsg }}</span>
+            </div>
+          </div>
+            <div onClick="{{ tlMlsToggle }}" style="display:inline-flex;align-items:center;gap:8px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;margin-top:14px;transition:color 150ms;" style-hover="color:#0D0D0D;">⌃ Hide MLS Match</div>
+      </sc-if>
+
+      <!-- FUTURE -->
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:46px;">
+        <div onClick="{{ secCtPlan.toggle }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+          <span style="width:10px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#8F8F8F;">{{ secCtPlan.chev }}</span>
+          <span style="width:7px;height:7px;border-radius:50%;background:#0D0D0D;flex:none;"></span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">The plan ahead</span>
+        </div>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#B8B8B8;">relationship plan — search milestones live on the opportunity · hover to move</span>
+      </div>
+      <sc-if value="{{ secCtPlan.open }}" hint-placeholder-val="{{ true }}">
+      <div style="border-top:1px solid #E3E3E3;margin-top:14px;">
+        <sc-for list="{{ tlFuture }}" as="f" hint-placeholder-count="4">
+          <div onClick="{{ f.onGo }}" onMouseEnter="{{ f.onEnter }}" onMouseLeave="{{ f.onLeave }}" style="display:flex;align-items:center;gap:16px;padding:14px 4px;border-bottom:1px solid #ECECEC;cursor:{{ f.cur }};transition:background 150ms;" style-hover="background:rgba(255,255,255,0.45);">
+            <span style="width:56px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;letter-spacing:0.02em;color:#5D5D5D;">{{ f.d }}</span>
+            <span style="width:6px;height:6px;flex:none;border-radius:50%;background:{{ f.c }};"></span>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;">{{ f.what }}</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;margin-top:2px;">{{ f.why }}</div>
+            </div>
+            <sc-if value="{{ f.hov }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:6px;flex:none;">
+                <button onClick="{{ f.onP1 }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:4px 10px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">+1d</button>
+                <button onClick="{{ f.onP7 }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:4px 10px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">+1w</button>
+              </div>
+            </sc-if>
+            <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:{{ f.c }};">{{ f.st }}</span>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+      
+      
+
+      <!-- PAST -->
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;margin-top:46px;">
+        <div onClick="{{ secCtMem.toggle }}" style="display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none;">
+          <span style="width:10px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#8F8F8F;">{{ secCtMem.chev }}</span>
+          <span style="width:7px;height:7px;border-radius:50%;background:#8F8F8F;flex:none;"></span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Memory</span>
+        </div>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#B8B8B8;">everything learned &amp; logged — profile fills itself</span>
+      </div>
+      <sc-if value="{{ secCtMem.open }}" hint-placeholder-val="{{ true }}">
+      <sc-if value="{{ hasTlLearn }}" hint-placeholder-val="{{ true }}">
+        <div style="border:1px solid #E3E3E3;border-left:2px solid #10A37F;background:rgba(255,255,255,0.62);padding:14px 18px;margin-top:14px;">
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#10A37F;">Agent learned</span>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.55;color:#303030;margin-top:6px;">{{ tlLearn.text }}</div>
+          <div style="display:flex;gap:8px;margin-top:12px;">
+            <button onClick="{{ tlLearn.onSave }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:7px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">Save to profile</button>
+            <button onClick="{{ tlLearn.onDismiss }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:7px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.55);">Dismiss</button>
+          </div>
+        </div>
+      </sc-if>
+      <div style="border-top:1px solid #E3E3E3;margin-top:14px;">
+        <sc-for list="{{ tlPast }}" as="p" hint-placeholder-count="6">
+          <div style="display:flex;align-items:baseline;gap:16px;padding:12px 4px;border-bottom:1px solid #ECECEC;">
+            <span style="width:56px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11.5px;color:#8F8F8F;">{{ p.date }}</span>
+            <span style="width:76px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">{{ p.type }}</span>
+            <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.55;color:#303030;">{{ p.body }}</span>
+          </div>
+        </sc-for>
+      </div>
+      </sc-if>
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#B8B8B8;margin-top:14px;">End of file — the agent keeps everything; ask the dock for anything older.</div>
+    
+      <div style="margin-top:44px;border-top:1px solid #E3E3E3;padding-top:30px;">
+        <!-- FILES · drag & drop — hidden until the first file lands -->
+        <sc-if value="{{ hasDropDocs }}" hint-placeholder-val="{{ false }}">
+        <div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:14px;letter-spacing:0;color:#0D0D0D;">Files</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ dropCount }} on this record</span>
+          </div>
+          <label onDragOver="{{ onDocDragOver }}" onDragLeave="{{ onDocDragLeave }}" onDrop="{{ onDocDrop }}" style="{{ dropZoneStyle }}">
+            <input type="file" multiple="" onChange="{{ onDocPick }}" style="display:none;">
+            <span style="font-size:20px;font-weight:300;color:#8F8F8F;line-height:1;">↓</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">Drag files here — or click to browse</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">PDF · DOCX · images — stored on this record, persists across sessions</span>
+          </label>
+          <sc-if value="{{ hasDropDocs }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #E3E3E3;margin-top:12px;">
+              <sc-for list="{{ dropDocs }}" as="d" hint-placeholder-count="1">
+                <div onClick="{{ d.onOpen }}" style="display:flex;align-items:center;gap:11px;padding:11px 14px;border-bottom:1px solid #E3E3E3;cursor:{{ d.cur }};transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                  <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8px;letter-spacing:0.06em;color:#5D5D5D;border:1px solid #E3E3E3;border-radius:4px;padding:4px 5px;min-width:32px;text-align:center;">{{ d.type }}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ d.name }}</div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;margin-top:2px;">{{ d.meta }}</div>
+                  </div>
+                  <span onClick="{{ d.onRemove }}" title="Remove from record" style="flex:none;font-weight:300;font-size:16px;color:#B8B8B8;cursor:pointer;line-height:1;" style-hover="color:#D0342C;">×</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+        </sc-if>
+      </div>
+    </div>
+
+    <sc-if value="{{ cOverviewNew }}" hint-placeholder-val="{{ true }}">
+    <div style="display:flex;align-items:flex-start;gap:44px;padding:0 48px 70px;">
+
+      <!-- WORKING COLUMN -->
+      <div style="flex:1;min-width:0;max-width:760px;padding:36px 0 0;">
+
+        <!-- THE ONE THING -->
+        <div style="border-top:2px solid #0D0D0D;padding-top:18px;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#0D0D0D;">The One Thing</span>
+            <sc-if value="{{ hasCtNext }}" hint-placeholder-val="{{ false }}">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">{{ ctNextBan.clock }} · {{ ctNextBan.min }}</span>
+            </sc-if>
+          </div>
+          <sc-if value="{{ hasCtNext }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:22px;line-height:1.45;color:#0D0D0D;margin-top:18px;text-wrap:pretty;">{{ ctNextBan.ctx }}</div>
+            <sc-if value="{{ ctNextBan.hasDraft }}" hint-placeholder-val="{{ false }}">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;line-height:1.75;font-style:italic;color:#5D5D5D;margin-top:18px;border-left:0.5px solid #C7C7C7;padding-left:20px;text-wrap:pretty;">{{ ctNextBan.draft }}</div>
+              <div style="display:flex;gap:10px;margin-top:22px;flex-wrap:wrap;">
+                <button onClick="{{ ctNextBan.onWa }}" style="white-space:nowrap;background:transparent;border:0;padding:6px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#D0342C;cursor:pointer;transition:transform 150ms;" style-hover="transform:translateY(-2px);">Send · WhatsApp</button>
+                <button onClick="{{ ctNextBan.onEmail }}" style="white-space:nowrap;background:transparent;border:0;padding:6px 20px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:transform 150ms;" style-hover="transform:translateY(-2px);">Send · Email</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ ctNextBan.isSent }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:center;gap:8px;margin-top:18px;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#0D0D0D;"></span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;">{{ ctNextBan.sentLabel }}</span>
+              </div>
+            </sc-if>
+          </sc-if>
+          <sc-if value="{{ ctNoNext }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:18px;line-height:1.6;color:#5D5D5D;margin-top:18px;text-wrap:pretty;">Nothing needs you today — the agent holds the cadence. {{ ct.agentNote }}</div>
+          </sc-if>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.6;color:#8F8F8F;margin-top:22px;"><span style="font-weight:600;font-size:9.5px;letter-spacing:0.12em;text-transform:uppercase;margin-right:12px;">Since you last looked</span>{{ ctSinceLine }}</div>
+        </div>
+
+        <!-- TODAY · quiet rows -->
+        <div style="margin-top:44px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:9px;letter-spacing:0.3em;text-transform:uppercase;color:#0D0D0D;border-top:1px solid #E3E3E3;padding-top:16px;">On the radar</div>
+          <div style="margin-top:8px;">
+            <div onClick="{{ runMlsMatch }}" style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 2px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#0D0D0D;">{{ mlsNewCount }} new MLS matches from last night's sweep</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;white-space:nowrap;">Review ›</span>
+            </div>
+            <sc-if value="{{ hasCtNextEvent }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:16px 2px;border-bottom:1px solid #E3E3E3;">
+                <div style="min-width:0;display:flex;align-items:baseline;gap:14px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;white-space:nowrap;">{{ ctNextEvent.when }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#303030;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ ctNextEvent.what }}</span>
+                </div>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;font-style:italic;color:#8F8F8F;white-space:nowrap;flex:none;">calendar · synced</span>
+              </div>
+            </sc-if>
+            <sc-for list="{{ ctTasks }}" as="t" hint-placeholder-count="2">
+              <div style="display:flex;align-items:center;gap:14px;padding:14px 2px;border-bottom:1px solid #E3E3E3;">
+                <div onClick="{{ t.onToggle }}" style="width:13px;height:13px;flex:none;border:1px solid #D9D9D9;border-radius:4px;background:{{ t.checkBg }};cursor:pointer;transition:background 150ms;"></div>
+                <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:{{ t.color }};text-decoration:{{ t.deco }};">{{ t.t }}</span>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:{{ t.dueColor }};">{{ t.due }}</span>
+              </div>
+            </sc-for>
+            <sc-for list="{{ ct.deals }}" as="d" hint-placeholder-count="1">
+              <div onClick="{{ goDeal }}" style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:16px 2px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <div style="display:flex;align-items:baseline;gap:14px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#0D0D0D;">{{ d.name }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">{{ d.stage }}</span>
+                </div>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:15px;color:#0D0D0D;">{{ d.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+        <!-- STORY · collapsed to entry point -->
+        <div style="margin-top:36px;border-top:1px solid #E3E3E3;">
+          <div onClick="{{ goTabActivity }}" style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:15px 2px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;">Story</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">full history · Activity ›</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="width:360px;flex:none;padding:36px 0 0;display:flex;flex-direction:column;gap:20px;">
+
+        <!-- Agent mandate · per-contact prompt -->
+        <div style="border:1px solid #E3E3E3;border-left:2px solid #0D0D0D;background:rgba(255,255,255,0.62);">
+          <sc-if value="{{ mandCollapsed }}" hint-placeholder-val="{{ false }}">
+            <div onClick="{{ toggleMandate }}" style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:13px 18px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;">Agent Mandate <span style="color:#10A37F;">· active</span></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">plan 3 · watch 3 ⌄</span>
+            </div>
+          </sc-if>
+          <sc-if value="{{ mandExpanded }}" hint-placeholder-val="{{ true }}">
+          <div onClick="{{ toggleMandate }}" style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:13px 18px;border-bottom:1px solid #E3E3E3;cursor:pointer;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;">Agent Mandate</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">drives plan &amp; monitoring</span>
+          </div>
+          <div style="padding:14px 18px 16px;">
+            <textarea value="{{ ctMandateVal }}" onInput="{{ onCtMandate }}" rows="4" placeholder="Profile, objective and goals for this relationship — e.g. 'UHNW buyer relocating from SP. Goal: oceanfront primary residence, $15–20M, close by Q4. Prefers Rivage / Bal Harbour. Introduce tax attorney before contract.'" style="width:100%;box-sizing:border-box;border:1px solid #D9D9D9;background:rgba(250,250,250,0.5);padding:12px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.6;color:#303030;outline:none;resize:vertical;" style-focus="border-color:#0D0D0D;"></textarea>
+            <div style="display:flex;align-items:center;gap:10px;margin-top:10px;">
+              <button onClick="{{ saveCtMandate }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:7px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">{{ mandateBtnLabel }}</button>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">{{ mandateNote }}</span>
+            </div>
+          </div>
+          <sc-if value="{{ hasCtPlan }}" hint-placeholder-val="{{ false }}">
+            <div style="border-top:1px solid #E3E3E3;padding:12px 18px 4px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;padding-bottom:4px;">Plan · agent</div>
+              <sc-for list="{{ ctPlanItems }}" as="p" hint-placeholder-count="3">
+                <div style="display:flex;gap:9px;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                  <span style="width:5px;height:5px;border-radius:50%;background:#0D0D0D;flex:none;align-self:center;"></span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.5;color:#303030;">{{ p }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="padding:10px 18px 14px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;padding-bottom:4px;">Monitoring</div>
+              <sc-for list="{{ ctWatchItems }}" as="w" hint-placeholder-count="3">
+                <div style="display:flex;gap:9px;align-items:baseline;padding:6px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                  <span style="width:5px;height:5px;border-radius:50%;background:#10A37F;flex:none;align-self:center;"></span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.5;color:#303030;">{{ w }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          </sc-if>
+        </div>
+
+        <!-- Sections · mandate-row pattern -->
+        <div style="border:1px solid #E3E3E3;border-left:2px solid #0D0D0D;background:rgba(255,255,255,0.62);">
+          <div onClick="{{ toggleCtSecCard }}" style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:13px 18px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;">Sections <span style="color:#8F8F8F;">· {{ ctCurTabLabel }}</span></span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">{{ ctSecChevron }}</span>
+          </div>
+          <sc-if value="{{ ctSecCardOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="border-top:1px solid #E3E3E3;">
+              <sc-for list="{{ ctTabMoreItems }}" as="o" hint-placeholder-count="7">
+                <div onClick="{{ o.onClick }}" style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;border-bottom:1px solid rgba(0,0,0,0.05);" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">
+                  <span>{{ o.label }}</span>
+                  <sc-if value="{{ o.hasBadge }}" hint-placeholder-val="{{ false }}"><span style="background:#D0342C;color:#FFFFFF;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9px;line-height:1;padding:3px 6px;">{{ o.badge }}</span></sc-if>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+      </div>
+    </div>
+    </sc-if>
+
+    
+    </sc-if>
+
+    <sc-if value="{{ ctBodyOld }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:stretch;max-width:960px;margin:0 auto;">
+
+      <!-- CENTER · TABS -->
+      <div style="flex:1;min-width:0;padding:0 48px;">
+        <div style="padding:6px 0 0;">
+          <sc-if value="{{ ctShowFileRows }}" hint-placeholder-val="{{ false }}">
+            <div style="border-top:1px solid #E3E3E3;margin-top:16px;">
+              <sc-for list="{{ fileRows }}" as="r" hint-placeholder-count="5">
+                <div onClick="{{ r.onClick }}" style="{{ r.rowStyle }}" style-hover="background:rgba(255,255,255,0.55);">
+                  <div style="display:flex;align-items:baseline;gap:16px;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;color:#0D0D0D;">{{ r.label }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">{{ r.sum }}</span>
+                  </div>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#8F8F8F;">{{ r.chevron }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+
+        <!-- OVERVIEW -->
+        <sc-if value="{{ cOverview }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:30px 0;display:flex;flex-direction:column;gap:30px;">
+            <div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;letter-spacing:0;color:#0D0D0D;margin-bottom:14px;">Relationship</div>
+              <p style="margin:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;line-height:1.7;color:#303030;max-width:620px;">{{ ct.narrative }}</p>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- CONTACT INFORMATION · collapsible -->
+        <sc-if value="{{ cContact }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:26px 0 0;max-width:880px;display:flex;align-items:baseline;justify-content:space-between;gap:16px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;color:#0D0D0D;">Contact Information</span>
+            <div style="display:flex;align-items:center;gap:14px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">All fields editable · auto-saved · synced with Google Contacts</span>
+              <button onClick="{{ startEnrich }}" title="Agent scans LinkedIn + public sources to complete this profile" style="{{ enrichBtnStyle }}">{{ enrichBtnLabel }}</button>
+            </div>
+          </div>
+
+          <!-- ENRICH · review findings -->
+          <sc-if value="{{ ctEnrichReady }}" hint-placeholder-val="{{ false }}">
+            <div style="max-width:880px;margin-top:18px;border:1px solid #E3E3E3;border-left:2px solid #0D0D0D;background:rgba(255,255,255,0.62);padding:16px 20px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:6px;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12.5px;color:#0D0D0D;">Agent found 5 updates — LinkedIn + public sources</span>
+                <div style="display:flex;gap:8px;">
+                  <button onClick="{{ applyEnrich }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:6px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.04em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">Apply all</button>
+                  <button onClick="{{ dismissEnrich }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.55);">Dismiss</button>
+                </div>
+              </div>
+              <sc-for list="{{ ctEnrichRows }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;align-items:baseline;gap:14px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.05);">
+                  <span style="flex:none;width:110px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">{{ r.field }}</span>
+                  <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ r.value }}</span>
+                  <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">{{ r.source }}</span>
+                </div>
+              </sc-for>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11px;color:#8F8F8F;margin-top:10px;">Nothing is written without your approval — every applied field keeps its source in the audit trail.</div>
+            </div>
+          </sc-if>
+          <sc-if value="{{ ctPersonalOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:26px 0 30px;max-width:880px;">
+
+            <!-- DOSSIER · display-first, hover to edit ----------- -->
+            <sc-for list="{{ ctInfoSections }}" as="sec" hint-placeholder-count="6">
+              <div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:30px 0 10px;border-bottom:1px solid #E3E3E3;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;color:#0D0D0D;">{{ sec.num }} · {{ sec.label }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.03em;color:#B8B8B8;">{{ sec.meta }}</span>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:0 44px;">
+                  <sc-for list="{{ sec.rows }}" as="f" hint-placeholder-count="4">
+                    <div title="Type to edit — auto-saved" style="display:flex;align-items:baseline;gap:14px;padding:9px 4px;border-bottom:1px solid rgba(0,0,0,0.04);transition:background 150ms;" style-hover="background:rgba(255,255,255,0.45);">
+                      <label style="width:128px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">{{ f.label }}</label>
+                      <input value="{{ f.val }}" onInput="{{ f.onInput }}" placeholder="{{ f.ph }}" style="flex:1;min-width:0;border:none;background:transparent;padding:2px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#303030;outline:none;border-bottom:1px solid transparent;transition:border-color 150ms;" style-focus="border-bottom:1px solid #0D0D0D;" />
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          </sc-if>
+        </sc-if>
+
+        <!-- ACTIVITIES -->
+        <sc-if value="{{ cActivities }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;gap:10px;padding:22px 0 0;max-width:1000px;">
+            <input value="{{ ctComposerVal }}" onInput="{{ onCtComposer }}" onKeyDown="{{ onCtComposerKey }}" placeholder="Log anything — call, note, promise… Enter to save, the agent structures it" style="flex:1;border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);padding:11px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;outline:none;transition:border-color 150ms;" style-focus="border-color:#8F8F8F;">
+          </div>
+          <!-- Quick actions -->
+          <!-- Filter + sort · single discreet control -->
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0 6px;margin-top:16px;border-top:1px solid #E3E3E3;max-width:1000px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ ctActResultLabel }}</span>
+            <div style="position:relative;flex:none;">
+              <span onClick="{{ toggleCtActMenu }}" style="display:flex;align-items:center;gap:8px;padding:7px 4px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;white-space:nowrap;transition:color 150ms;" style-hover="color:#0D0D0D;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3 5h18M6 12h12M10 19h4"></path></svg>
+                Filter &amp; Sort
+                <sc-if value="{{ ctActActive }}" hint-placeholder-val="{{ false }}"><span style="width:5px;height:5px;background:#D0342C;border-radius:0;"></span></sc-if>
+              </span>
+              <sc-if value="{{ ctActMenuOpen }}" hint-placeholder-val="{{ false }}">
+                <div style="position:absolute;right:0;top:38px;z-index:40;min-width:250px;background:rgba(255,255,255,0.52);backdrop-filter:blur(26px) saturate(1.8);-webkit-backdrop-filter:blur(26px) saturate(1.8);border:1px solid rgba(255,255,255,0.65);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,0.16);overflow:hidden;">
+                  <div style="padding:12px 16px 6px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:#8F8F8F;">Show</div>
+                  <sc-for list="{{ ctActFilterRows }}" as="f" hint-placeholder-count="6">
+                    <div onClick="{{ f.onClick }}" style="{{ f.style }}" style-hover="background:rgba(255,255,255,0.55);">
+                      <span style="display:flex;align-items:center;gap:9px;"><span style="width:6px;text-align:center;color:#0D0D0D;">{{ f.mark }}</span>{{ f.label }}</span>
+                      <span style="color:#8F8F8F;">{{ f.count }}</span>
+                    </div>
+                  </sc-for>
+                  <div style="padding:12px 16px 6px;border-top:1px solid #E3E3E3;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:9px;letter-spacing:0.24em;text-transform:uppercase;color:#8F8F8F;">Sort</div>
+                  <sc-for list="{{ ctActSortRows }}" as="o" hint-placeholder-count="3">
+                    <div onClick="{{ o.onClick }}" style="{{ o.style }}" style-hover="background:rgba(255,255,255,0.55);">
+                      <span style="display:flex;align-items:center;gap:9px;"><span style="width:6px;text-align:center;color:#0D0D0D;">{{ o.mark }}</span>{{ o.label }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </div>
+          <sc-if value="{{ hasCtLogged }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-top:14px;max-width:1000px;">
+              <sc-for list="{{ ctLogged }}" as="a" hint-placeholder-count="1">
+                <div style="display:flex;gap:14px;padding:10px 16px;border:1px solid #E3E3E3;border-left:2px solid #0D0D0D;background:rgba(255,255,255,0.62);margin-bottom:8px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;flex:none;width:46px;">{{ a.date }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;flex:none;">{{ a.type }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.55;color:#303030;">{{ a.body }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="padding:18px 0 24px;display:flex;flex-direction:column;max-width:1000px;">
+            <sc-if value="{{ ctActEmpty }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid #E3E3E3;padding:22px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#8F8F8F;text-align:center;">No {{ ctActFilterLabel }} activity yet.</div>
+            </sc-if>
+            <sc-for list="{{ ctActFiltered }}" as="a" hint-placeholder-count="3">
+              <div style="border:1px solid #E3E3E3;border-left:2px solid {{ a.accent }};padding:18px 22px;margin-bottom:12px;background:rgba(255,255,255,0.62);">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:{{ a.accent }};">{{ a.type }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ a.date }}</span>
+                </div>
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;line-height:1.6;color:#303030;margin-top:10px;">{{ a.body }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- SHOWINGS -->
+        <sc-if value="{{ cShowings }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:flex-end;padding:18px 0 0;">
+            <span onClick="{{ openQcAppt }}" title="New showing · N A" style="display:flex;align-items:center;gap:8px;border:1px solid #D9D9D9;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">+ New showing</span>
+          </div>
+
+          <!-- TOUR PLANNER -->
+          <sc-if value="{{ hasTour }}" hint-placeholder-val="{{ false }}">
+            <div style="border:1px solid #D9D9D9;background:rgba(255,255,255,0.62);margin-top:22px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 22px;border-bottom:1px solid #E3E3E3;">
+                <div style="display:flex;align-items:baseline;gap:12px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:14px;color:#0D0D0D;">Tour Planner</span>
+                  <sc-if value="{{ tourIsEmpty }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">no tour in planning</span>
+                  </sc-if>
+                  <sc-if value="{{ tourHasPlan }}" hint-placeholder-val="{{ false }}">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Sat Jul 11 · {{ tourStopCount }} stops · routed by geography</span>
+                  </sc-if>
+                </div>
+                <div style="display:flex;align-items:center;gap:14px;">
+                <sc-if value="{{ tourHasPlan }}" hint-placeholder-val="{{ false }}">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;white-space:nowrap;">{{ tourStatusLine }}</span>
+                </sc-if>
+                <div style="position:relative;">
+                  <span onClick="{{ toggleTourAdd }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;border:1px solid #D9D9D9;border-radius:999px;padding:6px 12px;cursor:pointer;white-space:nowrap;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">+ Add stop</span>
+                  <sc-if value="{{ tourAddOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;right:0;top:34px;z-index:40;min-width:250px;background:rgba(255,255,255,0.62);border:1px solid #D9D9D9;">
+                      <div onClick="{{ tourAddMls }}" style="padding:11px 15px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">From MLS Match</div>
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">Pick from the matched listings</div>
+                      </div>
+                      <div onClick="{{ tourAddAddr }}" style="padding:11px 15px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">By address</div>
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">Any listing — agent pulls the listing agent from the MLS record</div>
+                      </div>
+                      <div onClick="{{ tourAddOff }}" style="padding:11px 15px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">Off-market · Network</div>
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">Owner or developer direct · discretion mode · NDA ready</div>
+                      </div>
+                      <div style="padding:11px 15px;">
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">By MLS #</div>
+                        <input value="{{ tourMlsNum }}" onInput="{{ onTourMlsInput }}" onKeyDown="{{ onTourMlsKey }}" placeholder="A11523847 · ↵ fetches from your IDX" style="width:100%;margin-top:6px;background:transparent;border:none;border-bottom:1px solid #D9D9D9;padding:4px 0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#0D0D0D;outline:none;">
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:5px;line-height:1.5;">Full listing pulled from arraescollection.com · listing agent imported to Network</div>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+                </div>
+                <span onClick="{{ toggleTourExp }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;border:1px solid #E3E3E3;padding:6px 12px;cursor:pointer;white-space:nowrap;transition:all 150ms;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">{{ tourExpLabel }}</span>
+              </div>
+              <sc-if value="{{ tourExpanded }}" hint-placeholder-val="{{ false }}">
+              <sc-if value="{{ tourIsEmpty }}" hint-placeholder-val="{{ false }}">
+                <div style="padding:22px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.6;color:#8F8F8F;">When this client asks to see properties, the agent assembles the route, pulls each listing agent from the MLS record and requests access. Start one: select matches in <span onClick="{{ runMlsMatch }}" style="color:#0D0D0D;cursor:pointer;border-bottom:1px solid #D9D9D9;">MLS Match</span> and press Create Showing.</div>
+              </sc-if>
+              <sc-if value="{{ tourHasPlan }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;flex-direction:column;">
+                <sc-for list="{{ tourStops }}" as="s" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:center;gap:16px;padding:13px 22px;border-bottom:1px solid #E3E3E3;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:13px;letter-spacing:0.08em;color:#8F8F8F;flex:none;width:22px;">{{ s.n }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;flex:none;width:46px;">{{ s.time }}</span>
+                    <div style="flex:1;min-width:0;">
+                      <div style="display:flex;align-items:baseline;gap:12px;">
+                        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13.5px;color:#0D0D0D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ s.prop }}</span>
+                        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;white-space:nowrap;">{{ s.agent }}</span>
+                      </div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;margin-top:3px;">{{ s.note }}</div>
+                    </div>
+                    <span style="display:flex;align-items:center;gap:6px;flex:none;"><span style="width:6px;height:6px;border-radius:50%;background:{{ s.stC }};"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:{{ s.stC }};">{{ s.st }}</span></span>
+                    <sc-if value="{{ s.canConfirm }}" hint-placeholder-val="{{ false }}">
+                      <span onClick="{{ s.onConfirm }}" title="Simulate confirmation arriving" style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;border:1px solid #E3E3E3;padding:4px 9px;cursor:pointer;transition:all 150ms;white-space:nowrap;" style-hover="color:#0D0D0D;border-color:#8F8F8F;">Confirm</span>
+                    </sc-if>
+                  </div>
+                </sc-for>
+              </div>
+              <sc-if value="{{ tourNeedsFix }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:16px;padding:14px 22px;border-bottom:1px solid #E3E3E3;border-left:2px solid #D0342C;background:rgba(255,255,255,0.55);">
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;">Agent · recalibration proposed</div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.55;color:#303030;margin-top:5px;">Indian Creek only opens at 14:30. Proposal: swap stops 02↔03 — 305 Ocean Blvd at 12:30, Indian Creek at 14:30, lunch buffer 13:15–14:15. Route preserved; client window respected.</div>
+                  </div>
+                  <button onClick="{{ acceptRecalib }}" style="flex:none;background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:8px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;white-space:nowrap;transition:opacity 150ms;" style-hover="opacity:0.85;">Accept swap</button>
+                  <button onClick="{{ declineRecalib }}" style="flex:none;background:transparent;border:1px solid #E3E3E3;padding:8px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;white-space:nowrap;" style-hover="background:rgba(255,255,255,0.62);">Decline</button>
+                </div>
+              </sc-if>
+              <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 22px;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;line-height:1.55;color:#8F8F8F;max-width:520px;">On send: A/CO-branded PDF — cover, stops with photos and times, addresses, listing agents, parking notes and map links — delivered per this lead’s delivery mode, logged as touch, calendar holds finalized.</span>
+                <div onClick="{{ sendTourPdf }}" style="{{ tourPdfStyle }}" style-hover="opacity:0.85;">{{ tourPdfLabel }}</div>
+              </div>
+              </sc-if>
+              </sc-if>
+            </div>
+          </sc-if>
+
+          <!-- TOUR DOSSIER -->
+          <sc-if value="{{ hasTourDossier }}" hint-placeholder-val="{{ false }}">
+            <div style="border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);margin-top:14px;">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding:14px 22px;border-bottom:1px solid #E3E3E3;background:rgba(255,255,255,0.55);">
+                <div style="display:flex;align-items:baseline;gap:12px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Tour Dossier · Sat Jul 11</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">your in-hand brief · per stop</span>
+                </div>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;white-space:nowrap;">Attached to the calendar event · one tap on your phone, 30 min before</span>
+              </div>
+              <sc-for list="{{ tourDossier }}" as="d" hint-placeholder-count="3">
+                <div style="padding:16px 22px;border-bottom:1px solid #E3E3E3;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">{{ d.prop }}</div>
+                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;margin-top:10px;">
+                    <div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Facts</div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#303030;margin-top:3px;">{{ d.facts }}</div>
+                    </div>
+                    <div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Client fit</div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#303030;margin-top:3px;">{{ d.fit }}</div>
+                    </div>
+                    <div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Ask about</div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#5D5D5D;margin-top:3px;">{{ d.ask }}</div>
+                    </div>
+                    <div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Access</div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#5D5D5D;margin-top:3px;">{{ d.access }}</div>
+                    </div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-if>
+          <div style="padding:24px 0;display:flex;flex-direction:column;">
+            <sc-if value="{{ ctShowingsCount }}" hint-placeholder-val="{{ 1 }}">
+              <sc-for list="{{ ctShowings }}" as="a" hint-placeholder-count="1">
+                <div style="border:1px solid #E3E3E3;padding:18px 22px;margin-bottom:12px;">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#0D0D0D;">Showing</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ a.date }}</span>
+                  </div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;line-height:1.6;color:#303030;margin-top:10px;">{{ a.body }}</div>
+                </div>
+              </sc-for>
+            </sc-if>
+            <sc-if value="{{ ctNoShowings }}" hint-placeholder-val="{{ false }}">
+              <div style="border:1px solid #E3E3E3;padding:22px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#8F8F8F;">No showings logged for this contact.</div>
+            </sc-if>
+
+            <!-- SHOWING COORDINATION · agent-run -->
+            <sc-if value="{{ hasCtShowCoord }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:32px;">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px;">
+                  <div style="display:flex;align-items:baseline;gap:10px;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:14px;color:#0D0D0D;">Coordination</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;">agent-run · with listing agents</span>
+                  </div>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Every step logged · outbound to client needs approval</span>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <sc-for list="{{ ctShowCoord }}" as="c" hint-placeholder-count="2">
+                    <div style="border:1px solid #E3E3E3;padding:16px 20px;">
+                      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:14px;">
+                        <div style="display:flex;align-items:baseline;gap:12px;min-width:0;">
+                          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:14px;color:#0D0D0D;white-space:nowrap;">{{ c.prop }}</span>
+                          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ c.agent }} · via {{ c.ch }}</span>
+                        </div>
+                        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:{{ c.statusColor }};white-space:nowrap;flex:none;">{{ c.status }}</span>
+                      </div>
+                      <div style="border-left:1px solid #E3E3E3;margin:14px 0 0 3px;padding-left:16px;display:flex;flex-direction:column;gap:8px;">
+                        <sc-for list="{{ c.steps }}" as="s" hint-placeholder-count="4">
+                          <div style="display:flex;align-items:baseline;gap:10px;position:relative;">
+                            <span style="position:absolute;left:-19.5px;top:4px;width:7px;height:7px;border-radius:50%;background:{{ s.dotColor }};border:1px solid #FFFFFF;"></span>
+                            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:{{ s.weight }};font-size:12.5px;line-height:1.5;color:{{ s.textColor }};">{{ s.t }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- DEALS -->
+        <sc-if value="{{ cDeals }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;align-items:center;justify-content:flex-end;padding:18px 0 0;">
+            <span onClick="{{ openQcDeal }}" title="New deal · N D" style="display:flex;align-items:center;gap:8px;border:1px solid #D9D9D9;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">+ New deal</span>
+          </div>
+          <div style="padding:24px 0;display:flex;flex-direction:column;">
+            <sc-for list="{{ ctDealCards }}" as="d" hint-placeholder-count="1">
+              <div onClick="{{ d.onClick }}" style="border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);margin-bottom:12px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:18px 22px 14px;">
+                  <div style="min-width:0;">
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:16px;color:#0D0D0D;">{{ d.name }}</div>
+                    <div style="display:flex;align-items:center;gap:9px;margin-top:5px;">
+                      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#D0342C;">{{ d.stage }}</span>
+                    </div>
+                    <sc-if value="{{ d.hasSpecs }}" hint-placeholder-val="{{ false }}">
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;margin-top:6px;">{{ d.specsLine }}</div>
+                    </sc-if>
+                  </div>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:24px;color:#0D0D0D;flex:none;">{{ d.value }}</span>
+                </div>
+                <sc-if value="{{ d.hasFacts }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-wrap:wrap;border-top:1px solid #E3E3E3;">
+                    <sc-for list="{{ d.facts }}" as="f" hint-placeholder-count="4">
+                      <div style="flex:1;min-width:130px;padding:12px 22px;border-right:1px solid #E3E3E3;border-bottom:1px solid #E3E3E3;">
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;">{{ f.l }}</div>
+                        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;margin-top:5px;">{{ f.v }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ d.hasNext }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;align-items:center;gap:12px;padding:13px 22px;background:rgba(245,245,245,0.60);">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;flex:none;">Next</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;flex:1;min-width:0;">{{ d.next }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12px;color:#D0342C;flex:none;">{{ d.nextDate }}</span>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </sc-if>
+
+        <!-- DRIVE TAB -->
+        
+
+    <sc-if value="{{ cDriveTab }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:30px 0 60px;max-width:760px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:6px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;color:#0D0D0D;">Google Drive</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;" style-hover="color:#0D0D0D;">Open in Drive ↗</span>
+            </div>
+            <p style="margin:0 0 20px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.6;color:#8F8F8F;max-width:560px;">Folder auto-created for this contact. Everything the agent receives — contracts, plans, comps — is filed and named here.</p>
+            <div style="border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);">
+              <div style="display:flex;align-items:center;gap:9px;padding:13px 18px;border-bottom:1px solid #E3E3E3;background:rgba(255,255,255,0.55);">
+                <svg width="14" height="14" viewBox="0 0 87.3 78" style="flex:none;"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"></path><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0 -1.2 4.5h27.5z" fill="#00ac47"></path><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.502l5.852 11.5z" fill="#ea4335"></path><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"></path><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"></path><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"></path></svg>
+                <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;">{{ ct.name }}</span>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ ctDrive }}</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:13px 18px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;">Offer letter · draft.pdf</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;margin-top:2px;">Edited Jul 03 · A. Arraes</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:13px 18px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <span style="width:5px;height:5px;flex:none;border-radius:50%;background:#8F8F8F;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;">Floor plans.pdf</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;margin-top:2px;">Edited Jun 28 · Developer</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:13px 18px;border-bottom:1px solid #E3E3E3;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <span style="width:5px;height:5px;flex:none;border-radius:50%;background:#8F8F8F;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;">Construction schedule.xlsx</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;margin-top:2px;">Edited Jun 24 · Developer</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;gap:11px;padding:13px 18px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <span style="width:5px;height:5px;flex:none;border-radius:50%;background:#8F8F8F;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;">Comps · market brief.pdf</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;margin-top:2px;">Edited Jun 20 · A. Arraes</div>
+                </div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:center;gap:7px;padding:12px 18px;border-top:1px solid #E3E3E3;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">+ Upload to Drive</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- RELATED TAB -->
+        <sc-if value="{{ cRelatedTab }}" hint-placeholder-val="{{ false }}">
+          <div style="padding:30px 0 60px;max-width:760px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:16px;margin-bottom:6px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;color:#0D0D0D;">Related Contacts</span>
+              <span style="display:flex;align-items:center;gap:8px;border:1px solid #D9D9D9;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">+ Link contact</span>
+            </div>
+            <p style="margin:0 0 20px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.6;color:#8F8F8F;max-width:560px;">Family, decision makers, attorneys and referral relationships tied to this contact.</p>
+            <div style="display:flex;flex-direction:column;gap:12px;">
+              <sc-for list="{{ ctRelated }}" as="r" hint-placeholder-count="3">
+                <div onClick="{{ r.onOpen }}" style="border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);padding:16px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                  <div style="min-width:0;">
+                    <div style="display:flex;align-items:baseline;gap:12px;">
+                      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;color:#0D0D0D;">{{ r.name }}</span>
+                      <sc-if value="{{ r.hasRole }}" hint-placeholder-val="{{ true }}">
+                        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;border:1px solid #E3E3E3;background:rgba(255,255,255,0.55);padding:2px 8px;white-space:nowrap;">{{ r.role }}</span>
+                      </sc-if>
+                    </div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#5D5D5D;margin-top:5px;">{{ r.note }}</div>
+                  </div>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#8F8F8F;flex:none;">›</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+      </div>
+
+    </div>
+    </sc-if>
+    </sc-if>
+    </sc-if>

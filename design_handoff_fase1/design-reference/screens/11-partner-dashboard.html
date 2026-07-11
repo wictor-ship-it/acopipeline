@@ -1,0 +1,120 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN PARTNER DASHBOARD
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN · PARTNER DASHBOARD ================= -->
+    <sc-if value="{{ isPtDash }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Partner Dashboard" style="padding:22px 48px 120px;">
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid #E3E3E3;padding-bottom:16px;">
+        <div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;color:#0D0D0D;">{{ ptName }} — your referrals, live</div>
+          <div style="display:flex;gap:18px;flex-wrap:wrap;margin-top:8px;">
+            <span style="display:inline-flex;align-items:center;gap:7px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;"><span style="width:5px;height:5px;border-radius:50%;background:#0D0D0D;"></span>{{ plk.c1 }}</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;"><span style="width:5px;height:5px;border-radius:50%;background:#0D0D0D;"></span>{{ plk.c2 }}</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;"><span style="width:5px;height:5px;border-radius:50%;background:#0D0D0D;"></span>{{ plk.c3 }}</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#5D5D5D;border:1px solid #E3E3E3;border-radius:999px;padding:6px 13px;">Agreement · 25% of Gross Commission</span>
+          <button onClick="{{ ptStatement }}" style="background:transparent;border:1px solid #B4B4B4;border-radius:999px;padding:8px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">Statement PDF</button>
+          <button onClick="{{ goPtNew }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:8px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">{{ plk.newRef }}</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:20px;">
+        <sc-for list="{{ ptKpis }}" as="k" hint-placeholder-count="4">
+          <div style="border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:15px 18px;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">{{ k.label }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:26px;color:#0D0D0D;margin-top:7px;">{{ k.value }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:3px;">{{ k.note }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;margin-top:24px;">
+        <div style="border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 20px;">
+          <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">{{ plk.feeT }}</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">{{ plk.byS }}</span></div>
+          <div style="margin-top:12px;">
+            <sc-for list="{{ feeBars }}" as="b" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:7px 0;">
+                <span style="width:128px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;">{{ b.label }}</span>
+                <div style="flex:1;height:12px;border-radius:3px;background:rgba(13,13,13,0.06);overflow:hidden;"><div style="height:100%;width:{{ b.w }};background:{{ b.c }};"></div></div>
+                <span style="width:70px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;color:#0D0D0D;">{{ b.v }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:10px;">USD wire within 15 business days of receipt — transfer, conversion and intermediary costs deducted from the fee · §7</div>
+        </div>
+        <div style="border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 20px;">
+          <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">{{ plk.outT }}</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">{{ plk.life }}</span></div>
+          <div style="margin-top:12px;">
+            <sc-for list="{{ outcomeBars }}" as="b" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:12px;padding:7px 0;">
+                <span style="width:128px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;">{{ b.label }}</span>
+                <div style="flex:1;height:12px;border-radius:3px;background:rgba(13,13,13,0.06);overflow:hidden;"><div style="height:100%;width:{{ b.w }};background:#0D0D0D;"></div></div>
+                <span style="width:70px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;color:#0D0D0D;">{{ b.n }}</span>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:10px;">{{ convLine }}</div>
+        </div>
+      </div>
+
+      <section style="margin-top:24px;border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);overflow:hidden;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:15px 20px;border-bottom:1px solid #ECECEC;background:rgba(255,255,255,0.38);">
+          <div style="display:flex;align-items:baseline;gap:10px;"><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">{{ plk.valT }}</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">{{ plk.fromReg }}</span></div>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">extension: written request ≥15 days before expiry · up to +6 months</span>
+        </div>
+        <sc-for list="{{ valRows }}" as="v" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:14px;padding:13px 20px;border-bottom:1px solid #ECECEC;flex-wrap:wrap;">
+            <div style="flex:1;min-width:170px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">{{ v.name }}</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:2px;">{{ v.deal }}</div>
+            </div>
+            <span style="width:170px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#5D5D5D;">{{ v.reg }} → {{ v.ends }}</span>
+            <div style="flex:1;min-width:110px;height:4px;border-radius:2px;background:rgba(13,13,13,0.07);overflow:hidden;"><div style="height:100%;width:{{ v.pw }};background:{{ v.c }};"></div></div>
+            <span style="width:92px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#0D0D0D;">{{ v.left }}</span>
+            <span style="width:210px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;color:{{ v.c }};">{{ v.st }}</span>
+          </div>
+        </sc-for>
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;padding:11px 20px;">Contract signed before expiry? A 60-day closing grace applies — §4.3. Fees are due only on closings inside the window — §4.2.</div>
+      </section>
+
+      <div style="margin-top:24px;">
+      <section style="margin-top:30px;">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;color:#0D0D0D;">{{ plk.commT }}</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ ptTotalLine }}</span>
+        </div>
+        <div style="border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);">
+          <div style="display:flex;align-items:baseline;gap:12px;padding:11px 20px;border-bottom:1px solid #ECECEC;background:rgba(255,255,255,0.38);">
+            <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Deal</span>
+            <span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Base GCI</span>
+            <span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Your share</span>
+            <span style="width:150px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Status</span>
+            <span style="width:110px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Expected</span>
+          </div>
+          <sc-for list="{{ ptRows }}" as="r" hint-placeholder-count="4">
+            <div style="display:flex;align-items:baseline;gap:12px;padding:13px 20px;border-bottom:1px solid #ECECEC;">
+              <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.deal }}</span>
+              <span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ r.base }}</span>
+              <span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">{{ r.share }}</span>
+              <span style="width:150px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;color:{{ r.stColor }};">{{ r.stText }}</span>
+              <span style="width:110px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ r.when }}</span>
+            </div>
+          </sc-for>
+        </div>
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;line-height:1.6;color:#8F8F8F;margin-top:12px;">Pre-construction referrals follow the developer disbursement schedule — your share credits as each installment is received. Fees release on recorded closing; statements reconcile monthly.</div>
+      </section>
+      </div>
+
+    </div>
+    </sc-if>

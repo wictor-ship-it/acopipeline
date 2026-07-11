@@ -1,0 +1,391 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN MARKETING
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN · MARKETING ================= -->
+    <sc-if value="{{ isMarketing }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 48px 60px;" data-screen-label="Marketing">
+
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;gap:8px;">
+          <sc-for list="{{ mktTabs }}" as="tb" hint-placeholder-count="4">
+            <div onClick="{{ tb.onClick }}" style="{{ tb.style }}">{{ tb.label }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <span style="display:flex;align-items:center;gap:6px;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;"><span style="width:6px;height:6px;border-radius:50%;background:#10A37F;"></span>1 · WhatsApp</span>
+          <span style="display:flex;align-items:center;gap:6px;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;"><span style="width:6px;height:6px;border-radius:50%;background:#10A37F;"></span>2 · Instagram · auto-post</span>
+          <span style="display:flex;align-items:center;gap:6px;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;"><span style="width:6px;height:6px;border-radius:50%;background:#10A37F;"></span>3 · LinkedIn</span>
+          <span style="display:flex;align-items:center;gap:6px;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;"><span style="width:6px;height:6px;border-radius:50%;background:#10A37F;"></span>4 · Email</span>
+        </div>
+      </div>
+
+      <!-- ===== TAB · CAMPAIGNS ===== -->
+      <sc-if value="{{ mktCamp }}" hint-placeholder-val="{{ true }}">
+      <div style="margin-top:22px;">
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);border:1px solid rgba(255,255,255,0.65);border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.42);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);">
+          <div style="padding:18px 20px;border-right:1px solid #E3E3E3;"><div style="font-weight:600;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Conversations started · 7d</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:10px;"><span style="font-weight:200;font-size:30px;line-height:1;color:#0D0D0D;">14</span><span style="font-size:11px;color:#10A37F;">+6 vs prior week</span></div></div>
+          <div style="padding:18px 20px;border-right:1px solid #E3E3E3;"><div style="font-weight:600;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Tours from campaigns</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:10px;"><span style="font-weight:200;font-size:30px;line-height:1;color:#0D0D0D;">3</span><span style="font-size:11px;color:#5D5D5D;">2 corridor · 1 seller</span></div></div>
+          <div style="padding:18px 20px;border-right:1px solid #E3E3E3;"><div style="font-weight:600;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Pipeline influenced</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:10px;"><span style="font-weight:200;font-size:30px;line-height:1;color:#0D0D0D;">$2.1M</span><span style="font-size:11px;color:#5D5D5D;">weighted GCI</span></div></div>
+          <div style="padding:18px 20px;"><div style="font-weight:600;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Awaiting approval</div><div style="display:flex;align-items:baseline;gap:8px;margin-top:10px;"><span style="font-weight:200;font-size:30px;line-height:1;color:#D0342C;">2</span><span style="font-size:11px;color:#5D5D5D;">campaigns</span></div></div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:14px;border:1px solid #E3E3E3;border-radius:10px;background:rgba(249,249,249,0.55);padding:12px 18px;margin-top:14px;">
+          <span style="font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;flex:none;">WhatsApp rules</span>
+          <span style="font-size:12px;color:#303030;"><span style="color:#D0342C;font-weight:600;">HOT</span> → 1:1, you approve each</span>
+          <span style="color:#C7C7C7;">·</span>
+          <span style="font-size:12px;color:#303030;"><span style="color:#B45309;font-weight:600;">WARM</span> → 1:1 by the agent, inside approved campaigns</span>
+          <span style="color:#C7C7C7;">·</span>
+          <span style="font-size:12px;color:#303030;"><span style="color:#5D5D5D;font-weight:600;">NURTURE</span> → segment broadcast</span>
+          <span style="flex:1;"></span>
+          <span style="font-size:11px;color:#8F8F8F;">every send auto-localized to the contact's language</span>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:28px;margin-top:22px;align-items:start;">
+          <div>
+            <div style="border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);margin-bottom:20px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 18px;flex-wrap:wrap;">
+                <span style="font-weight:600;font-size:12.5px;color:#0D0D0D;flex:none;">New campaign from a listing</span>
+                <div style="flex:none;display:flex;align-items:center;gap:8px;border:1px solid #E3E3E3;border-radius:999px;padding:5px 5px 5px 13px;">
+                  <span style="font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;flex:none;">MLS #</span>
+                  <input value="{{ mktMlsVal }}" onInput="{{ onMktMls }}" onKeyDown="{{ onMktMlsKey }}" placeholder="A11482233" style="width:96px;background:transparent;border:none;outline:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12.5px;color:#0D0D0D;">
+                  <button onClick="{{ mktPull }}" style="background:#0D0D0D;border:none;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#FFFFFF;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.82;">Pull</button>
+                </div>
+                <span style="font-size:11px;color:#8F8F8F;flex:none;">or</span>
+                <div style="position:relative;">
+                  <div onClick="{{ mktOffToggle }}" style="flex:none;white-space:nowrap;display:flex;align-items:center;gap:8px;border:1px solid #E3E3E3;border-radius:999px;padding:7px 13px;cursor:pointer;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#303030;transition:background 150ms;" style-hover="background:rgba(245,245,245,0.60);">Off-market from pipeline <span style="font-size:8px;color:#8F8F8F;">▾</span></div>
+                  <sc-if value="{{ mktOffOpen }}" hint-placeholder-val="{{ false }}">
+                    <div style="position:absolute;left:0;top:110%;z-index:40;min-width:290px;background:rgba(255,255,255,0.52);backdrop-filter:blur(26px) saturate(1.8);-webkit-backdrop-filter:blur(26px) saturate(1.8);border:1px solid rgba(255,255,255,0.65);border-radius:14px;box-shadow:0 16px 44px rgba(0,0,0,0.16);overflow:hidden;">
+                      <sc-for list="{{ mktOffOptions }}" as="o" hint-placeholder-count="5">
+                        <div onClick="{{ o.onClick }}" style="display:flex;justify-content:space-between;gap:14px;padding:11px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12.5px;color:#303030;cursor:pointer;border-bottom:1px solid #F0F0F0;transition:background 150ms;" style-hover="background:rgba(245,245,245,0.60);">
+                          <span>{{ o.name }}</span><span style="color:#8F8F8F;">{{ o.ask }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                </div>
+                <span style="flex:1;"></span>
+                <span style="flex:none;max-width:200px;font-size:10.5px;line-height:1.45;color:#8F8F8F;text-align:right;">the agent pulls specs, pricing and photos, then drafts the sequence</span>
+              </div>
+              <sc-if value="{{ mktSrcShow }}" hint-placeholder-val="{{ false }}">
+                <div style="display:flex;align-items:center;gap:16px;padding:14px 18px;border-top:1px solid #ECECEC;background:rgba(249,249,249,0.55);border-radius:0 0 12px 12px;">
+                  <span style="flex:none;border:1px solid {{ mktSrcTagBorder }};border-radius:999px;padding:3px 10px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:{{ mktSrcTagColor }};background:rgba(255,255,255,0.62);">{{ mktSrcTag }}</span>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">{{ mktSrcName }} <span style="font-weight:400;color:#5D5D5D;">· {{ mktSrcAsk }} · {{ mktSrcPsf }}</span></div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;color:#5D5D5D;margin-top:3px;">{{ mktSrcSpecs }} · {{ mktSrcSt }}</div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11.5px;color:#8F8F8F;margin-top:5px;">{{ mktSrcPlan }}</div>
+                  </div>
+                  <button onClick="{{ mktCreateFromSrc }}" style="flex:none;background:#0D0D0D;border:none;border-radius:999px;padding:9px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#FFFFFF;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.82;">Create campaign</button>
+                  <span onClick="{{ mktClearSrc }}" style="flex:none;width:26px;height:26px;display:flex;align-items:center;justify-content:center;border:1px solid #E3E3E3;border-radius:8px;color:#8F8F8F;font-size:13px;cursor:pointer;transition:all 150ms;" style-hover="color:#0D0D0D;border-color:#0D0D0D;">×</span>
+                </div>
+              </sc-if>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-weight:600;font-size:13.5px;color:#0D0D0D;">Active campaigns</span>
+              <button style="background:#0D0D0D;border:none;border-radius:999px;padding:8px 16px;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#FFFFFF;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.82;">+ New campaign</button>
+            </div>
+            <div style="border:1px solid rgba(255,255,255,0.65);border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.42);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);">
+              <div style="display:grid;grid-template-columns:2fr 1.3fr 1.3fr 1fr 1.1fr;padding:11px 18px;background:rgba(255,255,255,0.55);border-bottom:1px solid #E3E3E3;">
+                <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Campaign</span>
+                <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Audience</span>
+                <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Channels</span>
+                <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Status</span>
+                <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Sequence</span>
+              </div>
+              <sc-for list="{{ mktCampaigns }}" as="c" hint-placeholder-count="5">
+                <div style="display:grid;grid-template-columns:2fr 1.3fr 1.3fr 1fr 1.1fr;padding:14px 18px;border-bottom:1px solid #ECECEC;align-items:center;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(247,247,247,0.60);">
+                  <div><div style="font-weight:500;font-size:13.5px;color:#0D0D0D;">{{ c.name }}</div><div style="font-size:11px;color:#8F8F8F;margin-top:2px;">{{ c.type }}</div></div>
+                  <span style="font-size:12px;color:#5D5D5D;">{{ c.aud }}</span>
+                  <span style="font-size:10.5px;letter-spacing:0.03em;color:#5D5D5D;">{{ c.ch }}</span>
+                  <div style="display:flex;align-items:center;gap:7px;"><span style="width:6px;height:6px;flex:none;border-radius:50%;background:{{ c.dot }};"></span><span style="font-size:11px;color:{{ c.stColor }};">{{ c.status }}</span></div>
+                  <div><div style="height:3px;background:rgba(255,255,255,0.55);border-radius:999px;"><div style="height:3px;border-radius:999px;background:#0D0D0D;width:{{ c.prog }};"></div></div><div style="font-size:10.5px;color:#8F8F8F;margin-top:4px;">{{ c.step }}</div></div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="border:1px solid #E3E3E3;border-radius:12px;margin-top:22px;overflow:hidden;background:rgba(255,255,255,0.62);">
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 22px;background:rgba(249,249,249,0.55);border-bottom:1px solid #ECECEC;">
+                <div>
+                  <div style="display:flex;align-items:center;gap:10px;"><span style="width:6px;height:6px;border-radius:50%;background:#B45309;"></span><span style="font-weight:600;font-size:14px;color:#0D0D0D;">Rivage PH-A — Off-market preview</span><span style="border:1px solid #E3E3E3;border-radius:999px;padding:2px 9px;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;background:rgba(255,255,255,0.62);">Listing launch</span></div>
+                  <div style="font-size:12px;color:#5D5D5D;margin-top:4px;">Audience: HOT · Acqualina corridor · 12 contacts (8 PT · 3 EN · 1 ES) — built from the pipeline, content localized per contact</div>
+                </div>
+                <div style="text-align:right;flex:none;">
+                  <button onClick="{{ mktApproveCampaign }}" style="{{ mktApproveStyle }}">{{ mktApproveLabel }}</button>
+                  <div style="font-size:10.5px;color:#8F8F8F;margin-top:6px;">approved once → the agent runs the full sequence</div>
+                </div>
+              </div>
+              <div style="display:flex;padding:18px 22px;">
+                <sc-for list="{{ mktSeq }}" as="s" hint-placeholder-count="5">
+                  <div style="flex:1;padding-right:16px;">
+                    <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;flex:none;border-radius:50%;background:{{ s.dot }};"></span><div style="flex:1;height:1px;background:#E3E3E3;"></div></div>
+                    <div style="font-weight:600;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;margin-top:9px;">{{ s.day }} · {{ s.chan }}</div>
+                    <div style="font-size:12px;line-height:1.45;color:#303030;margin-top:4px;">{{ s.what }}</div>
+                    <div style="font-size:10.5px;color:{{ s.stColor }};margin-top:4px;">{{ s.st }}</div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="padding:0 22px 20px;">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:10px;">
+                  <span style="font-weight:600;font-size:12px;color:#0D0D0D;">WhatsApp 1:1 — drafts personalized per contact, in their language</span>
+                  <button onClick="{{ mktApproveBatch }}" style="{{ mktBatchStyle }}">{{ mktBatchLabel }}</button>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+                  <div style="border:1px solid #E3E3E3;border-radius:10px;padding:12px 14px;background:rgba(255,255,255,0.62);">
+                    <div style="display:flex;justify-content:space-between;"><span style="font-weight:600;font-size:11.5px;color:#0D0D0D;">Marcelo Carvalho</span><span style="font-size:9px;letter-spacing:0.06em;color:#8F8F8F;">PT · native · HOT</span></div>
+                    <div style="font-size:11.5px;line-height:1.5;color:#5D5D5D;margin-top:6px;">"Marcelo, antes de abrir ao mercado: o PH-A do Rivage saiu a $2,610/SF — abaixo dos comps que você viu sábado. Te mando o dossier?"</div>
+                  </div>
+                  <div style="border:1px solid #E3E3E3;border-radius:10px;padding:12px 14px;background:rgba(255,255,255,0.62);">
+                    <div style="display:flex;justify-content:space-between;"><span style="font-weight:600;font-size:11.5px;color:#0D0D0D;">W. Chen</span><span style="font-size:9px;letter-spacing:0.06em;color:#8F8F8F;">EN · native · HOT</span></div>
+                    <div style="font-size:11.5px;line-height:1.5;color:#5D5D5D;margin-top:6px;">"Wei — off-market PH at Rivage, flow-through layout like the 53 line you liked. 48h before it lists. Worth a look Thursday?"</div>
+                  </div>
+                  <div style="border:1px solid #E3E3E3;border-radius:10px;padding:12px 14px;background:rgba(255,255,255,0.62);">
+                    <div style="display:flex;justify-content:space-between;"><span style="font-weight:600;font-size:11.5px;color:#0D0D0D;">R. Weiss</span><span style="font-size:9px;letter-spacing:0.06em;color:#8F8F8F;">EN · native · WARM</span></div>
+                    <div style="font-size:11.5px;line-height:1.5;color:#5D5D5D;margin-top:6px;">"Rachel, remember you asked about Rivage resale supply — one PH surfaces this week, pre-market. Sending the numbers."</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="display:flex;flex-direction:column;gap:18px;">
+            <div style="border:1px solid #E3E3E3;border-radius:12px;padding:18px 20px;background:rgba(255,255,255,0.62);">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <span style="font-weight:600;font-size:12.5px;color:#0D0D0D;">Instagram · @arraes.miami</span>
+                <span style="display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#10A37F;"><span style="width:6px;height:6px;border-radius:50%;background:#10A37F;"></span>connected</span>
+              </div>
+              <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:14px;">
+                <div><div style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Followers</div><div style="font-weight:300;font-size:19px;color:#0D0D0D;margin-top:3px;">18.4K</div><div style="font-size:10px;color:#10A37F;">+312 · 30d</div></div>
+                <div><div style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Reach 30d</div><div style="font-weight:300;font-size:19px;color:#0D0D0D;margin-top:3px;">84K</div><div style="font-size:10px;color:#5D5D5D;">62% non-followers</div></div>
+                <div><div style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Saves</div><div style="font-weight:300;font-size:19px;color:#0D0D0D;margin-top:3px;">1.2K</div><div style="font-size:10px;color:#5D5D5D;">top: market data</div></div>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;border-top:1px solid #ECECEC;margin-top:14px;padding-top:12px;">
+                <span style="font-size:11.5px;color:#5D5D5D;">Auto-post by the agent</span>
+                <span style="width:30px;height:16px;border-radius:999px;background:#10A37F;position:relative;display:inline-block;"><span style="position:absolute;right:2px;top:2px;width:12px;height:12px;border-radius:50%;background:rgba(255,255,255,0.62);"></span></span>
+              </div>
+              <div style="font-size:10.5px;color:#8F8F8F;margin-top:8px;line-height:1.5;">Meta Business OAuth · permissions: publish, insights, messages. Metrics pulled daily at 6 AM.</div>
+            </div>
+            <div style="border:1px solid #E3E3E3;border-radius:12px;padding:18px 20px;background:rgba(255,255,255,0.62);">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;"><span style="font-weight:600;font-size:12.5px;color:#0D0D0D;">Trends → brief</span><span onClick="{{ mktGoTrends }}" style="font-size:10.5px;letter-spacing:0.04em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;" style-hover="color:#0D0D0D;">Radar →</span></div>
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="border-bottom:1px solid #ECECEC;padding-bottom:12px;"><div style="font-size:12px;line-height:1.5;color:#303030;">Corridor PH inventory down 18% QoQ — scarcity story</div><div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-size:10px;color:#8F8F8F;">Market · touches 9 HOT</span><span style="font-size:10.5px;color:#0D0D0D;cursor:pointer;" style-hover="color:#5D5D5D;">→ Create campaign</span></div></div>
+                <div style="border-bottom:1px solid #ECECEC;padding-bottom:12px;"><div style="font-size:12px;line-height:1.5;color:#303030;">Fed signals September cut — urgency window for cash buyers</div><div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-size:10px;color:#8F8F8F;">Macro · touches 14 contacts</span><span style="font-size:10.5px;color:#0D0D0D;cursor:pointer;" style-hover="color:#5D5D5D;">→ Create campaign</span></div></div>
+                <div><div style="font-size:12px;line-height:1.5;color:#303030;">"Calm-voice walkthrough" format +34% saves in luxury RE</div><div style="display:flex;justify-content:space-between;margin-top:6px;"><span style="font-size:10px;color:#8F8F8F;">Social · IG Reels</span><span style="font-size:10.5px;color:#0D0D0D;cursor:pointer;" style-hover="color:#5D5D5D;">→ Create brief</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== TAB · CONTENT ===== -->
+      <sc-if value="{{ mktCont }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:22px;">
+        <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+          <span style="font-weight:600;font-size:13.5px;color:#0D0D0D;">Content calendar</span>
+          <div style="display:flex;gap:12px;font-size:10.5px;color:#5D5D5D;">
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#10A37F;"></span>WhatsApp</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#C13584;"></span>Instagram</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#0A66C2;"></span>LinkedIn</span>
+            <span style="display:flex;align-items:center;gap:5px;"><span style="width:6px;height:6px;border-radius:50%;background:#8F8F8F;"></span>Email</span>
+          </div>
+          <span style="flex:1;"></span>
+          <span style="font-size:11px;color:#8F8F8F;">● approved · ◐ agent draft · ○ brief</span>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <span onClick="{{ mktCalPrev }}" style="{{ mktCalPrevStyle }}">‹</span>
+            <span style="font-size:11.5px;color:#303030;min-width:104px;text-align:center;">{{ mktCalRange }}</span>
+            <span onClick="{{ mktCalNext }}" style="{{ mktCalNextStyle }}">›</span>
+          </div>
+          <button onClick="{{ mktApproveWeek }}" style="{{ mktWeekStyle }}">{{ mktWeekLabel }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);border:1px solid rgba(255,255,255,0.65);border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.42);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);">
+          <sc-for list="{{ mktWeek }}" as="d" hint-placeholder-count="14">
+            <div style="border-right:1px solid #ECECEC;border-bottom:1px solid #ECECEC;min-height:138px;padding:10px;background:{{ d.bg }};">
+              <div style="display:flex;justify-content:space-between;align-items:baseline;"><span style="font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">{{ d.day }}</span><span style="font-size:10px;color:#C7C7C7;">{{ d.n }}</span></div>
+              <sc-for list="{{ d.posts }}" as="p" hint-placeholder-count="1">
+                <div style="border:1px solid #E3E3E3;border-radius:8px;padding:7px 9px;margin-top:8px;background:rgba(249,249,249,0.55);cursor:pointer;transition:box-shadow 150ms;" style-hover="box-shadow:0 3px 10px rgba(0,0,0,0.08);">
+                  <div style="display:flex;align-items:center;gap:5px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:{{ p.dot }};"></span><span style="font-size:9px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;">{{ p.chan }} · {{ p.lang }}</span><span style="flex:1;"></span><span style="font-size:9px;color:#8F8F8F;">{{ p.st }}</span></div>
+                  <div style="font-size:11px;line-height:1.4;color:#303030;margin-top:4px;">{{ p.title }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 380px;gap:24px;margin-top:24px;align-items:start;">
+          <div style="border:1px solid #E3E3E3;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.62);">
+            <div style="padding:14px 20px;background:rgba(249,249,249,0.55);border-bottom:1px solid #ECECEC;display:flex;align-items:center;justify-content:space-between;">
+              <div style="display:flex;align-items:center;gap:10px;"><span style="font-weight:600;font-size:13px;color:#0D0D0D;">Composer — brief from the radar</span><span style="border:1px solid #E3E3E3;border-radius:999px;padding:2px 9px;font-size:9.5px;letter-spacing:0.04em;text-transform:uppercase;color:#5D5D5D;background:rgba(255,255,255,0.62);">Market</span></div>
+              <span style="font-size:10.5px;color:#8F8F8F;">Thu Jul 09 · 7 PM — audience peak</span>
+            </div>
+            <div style="display:grid;grid-template-columns:200px 1fr;gap:18px;padding:18px 20px;">
+              <div style="border:1px dashed #C9C9C9;border-radius:10px;min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:rgba(250,250,250,0.55);">
+                <span style="font-size:22px;color:#C7C7C7;">⬒</span>
+                <span style="font-size:10.5px;color:#8F8F8F;text-align:center;line-height:1.5;">Reel 9:16<br>PH Rivage walkthrough<br>calm voice · 24–34s</span>
+              </div>
+              <div>
+                <div style="font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Hook</div>
+                <div style="font-size:13.5px;color:#0D0D0D;margin-top:4px;">"The last penthouse in the corridor with double-height ceilings — and why it's gone in 30 days."</div>
+                <div style="font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;margin-top:14px;">Caption · EN</div>
+                <div style="font-size:12.5px;line-height:1.6;color:#303030;margin-top:4px;">Penthouse inventory in the Acqualina–Rivage corridor fell 18% this quarter. One double-height unit left. In the comments: what $2,610/SF buys here vs Bal Harbour. 🔑</div>
+                <div style="font-size:11px;color:#8F8F8F;margin-top:8px;">#MiamiLuxuryRealEstate #SunnyIslesBeach #PenthouseMiami #OffMarket +6</div>
+                <div style="display:flex;gap:8px;margin-top:14px;">
+                  <span style="border:1px solid #E3E3E3;border-radius:999px;padding:6px 13px;font-size:10.5px;letter-spacing:0.03em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">PT ↻</span>
+                  <span style="border:1px solid #E3E3E3;border-radius:999px;padding:6px 13px;font-size:10.5px;letter-spacing:0.03em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">ES ↻</span>
+                  <span style="flex:1;"></span>
+                  <span style="border:1px solid #0D0D0D;border-radius:999px;padding:6px 14px;font-size:10.5px;letter-spacing:0.03em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.55);">Repurpose → LI · WA · Email</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="border:1px solid #E3E3E3;border-radius:12px;padding:16px 20px;background:rgba(255,255,255,0.62);">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;"><span style="font-weight:600;font-size:12.5px;color:#0D0D0D;">WhatsApp — segment broadcast</span><span style="font-size:10px;color:#8F8F8F;">Wed 10 AM</span></div>
+            <div style="border:1px solid #ECECEC;border-radius:10px;background:rgba(249,249,249,0.55);padding:12px 14px;margin-top:10px;">
+              <div style="display:flex;justify-content:space-between;"><span style="font-size:11px;font-weight:600;color:#0D0D0D;">Acqualina corridor · NURTURE</span><span style="font-size:10px;color:#8F8F8F;">12 recipients</span></div>
+              <div style="font-size:11.5px;line-height:1.5;color:#5D5D5D;margin-top:6px;">"July market report is out: PH inventory −18%, average $2,640/SF (+4.2%). 2-min PDF at the link." <span style="color:#8F8F8F;">— sent in each recipient's language (8 PT · 3 EN · 1 ES)</span></div>
+            </div>
+            <div style="font-size:11px;color:#8F8F8F;margin-top:10px;line-height:1.5;">HOT contacts (4) never enter broadcasts — they get agent-drafted 1:1 messages for your approval.</div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== TAB · AUDIENCES ===== -->
+      <sc-if value="{{ mktAud }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:22px;">
+        <div style="border:1px solid #E3E3E3;border-radius:12px;background:rgba(249,249,249,0.55);padding:18px 22px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;">
+            <div>
+              <div style="font-weight:600;font-size:13px;color:#0D0D0D;">Language intelligence</div>
+              <div style="font-size:12.5px;line-height:1.6;color:#5D5D5D;margin-top:4px;max-width:720px;">The agent detects each contact's native language from message replies, email locale and phone country, registers it on the contact record, and localizes every campaign send automatically. You write once — each contact reads it in their language.</div>
+            </div>
+            <div style="display:flex;gap:8px;flex:none;">
+              <span style="border:1px solid #E3E3E3;border-radius:999px;padding:6px 13px;font-size:11px;color:#303030;background:rgba(255,255,255,0.62);">EN · 41</span>
+              <span style="border:1px solid #E3E3E3;border-radius:999px;padding:6px 13px;font-size:11px;color:#303030;background:rgba(255,255,255,0.62);">PT · 32</span>
+              <span style="border:1px solid #E3E3E3;border-radius:999px;padding:6px 13px;font-size:11px;color:#303030;background:rgba(255,255,255,0.62);">ES · 6</span>
+              <span style="border:1px solid #D0342C;border-radius:999px;padding:6px 13px;font-size:11px;color:#D0342C;background:rgba(255,255,255,0.62);cursor:pointer;" style-hover="background:#FDF3F2;">3 unconfirmed → review</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin:24px 0 12px;">
+          <span style="font-weight:600;font-size:13.5px;color:#0D0D0D;">Live segments — built from pipeline &amp; contacts</span>
+          <span style="font-size:11px;color:#8F8F8F;">stage × interest × behavior × language · refreshed by the agent on every sync</span>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.65);border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.42);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);">
+          <div style="display:grid;grid-template-columns:1.6fr 2fr 0.7fr 1fr 1.4fr;padding:11px 18px;background:rgba(255,255,255,0.55);border-bottom:1px solid #E3E3E3;">
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Segment</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Definition</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Contacts</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Languages</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Last campaign</span>
+          </div>
+          <sc-for list="{{ mktSegments }}" as="s" hint-placeholder-count="5">
+            <div style="display:grid;grid-template-columns:1.6fr 2fr 0.7fr 1fr 1.4fr;padding:14px 18px;border-bottom:1px solid #ECECEC;align-items:baseline;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(247,247,247,0.60);">
+              <span style="font-weight:500;font-size:13px;color:#0D0D0D;">{{ s.name }}</span>
+              <span style="font-size:12px;color:#5D5D5D;">{{ s.def }}</span>
+              <span style="font-size:13px;color:#303030;">{{ s.n }}</span>
+              <span style="font-size:11.5px;color:#5D5D5D;">{{ s.langs }}</span>
+              <span style="font-size:11.5px;color:#8F8F8F;">{{ s.last }}</span>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin:28px 0 12px;">
+          <span style="font-weight:600;font-size:13.5px;color:#0D0D0D;">Matrix — stage × interest</span>
+          <span style="font-size:11px;color:#8F8F8F;">live counts · click a cell to see contacts and start a campaign</span>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,0.65);border-radius:10px;overflow:hidden;background:rgba(255,255,255,0.42);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);">
+          <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;padding:11px 18px;background:rgba(255,255,255,0.55);border-bottom:1px solid #E3E3E3;">
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Interest</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#D0342C;">HOT</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#B45309;">WARM</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Nurture</span>
+            <span style="font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Languages</span>
+          </div>
+          <sc-for list="{{ mktMatrix }}" as="r" hint-placeholder-count="4">
+            <div style="display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr 1fr;padding:13px 18px;border-bottom:1px solid #ECECEC;align-items:baseline;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(247,247,247,0.60);">
+              <span style="font-weight:500;font-size:13px;color:#0D0D0D;">{{ r.int }}</span>
+              <span style="font-size:13px;color:#303030;">{{ r.hot }}</span>
+              <span style="font-size:13px;color:#303030;">{{ r.warm }}</span>
+              <span style="font-size:13px;color:#303030;">{{ r.nur }}</span>
+              <span style="font-size:11.5px;color:#8F8F8F;">{{ r.langs }}</span>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+      </sc-if>
+
+      <!-- ===== TAB · TRENDS ===== -->
+      <sc-if value="{{ mktTrends }}" hint-placeholder-val="{{ false }}">
+      <div style="margin-top:22px;">
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
+          <span style="font-weight:600;font-size:13.5px;color:#0D0D0D;">Radar — signals ranked by relevance to your pipeline</span>
+          <span style="font-size:11px;color:#8F8F8F;">refreshed daily · 6 AM · with the brief</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <sc-for list="{{ mktTrendsList }}" as="tr" hint-placeholder-count="5">
+            <div style="border:1px solid #E3E3E3;border-radius:10px;padding:16px 20px;display:flex;align-items:center;gap:20px;background:rgba(255,255,255,0.62);">
+              <span style="flex:none;border:1px solid #E3E3E3;border-radius:999px;padding:3px 10px;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;background:rgba(249,249,249,0.55);">{{ tr.src }}</span>
+              <div style="flex:1;">
+                <div style="font-size:13.5px;color:#0D0D0D;">{{ tr.title }}</div>
+                <div style="display:flex;align-items:center;gap:10px;margin-top:6px;"><div style="width:120px;height:2px;background:rgba(255,255,255,0.55);border-radius:999px;"><div style="height:2px;border-radius:999px;background:#0D0D0D;width:{{ tr.rel }};"></div></div><span style="font-size:11px;color:#8F8F8F;">{{ tr.why }}</span></div>
+              </div>
+              <button style="flex:none;background:transparent;border:1px solid #0D0D0D;border-radius:999px;padding:7px 15px;font-size:10.5px;letter-spacing:0.04em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">Generate brief</button>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:flex;align-items:baseline;justify-content:space-between;margin:26px 0 12px;">
+          <span style="font-weight:600;font-size:13.5px;color:#0D0D0D;">Production flow — brief → live</span>
+          <span style="font-size:11px;color:#8F8F8F;">once a campaign is approved, the agent moves the cards</span>
+        </div>
+        <div style="display:grid;overflow-x:auto;grid-template-columns:repeat(5,minmax(170px,1fr));gap:12px;">
+          <sc-for list="{{ mktKanban }}" as="k" hint-placeholder-count="5">
+            <div style="border:1px solid #E3E3E3;border-radius:12px;background:rgba(249,249,249,0.55);padding:12px;">
+              <div style="display:flex;justify-content:space-between;margin-bottom:10px;"><span style="font-weight:600;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;">{{ k.col }}</span><span style="font-size:10.5px;color:#8F8F8F;">{{ k.n }}</span></div>
+              <sc-for list="{{ k.cards }}" as="c" hint-placeholder-count="2">
+                <div style="border:1px solid #E3E3E3;border-radius:9px;background:rgba(255,255,255,0.62);padding:10px 12px;margin-bottom:8px;cursor:pointer;transition:box-shadow 150ms;" style-hover="box-shadow:0 3px 10px rgba(0,0,0,0.08);">
+                  <div style="display:flex;align-items:center;gap:6px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:{{ c.dot }};"></span><span style="font-size:8.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">{{ c.chan }}</span></div>
+                  <div style="font-size:11.5px;line-height:1.4;color:#303030;margin-top:5px;">{{ c.title }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:26px;align-items:start;">
+          <div style="border:1px solid #E3E3E3;border-radius:12px;padding:18px 22px;background:rgba(255,255,255,0.62);">
+            <div style="display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-weight:600;font-size:12.5px;color:#0D0D0D;">Instagram — agent diagnosis</span>
+              <span style="display:flex;align-items:center;gap:6px;font-size:10px;letter-spacing:0.04em;text-transform:uppercase;color:#10A37F;"><span style="width:6px;height:6px;border-radius:50%;background:#10A37F;"></span>@arraes.miami</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:6px;height:56px;margin-top:16px;">
+              <div style="flex:1;background:#E3E3E3;border-radius:3px 3px 0 0;height:30%;"></div><div style="flex:1;background:#E3E3E3;border-radius:3px 3px 0 0;height:42%;"></div><div style="flex:1;background:#E3E3E3;border-radius:3px 3px 0 0;height:38%;"></div><div style="flex:1;background:#E3E3E3;border-radius:3px 3px 0 0;height:55%;"></div><div style="flex:1;background:#E3E3E3;border-radius:3px 3px 0 0;height:48%;"></div><div style="flex:1;background:#E3E3E3;border-radius:3px 3px 0 0;height:70%;"></div><div style="flex:1;background:#0D0D0D;border-radius:3px 3px 0 0;height:100%;"></div>
+            </div>
+            <div style="font-size:10.5px;color:#8F8F8F;margin-top:6px;">weekly reach · peak after the market-data reel</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;border-top:1px solid #ECECEC;margin-top:14px;padding-top:12px;">
+              <div><div style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Best time</div><div style="font-size:12.5px;color:#0D0D0D;margin-top:3px;">Tue/Thu · 7 PM EST</div></div>
+              <div><div style="font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Audience</div><div style="font-size:12.5px;color:#0D0D0D;margin-top:3px;">Miami 42% · SP 23% · NY 12%</div></div>
+            </div>
+            <div style="font-size:11px;line-height:1.55;color:#5D5D5D;margin-top:12px;">Diagnosis: <span style="color:#0D0D0D;">market-data content</span> earns 3.1× more saves than lifestyle. Recommendation: 2 data posts per week. Auto-post and daily metrics active.</div>
+          </div>
+          <div style="border:1px solid #E3E3E3;border-radius:12px;padding:18px 22px;background:rgba(255,255,255,0.62);">
+            <div style="font-weight:600;font-size:12.5px;color:#0D0D0D;">Attribution — campaign → pipeline</div>
+            <div style="display:flex;flex-direction:column;margin-top:12px;">
+              <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ECECEC;"><span style="font-size:12.5px;color:#303030;">June report · WA broadcast</span><span style="font-size:12px;color:#5D5D5D;">7 replies → 2 tours → <span style="color:#0D0D0D;font-weight:600;">$610K wGCI</span></span></div>
+              <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #ECECEC;"><span style="font-size:12.5px;color:#303030;">PH scarcity reel · IG</span><span style="font-size:12px;color:#5D5D5D;">14 DMs → 3 qualified → <span style="color:#0D0D0D;font-weight:600;">$380K wGCI</span></span></div>
+              <div style="display:flex;justify-content:space-between;padding:10px 0;"><span style="font-size:12.5px;color:#303030;">Broker open · Estates PH</span><span style="font-size:12px;color:#5D5D5D;">18 RSVPs → 1 offer → <span style="color:#0D0D0D;font-weight:600;">$920K wGCI</span></span></div>
+            </div>
+            <div style="font-size:10.5px;color:#8F8F8F;border-top:1px solid #ECECEC;margin-top:4px;padding-top:10px;">every reply becomes a touch on the contact · every tour becomes a deal activity — attribution is automatic</div>
+          </div>
+        </div>
+      </div>
+      </sc-if>
+    </div>
+    </sc-if>

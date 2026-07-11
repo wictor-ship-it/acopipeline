@@ -1,0 +1,270 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN ACTIVITIES
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN · ACTIVITIES ================= -->
+    <sc-if value="{{ isActivitiesPage }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:22px 48px 44px;">
+
+      <!-- page header · Agenda only -->
+      <sc-if value="{{ isActivityMode }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:22px;border-bottom:1px solid #E3E3E3;padding-bottom:14px;">
+        <div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;color:#0D0D0D;">Activities · Agenda</div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#8F8F8F;margin-top:4px;">Every commitment and task — kept, confirmed and chased by the agent</div>
+        </div>
+        <button onClick="{{ toggleLog }}" style="margin-bottom:6px;background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:10px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.82;">Log activity</button>
+      </div>
+      </sc-if>
+      <!-- ============ INBOX · MESSAGE CENTER ============ -->
+      <sc-if value="{{ isInbox }}" hint-placeholder-val="{{ true }}">
+      <div style="display:flex;border:none;border-radius:0;overflow:hidden;background:rgba(255,255,255,0.62);height:calc(100vh - 96px);min-height:560px;margin:-22px -48px 0;">
+
+        <!-- LEFT · threads -->
+        <div style="width:344px;flex:none;border-right:1px solid #E3E3E3;display:flex;flex-direction:column;min-height:0;background:rgba(249,249,249,0.55);">
+          <div style="padding:12px 12px 8px;">
+            <input value="{{ threadSearch }}" onInput="{{ setThreadSearch }}" placeholder="Search conversations" style="width:100%;background:rgba(255,255,255,0.55);border:none;border-radius:999px;padding:9px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;outline:none;">
+          </div>
+          <div style="display:flex;gap:8px;padding:4px 12px 12px;border-bottom:1px solid #ECECEC;">
+            <sc-for list="{{ channelFilters }}" as="c" hint-placeholder-count="4">
+              <div onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.label }}</div>
+            </sc-for>
+          </div>
+          <div style="flex:1;overflow-y:auto;min-height:0;">
+            <sc-for list="{{ threads }}" as="t" hint-placeholder-count="6">
+              <div onClick="{{ t.onClick }}" style="{{ t.rowStyle }}" style-hover="background:rgba(255,255,255,0.5);">
+                <div style="width:38px;height:38px;flex:none;border-radius:50%;background:rgba(255,255,255,0.62);border:1px solid {{ t.avatarBorder }};display:flex;align-items:center;justify-content:center;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:11px;color:{{ t.avatarColor }};">{{ t.initials }}</div>
+                <div style="flex:1;min-width:0;">
+                  <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.name }}</span>
+                    <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ t.time }}</span>
+                  </div>
+                  <div style="display:flex;align-items:center;gap:8px;margin-top:5px;">
+                    <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;border:1px solid #D9D9D9;border-radius:4px;padding:1px 5px;">{{ t.channel }}</span>
+                    <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:{{ t.snippetColor }};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ t.snippet }}</span>
+                    <sc-if value="{{ t.hasUnread }}" hint-placeholder-val="{{ false }}">
+                      <span style="flex:none;min-width:16px;height:16px;padding:0 4px;border-radius:999px;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;display:flex;align-items:center;justify-content:center;">{{ t.unread }}</span>
+                    </sc-if>
+                  </div>
+                </div>
+              </div>
+            </sc-for>
+          <sc-if value="{{ threadsEmpty }}" hint-placeholder-val="{{ false }}">
+            <div style="display:flex;flex-direction:column;align-items:center;gap:10px;padding:48px 24px;text-align:center;">
+              <span style="width:8px;height:8px;border-radius:50%;background:#E3E3E3;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#303030;">No conversations match</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;line-height:1.5;">Try another channel or clear the search.</span>
+              <span onClick="{{ clearThreadFilters }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;border:1px solid #D9D9D9;border-radius:999px;padding:6px 14px;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">Clear filters</span>
+            </div>
+          </sc-if>
+          </div>
+        </div>
+
+        <!-- RIGHT · conversation -->
+        <div style="flex:1;min-width:0;display:flex;flex-direction:column;min-height:0;">
+          <div style="flex:none;display:flex;align-items:center;justify-content:space-between;padding:15px 24px;border-bottom:1px solid #ECECEC;">
+            <div style="min-width:0;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:16px;color:#0D0D0D;">{{ activeThread.name }}</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;margin-top:2px;">{{ activeThread.sub }} · {{ activeThread.channel }}</div>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <div onClick="{{ activeThread.onOpenDeal }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:7px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">Open deal</div>
+              <div onClick="{{ activeThread.onOpenContact }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:7px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">Contact</div>
+            </div>
+          </div>
+          <div style="flex:1;overflow-y:auto;min-height:0;padding:26px 28px;background:rgba(255,255,255,0.62);display:flex;flex-direction:column;gap:16px;">
+            <sc-for list="{{ activeThread.messages }}" as="m" hint-placeholder-count="4">
+              <div style="{{ m.rowStyle }}">
+                <div style="{{ m.bubbleStyle }}">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;line-height:1.55;color:{{ m.textColor }};">{{ m.text }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:10px;letter-spacing:0.06em;color:{{ m.metaColor }};margin-top:6px;text-align:right;">{{ m.time }}</div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="flex:none;display:flex;gap:7px;align-items:center;flex-wrap:wrap;padding:0 22px 8px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;border:1px solid #E3E3E3;border-radius:999px;padding:4px 9px;">{{ qrLangLabel }}</span>
+            <sc-for list="{{ quickReplies }}" as="q" hint-placeholder-count="3">
+              <span onClick="{{ q.onClick }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#303030;background:rgba(255,255,255,0.55);border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;cursor:pointer;transition:all 150ms;white-space:nowrap;" style-hover="border-color:#8F8F8F;color:#0D0D0D;">{{ q.label }}</span>
+            </sc-for>
+          </div>
+          <div style="flex:none;padding:10px 22px 18px;"><div style="display:flex;align-items:center;gap:12px;border:1px solid #E3E3E3;border-radius:28px;background:rgba(255,255,255,0.62);box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:8px 8px 8px 16px;">
+            <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:8px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;border:1px solid #D9D9D9;border-radius:4px;padding:3px 7px;">{{ activeThread.channel }}</span>
+            <input value="{{ chatInput }}" onInput="{{ setChatInput }}" onKeyDown="{{ onChatKey }}" placeholder="Write a message…" style="flex:1;min-width:0;background:transparent;border:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;color:#0D0D0D;outline:none;">
+            <button onClick="{{ sendMsg }}" title="Send" style="flex:none;width:36px;height:36px;border-radius:50%;background:#0D0D0D;border:none;color:#FFFFFF;font-size:16px;line-height:1;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.82;">↑</button>
+          </div></div>
+        </div>
+
+      </div>
+      </sc-if>
+
+      <!-- ============ ACTIVITY CENTER · AGENDA ============ -->
+      <sc-if value="{{ isActivityMode }}" hint-placeholder-val="{{ false }}">
+
+      <sc-if value="{{ logOpen }}" hint-placeholder-val="{{ false }}">
+        <div style="border:1px solid #E3E3E3;border-radius:14px;background:rgba(249,249,249,0.55);padding:24px;margin-bottom:24px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;margin-bottom:14px;">Type</div>
+          <div style="display:flex;flex-wrap:wrap;gap:8px;">
+            <sc-for list="{{ logTypeOptions }}" as="o" hint-placeholder-count="6">
+              <div onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</div>
+            </sc-for>
+          </div>
+          <input value="{{ logName }}" onInput="{{ setLogName }}" placeholder="Deal or contact" style="width:100%;margin-top:18px;background:rgba(255,255,255,0.42);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);padding:10px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#0D0D0D;outline:none;">
+          <textarea value="{{ logBody }}" onInput="{{ setLogBody }}" placeholder="What happened?" rows="2" style="width:100%;margin-top:14px;background:rgba(255,255,255,0.42);backdrop-filter:blur(20px) saturate(1.7);-webkit-backdrop-filter:blur(20px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);border-radius:10px;box-shadow:inset 0 1px 0 rgba(255,255,255,0.7);padding:10px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;line-height:1.5;color:#303030;outline:none;resize:none;"></textarea>
+          <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:18px;">
+            <button onClick="{{ toggleLog }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:9px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.62);">Cancel</button>
+            <button onClick="{{ submitLog }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:9px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;" style-hover="opacity:0.82;">Log entry</button>
+          </div>
+        </div>
+      </sc-if>
+
+      <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:30px;align-items:start;margin-bottom:36px;">
+        <!-- SCHEDULE -->
+        <section>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">Schedule</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">synced · Google Calendar</span>
+          </div>
+          <sc-for list="{{ agDays }}" as="d" hint-placeholder-count="3">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;padding:10px 4px 8px;border-bottom:1px solid #E3E3E3;background:rgba(255,255,255,0.55);">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.1em;text-transform:uppercase;color:#5D5D5D;">{{ d.label }}</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">{{ d.count }}</span>
+            </div>
+            <sc-for list="{{ d.rows }}" as="a" hint-placeholder-count="3">
+              <div style="display:flex;align-items:center;gap:14px;padding:13px 4px;border-bottom:1px solid #ECECEC;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">
+                <span style="width:44px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;letter-spacing:0.02em;color:#5D5D5D;">{{ a.time }}</span>
+                <span style="width:6px;height:6px;flex:none;border-radius:50%;background:{{ a.dot }};"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;">{{ a.what }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;margin-top:2px;">{{ a.who }}</div>
+                </div>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:{{ a.stC }};">{{ a.st }}</span>
+              </div>
+            </sc-for>
+          </sc-for>
+        </section>
+        <!-- OPEN TASKS -->
+        <section>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">Open Tasks</span>
+            <span onClick="{{ toggleAgAdd }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;" style-hover="color:#0D0D0D;">+ New task</span>
+          </div>
+          <div style="border-top:1px solid #E3E3E3;">
+            <sc-if value="{{ agAddOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid #ECECEC;">
+                <input value="{{ agNewVal }}" onInput="{{ onAgNew }}" onKeyDown="{{ onAgNewKey }}" placeholder="Task — e.g. 'Send comps to Keller by Friday'" autoFocus="{{ true }}" style="flex:1;min-width:0;border:1px solid #E3E3E3;background:rgba(250,250,250,0.55);border-radius:8px;padding:8px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;outline:none;transition:border-color 150ms;" style-focus="border-color:#0D0D0D;">
+                <button onClick="{{ addAgTask }}" style="flex:none;background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:8px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">Add</button>
+              </div>
+            </sc-if>
+            <sc-for list="{{ agTasks }}" as="t" hint-placeholder-count="6">
+              <div onMouseEnter="{{ t.onEnter }}" onMouseLeave="{{ t.onLeave }}" style="border-bottom:1px solid #ECECEC;">
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 4px;">
+                  <div onClick="{{ t.onToggle }}" style="width:14px;height:14px;flex:none;border:1px solid #D9D9D9;border-radius:4px;background:{{ t.checkBg }};cursor:pointer;transition:background 150ms;"></div>
+                  <div style="flex:1;min-width:0;">
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:{{ t.color }};text-decoration:{{ t.deco }};">{{ t.t }}</div>
+                    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">{{ t.who }}</div>
+                  </div>
+                  <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">{{ t.due }}</span>
+                </div>
+                <sc-if value="{{ t.showBar }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:0 4px 11px 30px;">
+                    <button onClick="{{ t.onDone }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;border-color:#0D0D0D;color:#0D0D0D;" style-hover="background:#DEDDD7;color:#0D0D0D;">{{ t.doneLabel }}</button>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#B8B8B8;margin-left:4px;"><br></span>
+                    <button onClick="{{ t.onRe1 }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">+1d</button>
+                    <button onClick="{{ t.onRe3 }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">+3d</button>
+                    <button onClick="{{ t.onReW }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">Next week</button>
+                    <button onClick="{{ t.onCmt }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:5px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;transition:all 150ms;margin-left:4px;" style-hover="border-color:#0D0D0D;color:#0D0D0D;">Comment</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ t.cmtOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:0 4px 12px 30px;display:flex;flex-direction:column;gap:6px;">
+                    <sc-for list="{{ t.comments }}" as="c" hint-placeholder-count="0">
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;font-style:italic;color:#5D5D5D;">“{{ c }}” — you</div>
+                    </sc-for>
+                    <input value="{{ t.cmtVal }}" onInput="{{ t.onCmtVal }}" onKeyDown="{{ t.onCmtKey }}" placeholder="Comment — Enter to save · agent reads it for context" autoFocus="{{ true }}" style="width:100%;box-sizing:border-box;border:1px solid #E3E3E3;background:rgba(250,250,250,0.55);border-radius:8px;padding:8px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#303030;outline:none;transition:border-color 150ms;" style-focus="border-color:#0D0D0D;">
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:12px;">Done tasks feed the audit — the agent chases the overdue ones.</div>
+        </section>
+      </div>
+
+      <div style="display:flex;align-items:baseline;gap:12px;border-top:1px solid #0D0D0D;padding-top:16px;margin-bottom:6px;">
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">History</span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">the full activity log · everything the agent and you did</span>
+      </div>
+
+
+
+      <div style="display:grid;overflow-x:auto;grid-template-columns:repeat(4,minmax(160px,1fr));border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);">
+        <sc-for list="{{ actBand }}" as="s" hint-placeholder-count="4">
+          <div style="padding:24px 22px;border-right:1px solid #E3E3E3;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">{{ s.label }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:34px;line-height:1;margin-top:14px;color:#0D0D0D;">{{ s.value }}</div>
+            <div style="display:flex;gap:22px;margin-top:14px;border-top:1px solid #E3E3E3;padding-top:12px;">
+              <sc-for list="{{ s.deltas }}" as="d" hint-placeholder-count="2">
+                <div style="display:flex;flex-direction:column;gap:3px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:#B8B8B8;">{{ d.period }}</span>
+                  <span style="{{ d.valStyle }}">{{ d.disp }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 0 6px;">
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <sc-for list="{{ gactFilters }}" as="f" hint-placeholder-count="7">
+            <div onClick="{{ f.onClick }}" style="{{ f.style }}">{{ f.label }} <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:10px;color:#8F8F8F;letter-spacing:0.04em;">{{ f.count }}</span></div>
+          </sc-for>
+        </div>
+        <div style="position:relative;">
+          <div onClick="{{ toggleRange }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;color:#303030;border:1px solid #E3E3E3;border-radius:999px;padding:7px 14px;transition:background 150ms;">{{ rangeLabel }} <span style="font-size:8px;color:#8F8F8F;">▾</span></div>
+          <sc-if value="{{ rangeOpen }}" hint-placeholder-val="{{ false }}">
+            <div style="position:absolute;top:100%;right:0;margin-top:8px;border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);overflow:hidden;min-width:170px;z-index:30;box-shadow:0 12px 32px rgba(0,0,0,0.12);">
+              <sc-for list="{{ rangeOptions }}" as="o" hint-placeholder-count="4">
+                <div onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</div>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+
+      <sc-for list="{{ actFeed }}" as="d" hint-placeholder-count="5">
+        <div style="margin-top:30px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#8F8F8F;padding-bottom:8px;">{{ d.date }} · 2026</div>
+          <div style="display:flex;flex-direction:column;">
+            <sc-for list="{{ d.items }}" as="a" hint-placeholder-count="3">
+              <div style="border:1px solid #E3E3E3;border-radius:12px;padding:18px 22px;margin-bottom:12px;">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;">
+                  <div style="display:flex;align-items:center;gap:11px;">
+                    <sc-if value="{{ a.isTask }}" hint-placeholder-val="{{ false }}">
+                      <div onClick="{{ a.onToggle }}" style="width:14px;height:14px;flex:none;border:1px solid #D9D9D9;border-radius:4px;background:{{ a.checkBg }};cursor:pointer;transition:background 150ms;"></div>
+                    </sc-if>
+                    <span style="width:6px;height:6px;flex:none;border-radius:50%;background:{{ a.dot }};"></span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#303030;">{{ a.type }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:{{ a.nameColor }};text-decoration:{{ a.deco }};">{{ a.name }}</span>
+                  </div>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">{{ a.outcomeShown }}</span>
+                </div>
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;line-height:1.6;color:{{ a.actionColor }};text-decoration:{{ a.deco }};margin-top:10px;">{{ a.body }}</div>
+                <sc-if value="{{ a.agent }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:10px;letter-spacing:0.06em;color:#8F8F8F;margin-top:8px;font-style:italic;">via voice memo · agent-structured</div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </sc-for>
+      </sc-if>
+    </div>
+    </sc-if>

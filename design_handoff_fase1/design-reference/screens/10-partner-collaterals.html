@@ -1,0 +1,46 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN PARTNER   COLLATERALS
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN · PARTNER · COLLATERALS ================= -->
+    <sc-if value="{{ isPtCollat }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Collaterals" style="padding:22px 48px 120px;">
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;border-bottom:1px solid #E3E3E3;padding-bottom:16px;">
+        <div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;color:#0D0D0D;">{{ plk.collT }}</div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#8F8F8F;margin-top:6px;">{{ plk.collS }}</div>
+        </div>
+        <a href="https://www.arraescollection.com/new-developments" target="_blank" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.03em;color:#0D0D0D;text-decoration:none;border:1px solid #E3E3E3;border-radius:999px;padding:8px 16px;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">arraescollection.com/new-developments ↗</a>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin-top:22px;">
+        <sc-for list="{{ ptProjects }}" as="pj" hint-placeholder-count="6">
+          <div style="border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 20px;display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:14.5px;color:#0D0D0D;">{{ pj.name }}</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:{{ pj.stC }};white-space:nowrap;">{{ pj.st }}</span>
+              </div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;margin-top:2px;">{{ pj.loc }}</div>
+            </div>
+            <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">{{ pj.from }}</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#5D5D5D;">{{ pj.del }}</span>
+            </div>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid #ECECEC;padding-top:10px;">
+              <sc-for list="{{ pj.kits }}" as="kt" hint-placeholder-count="4">
+                <span onClick="{{ kt.onClick }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#303030;background:rgba(255,255,255,0.55);border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;cursor:pointer;transition:all 150ms;white-space:nowrap;" style-hover="border-color:#8F8F8F;color:#0D0D0D;">{{ kt.label }} ↓</span>
+              </sc-for>
+            </div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;color:#B8B8B8;">{{ pj.upd }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:16px;">Every download is logged to your file. Price lists follow the developer’s current release — always confirm before quoting. Commission on pre-construction follows the disbursement schedule — §6, §7.</div>
+    </div>
+    </sc-if>

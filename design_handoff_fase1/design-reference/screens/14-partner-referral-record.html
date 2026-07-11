@@ -1,0 +1,145 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN PARTNER   REFERRAL RECORD
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN · PARTNER · REFERRAL RECORD ================= -->
+    <sc-if value="{{ isPtRecord }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="Referral Record" style="padding:22px 48px 120px;">
+
+      <span onClick="{{ goPtBoard }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;cursor:pointer;" style-hover="color:#0D0D0D;">‹ Partner Portal</span>
+
+      <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap;margin-top:16px;border-bottom:1px solid #E3E3E3;padding-bottom:22px;">
+        <div style="min-width:260px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">Referral Record</div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:30px;color:#0D0D0D;margin-top:8px;">{{ recTitle }}</div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#5D5D5D;margin-top:5px;">{{ recKind }} · lead {{ recLead }}</div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#FFFFFF;background:#0D0D0D;border-radius:999px;padding:5px 12px;">{{ recStage }}</span>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:{{ recProtColor }};border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;"><span style="width:5px;height:5px;border-radius:50%;background:{{ recProtColor }};"></span>{{ recProt }}</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#5D5D5D;border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;">Agreement · 25% of Gross Commission</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:36px;flex-wrap:wrap;">
+          <sc-for list="{{ recNums }}" as="n" hint-placeholder-count="3">
+            <div style="min-width:120px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">{{ n.label }}</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:25px;color:#0D0D0D;margin-top:7px;">{{ n.value }}</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:3px;max-width:190px;">{{ n.note }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <sc-if value="{{ recHasTc }}" hint-placeholder-val="{{ false }}">
+        <section style="margin-top:24px;border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 22px;">
+          <div style="display:flex;align-items:baseline;gap:10px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">Closing milestones</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">mirrored live from the transaction file</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;margin-top:16px;overflow-x:auto;padding-bottom:4px;">
+            <sc-for list="{{ recTc }}" as="m" hint-placeholder-count="6">
+              <div style="display:flex;align-items:flex-start;flex:1;min-width:96px;">
+                <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px;">
+                  <span style="width:9px;height:9px;border-radius:50%;background:{{ m.dot }};border:1px solid rgba(0,0,0,0.08);"></span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11px;line-height:1.35;color:{{ m.cl }};font-weight:{{ m.w }};max-width:104px;">{{ m.label }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:10px;color:#8F8F8F;">{{ m.date }}</span>
+                </div>
+                <sc-if value="{{ m.line }}" hint-placeholder-val="{{ true }}">
+                  <div style="flex:1;height:1px;background:#E3E3E3;margin:4px 10px 0 6px;min-width:14px;"></div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </sc-if>
+
+      <section style="margin-top:24px;">
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">Stage path</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:10px;">
+          <sc-for list="{{ recPath }}" as="s" hint-placeholder-count="7">
+            <span style="display:inline-flex;align-items:center;gap:6px;">
+              <span style="width:6px;height:6px;flex:none;border-radius:50%;background:{{ s.dot }};"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11.5px;letter-spacing:0.02em;color:{{ s.cl }};font-weight:{{ s.w }};">{{ s.label }}</span>
+            </span>
+          </sc-for>
+        </div>
+      </section>
+
+      <div style="display:flex;gap:24px;border-bottom:1px solid #E3E3E3;margin-top:26px;">
+        <sc-for list="{{ recTabs }}" as="tb" hint-placeholder-count="3">
+          <span onClick="{{ tb.onClick }}" style="{{ tb.style }}">{{ tb.label }}</span>
+        </sc-for>
+      </div>
+
+      <sc-if value="{{ recTabTl }}" hint-placeholder-val="{{ true }}">
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:26px;align-items:start;margin-top:20px;">
+          <div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">Upcoming</div>
+            <div style="display:flex;flex-direction:column;margin-top:8px;">
+              <sc-for list="{{ recMiles }}" as="m" hint-placeholder-count="3">
+                <div style="display:flex;align-items:baseline;gap:11px;padding:10px 2px;border-bottom:1px solid #ECECEC;">
+                  <span style="width:6px;height:6px;flex:none;border-radius:50%;background:{{ m.dot }};position:relative;top:-2px;"></span>
+                  <span style="width:46px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11px;color:#8F8F8F;">{{ m.d }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.5;color:#303030;">{{ m.txt }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">History — every touch</div>
+            <div style="display:flex;flex-direction:column;margin-top:8px;">
+              <sc-for list="{{ recHist }}" as="h" hint-placeholder-count="4">
+                <div style="display:flex;align-items:baseline;gap:11px;padding:10px 2px;border-bottom:1px solid #ECECEC;">
+                  <span style="width:46px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11px;color:#8F8F8F;">{{ h.0 }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.5;color:#303030;">{{ h.1 }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ recTabDocs }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:640px;margin-top:20px;border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);">
+          <sc-for list="{{ recDocs }}" as="dc" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid #ECECEC;">
+              <span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">{{ dc.name }}</div>
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">{{ dc.meta }}</div>
+              </div>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">shared with you</span>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+
+      <sc-if value="{{ recTabNotes }}" hint-placeholder-val="{{ false }}">
+        <div style="max-width:640px;margin-top:20px;">
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <sc-for list="{{ recCmts }}" as="cm" hint-placeholder-count="2">
+              <div style="border-left:2px solid {{ cm.wc }};padding:3px 0 3px 12px;">
+                <div style="display:flex;align-items:baseline;gap:8px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;color:{{ cm.wc }};">{{ cm.who }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;color:#8F8F8F;">{{ cm.when }}</span>
+                </div>
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#303030;margin-top:3px;">{{ cm.text }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <input value="{{ ptCmtVal }}" onInput="{{ onPtCmt }}" onKeyDown="{{ onPtCmtKey }}" placeholder="Note for Wictor — context, warmth, timing…" style="flex:1;min-width:0;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <button onClick="{{ ptCmtSend }}" style="flex:none;background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:10px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">Send</button>
+          </div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:10px;">Notes land on the deal record — Wictor and the agent both see them.</div>
+        </div>
+      </sc-if>
+
+    </div>
+    </sc-if>

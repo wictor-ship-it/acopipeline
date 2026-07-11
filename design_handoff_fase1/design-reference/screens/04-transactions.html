@@ -1,0 +1,60 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN 4   TRANSACTIONS
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN 4 · TRANSACTIONS ================= -->
+    <sc-if value="{{ isTc }}" hint-placeholder-val="{{ false }}">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:16px 48px;border-bottom:1px solid #E3E3E3;">
+      <div onClick="{{ goPipeline }}" style="display:flex;align-items:center;gap:8px;cursor:pointer;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#5D5D5D;" style-hover="color:#0D0D0D;">‹ Pipeline · Under Contract</div>
+      <div onClick="{{ goDealRecord }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:8px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;" style-hover="background:rgba(255,255,255,0.55);color:#0D0D0D;">Open deal record</div>
+    </div>
+    <div style="padding:28px 48px 60px;">
+      <!-- alert -->
+      <div style="border:1px solid #E3E3E3;border-left:2px solid #303030;padding:14px 20px;display:flex;align-items:center;gap:10px;margin-bottom:28px;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#303030;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#303030;">2 milestones inside the T-3 window.</span>
+      </div>
+
+      <!-- transaction header -->
+      <div style="display:flex;align-items:baseline;justify-content:space-between;border-bottom:1px solid #E3E3E3;padding-bottom:22px;">
+        <div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:20px;color:#0D0D0D;">Sterling · Acqualina 4802</div>
+          <div style="display:flex;align-items:center;gap:9px;margin-top:8px;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#0D0D0D;"></span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;letter-spacing:0.1em;text-transform:uppercase;color:#5D5D5D;">Under Contract · Cash</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:36px;">
+          <div><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Effective</span><div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;margin-top:5px;">June 24</div></div>
+          <div><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Closing</span><div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:15px;color:#303030;margin-top:5px;">August 15</div></div>
+        </div>
+      </div>
+
+      <!-- milestone table -->
+      <div style="margin-top:30px;border:1px solid #E3E3E3;">
+        <div style="display:grid;grid-template-columns:2fr 1.1fr 0.9fr 0.7fr 2fr;padding:13px 22px;background:rgba(255,255,255,0.55);border-bottom:1px solid #E3E3E3;">
+          <sc-for list="{{ tcHead }}" as="h" hint-placeholder-count="5">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">{{ h }}</div>
+          </sc-for>
+        </div>
+        <sc-for list="{{ milestones }}" as="m" hint-placeholder-count="9">
+          <div style="display:grid;grid-template-columns:2fr 1.1fr 0.9fr 0.7fr 2fr;padding:16px 22px;border-bottom:1px solid #E3E3E3;align-items:center;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:{{ m.textColor }};">{{ m.name }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ m.owner }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;">{{ m.deadline }}</div>
+            <div style="display:flex;align-items:center;gap:7px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:{{ m.dot }};flex:none;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">{{ m.state }}</span>
+            </div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ m.action }}</div>
+          </div>
+        </sc-for>
+      </div>
+    </div>
+    </sc-if>

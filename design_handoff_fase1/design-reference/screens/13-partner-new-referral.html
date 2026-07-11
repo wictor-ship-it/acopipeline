@@ -1,0 +1,146 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN PARTNER   NEW REFERRAL
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN · PARTNER · NEW REFERRAL ================= -->
+    <sc-if value="{{ isPartnerNew }}" hint-placeholder-val="{{ false }}">
+    <div data-screen-label="New Referral" style="padding:22px 48px 120px;">
+
+      <div style="border-bottom:1px solid #E3E3E3;padding-bottom:16px;">
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;color:#0D0D0D;">{{ plk.regT }}</div>
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#8F8F8F;margin-top:6px;">{{ plk.regS }}</div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;align-items:start;margin-top:22px;">
+
+        <div style="border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:20px 22px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">Referring agent — Broker A · on file</div>
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid rgba(0,0,0,0.07);border-radius:12px;background:rgba(255,255,255,0.35);padding:12px 16px;margin-top:10px;">
+            <div style="flex:1;min-width:220px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">A. Bittencourt · Bittencourt Realty</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">CRECI-SP 45.221-F · a.bittencourt@partners.arraes.com</div>
+            </div>
+            <span style="display:inline-flex;align-items:center;gap:6px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#10A37F;border:1px solid #B7E0D2;border-radius:999px;padding:4px 11px;"><span style="width:5px;height:5px;border-radius:50%;background:#10A37F;"></span>License verified — §8 · DBPR / FREC</span>
+          </div>
+
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;margin-top:18px;">Client — Prospect · §3.2</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:8px;margin-top:10px;">
+            <input value="{{ ptRegName }}" onInput="{{ onPtRegName }}" placeholder="Full legal name — required" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegSpouse }}" onInput="{{ onPtRegSpouse }}" placeholder="Spouse / co-decision name" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegEmail }}" onInput="{{ onPtRegEmail }}" placeholder="E-mail — required" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegWhats }}" onInput="{{ onPtRegWhats }}" placeholder="WhatsApp — required · +country code" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegNat }}" onInput="{{ onPtRegNat }}" placeholder="Nationality · country of residence" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegBiz }}" onInput="{{ onPtRegBiz }}" placeholder="Business / company name" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegCargo }}" onInput="{{ onPtRegCargo }}" placeholder="Title / cargo — CEO, founder…" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegBudget }}" onInput="{{ onPtRegBudget }}" placeholder="Budget range — USD min · max" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegInterest }}" onInput="{{ onPtRegInterest }}" placeholder="Property profile — type · beds · location" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+            <input value="{{ ptRegTime }}" onInput="{{ onPtRegTime }}" placeholder="Timeline — even if approximate" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;" style-focus="border-color:#0D0D0D;" />
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;flex:none;">Est. net worth</span>
+            <sc-for list="{{ ptRegNWOpts }}" as="o" hint-placeholder-count="5"><div onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</div></sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;flex:none;">Transaction</span>
+            <sc-for list="{{ ptRegTypeOpts }}" as="o" hint-placeholder-count="3"><div onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</div></sc-for>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:8px;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;flex:none;">Purpose</span>
+            <sc-for list="{{ ptRegPurposeOpts }}" as="o" hint-placeholder-count="4"><div onClick="{{ o.onClick }}" style="{{ o.style }}">{{ o.label }}</div></sc-for>
+          </div>
+          <input value="{{ ptRegCtx }}" onInput="{{ onPtRegCtx }}" placeholder="Context for Wictor — relationship, warmth, language" style="width:100%;box-sizing:border-box;background:rgba(255,255,255,0.6);border:1px solid #E3E3E3;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;outline:none;margin-top:12px;" style-focus="border-color:#0D0D0D;" />
+
+          <div style="border:1px solid rgba(0,0,0,0.08);border-radius:12px;background:rgba(255,255,255,0.35);padding:16px 18px;margin-top:16px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">Referral agreement — the essentials</div>
+              <span onClick="{{ openAgr }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;" style-hover="text-decoration:underline;text-underline-offset:3px;">Read full agreement ›</span>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:7px;margin-top:10px;">
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.55;color:#303030;"><span style="font-weight:600;">25% of Gross Commission</span> on every transaction closed inside the validity window — §6.1</span></div>
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.55;color:#303030;"><span style="font-weight:600;">Licensed agents only</span> — fees payable only to active licensed brokers/agents · DBPR · FREC · CRECI — §8</span></div>
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.55;color:#303030;"><span style="font-weight:600;">12-month lead validity</span> from the registration date · your timestamp governs priority — §4.1, §3.3</span></div>
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.55;color:#303030;"><span style="font-weight:600;">Secondary referrals count</span> — friends &amp; family your client introduces, registered within 10 business days — §5</span></div>
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.55;color:#303030;"><span style="font-weight:600;">Pre-construction paid per installment</span> — your share follows each developer disbursement — §6.5</span></div>
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="width:5px;height:5px;flex:none;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.55;color:#303030;"><span style="font-weight:600;">USD wire within 15 business days</span> of receipt — all transfer &amp; conversion costs deducted from the fee · statement in 5 — §7</span></div>
+            </div>
+            <div onClick="{{ ptAckToggle }}" style="display:flex;align-items:center;gap:10px;margin-top:14px;cursor:pointer;user-select:none;">
+              <span style="{{ ptAckBox }}">{{ ptAckMark }}</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#0D0D0D;">I have read and accept the full referral agreement</span>
+            </div>
+          </div>
+
+          <div style="display:flex;align-items:center;gap:12px;margin-top:16px;flex-wrap:wrap;">
+            <button onClick="{{ ptRegister }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:11px 20px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">{{ plk.regBtn }}</button>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">timestamped now · Wictor is notified immediately</span>
+          </div>
+        </div>
+
+        <div style="min-width:0;">
+          <div style="border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 20px;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:8.5px;letter-spacing:0.12em;text-transform:uppercase;color:#8F8F8F;">How it works</div>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+              <div style="display:flex;align-items:baseline;gap:12px;"><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:15px;color:#8F8F8F;flex:none;">01</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#303030;"><span style="font-weight:600;">Register</span> — conflict check inside 48h; protection starts on clearance</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;"><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:15px;color:#8F8F8F;flex:none;">02</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#303030;"><span style="font-weight:600;">We work it</span> — the agent handles intake in the lead's language; every touch appears on your board</span></div>
+              <div style="display:flex;align-items:baseline;gap:12px;"><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:15px;color:#8F8F8F;flex:none;">03</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#303030;"><span style="font-weight:600;">You track the fee</span> — projected → payable → paid, with dates, on the commission track</span></div>
+            </div>
+          </div>
+
+          <div style="border-radius:12px;background:rgba(255,255,255,0.45);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);overflow:hidden;margin-top:14px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #ECECEC;background:rgba(255,255,255,0.38);">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Your registrations</span>
+              <div style="display:flex;align-items:center;gap:12px;"><span onClick="{{ ptAgrEmail }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;" style-hover="text-decoration:underline;text-underline-offset:3px;">{{ agrSentLabel }}</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">newest first</span></div>
+            </div>
+            <sc-for list="{{ ptRegRows }}" as="g" hint-placeholder-count="3">
+              <div style="display:flex;align-items:baseline;gap:12px;padding:13px 20px;border-bottom:1px solid #ECECEC;flex-wrap:wrap;">
+                <div style="flex:1;min-width:160px;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">{{ g.name }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:2px;">Registered {{ g.reg }} · {{ g.note }}</div>
+                </div>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;color:{{ g.c }};white-space:nowrap;">{{ g.st }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+
+      </div>
+
+      <sc-if value="{{ agrOpen }}" hint-placeholder-val="{{ false }}">
+        <div onClick="{{ closeAgr }}" style="position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.34);"></div>
+        <div style="position:fixed;top:5vh;left:50%;transform:translateX(-50%);z-index:301;width:680px;max-width:94vw;max-height:88vh;display:flex;flex-direction:column;background:rgba(255,255,255,0.9);backdrop-filter:blur(30px) saturate(1.8);-webkit-backdrop-filter:blur(30px) saturate(1.8);border:1px solid rgba(255,255,255,0.8);border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,0.24);overflow:hidden;">
+          <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:20px 26px 14px;border-bottom:1px solid #E3E3E3;">
+            <div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;color:#0D0D0D;">Real Estate Referral Agreement</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:3px;">Exclusive referral partnership · State of Florida</div>
+            </div>
+            <span onClick="{{ closeAgr }}" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:20px;color:#8F8F8F;cursor:pointer;line-height:1;" style-hover="color:#0D0D0D;">×</span>
+          </div>
+          <div style="flex:1;overflow-y:auto;padding:16px 26px 20px;">
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <sc-for list="{{ agrMeta }}" as="mm" hint-placeholder-count="6">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#5D5D5D;border:1px solid #E3E3E3;border-radius:999px;padding:4px 11px;background:rgba(255,255,255,0.55);">{{ mm }}</span>
+              </sc-for>
+            </div>
+            <sc-for list="{{ agrSections }}" as="sec" hint-placeholder-count="12">
+              <div style="margin-top:16px;">
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12.5px;color:#0D0D0D;">{{ sec.h }}</div>
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.65;color:#303030;margin-top:5px;">{{ sec.b }}</div>
+              </div>
+            </sc-for>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:18px;border-top:1px solid #ECECEC;padding-top:12px;">Acceptance in-portal is recorded with timestamp and device — it binds the registration you submit. The signed PDF is filed to A/CO records and e-mailed to all parties on request.</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:14px 26px;border-top:1px solid #E3E3E3;background:rgba(255,255,255,0.5);">
+            <button onClick="{{ ptAgrEmail }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:10px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">{{ agrSentLabel }}</button>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">goes to you, Wictor and A/CO records · PDF</span>
+            <span style="flex:1;"></span>
+            <button onClick="{{ closeAgr }}" style="background:transparent;border:1px solid #B4B4B4;border-radius:999px;padding:10px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.6);">Close</button>
+          </div>
+        </div>
+      </sc-if>
+    </div>
+    </sc-if>

@@ -1,0 +1,674 @@
+<!--
+  A/CO Pipeline Intelligence v5 — fragmento de referencia: SCREEN 6   REPORTS
+  Extraido de "Pipeline Intelligence v5.dc.html" (fonte da verdade). Regras de leitura:
+  - Os estilos inline SAO a spec exata: copie valores literais (px, hex, radius, sombras). Nao aproxime.
+  - O copy (textos) deve ser reproduzido exatamente, em ingles.
+  - {{ nome }} = valor dinamico (dado/handler). Seed e comportamentos: design-reference/logic-and-data.js. Modelo de dados: README §7.
+  - <sc-if value="{{ x }}"> = render condicional; <sc-for list="{{ xs }}" as="x"> = loop. Implemente o equivalente no stack do repo.
+  - Tokens globais, fontes e keyframes: README §9 e fragmento 00-shell.
+-->
+
+<!-- ================= SCREEN 6 · REPORTS ================= -->
+    <sc-if value="{{ isReports }}" hint-placeholder-val="{{ false }}">
+    <div style="padding:0 48px 140px;" data-screen-label="Reports">
+
+      
+
+      
+      <div style="display:flex;gap:30px;align-items:flex-start;">
+        <div style="width:186px;flex:none;position:sticky;top:24px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;padding:0 0 10px;">Report categories</div>
+          <sc-for list="{{ repNav }}" as="n" hint-placeholder-count="7">
+            <div onClick="{{ n.onClick }}" onMouseEnter="{{ n.onClick }}" style="{{ n.rowStyle }}" style-hover="background:rgba(255,255,255,0.5);">
+              <span style="{{ n.numStyle }}">{{ n.num }}</span>
+              <span style="{{ n.labStyle }}">{{ n.label }}</span>
+            </div>
+          </sc-for>
+          <sc-if value="{{ crHasSaved }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;padding:18px 0 6px;">Saved views</div>
+            <sc-for list="{{ crSavedRows }}" as="v" hint-placeholder-count="2">
+              <div onClick="{{ v.onLoad }}" style="{{ v.rowStyle }}" style-hover="background:rgba(255,255,255,0.5);">
+                <span style="width:5px;height:5px;border-radius:50%;background:#0D0D0D;flex:none;"></span>
+                <span style="{{ v.nameStyle }}">{{ v.name }}</span>
+                <span onClick="{{ v.onRemove }}" title="Remove view" style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:14px;line-height:1;color:#B8B8B8;cursor:pointer;flex:none;" style-hover="color:#D0342C;">×</span>
+              </div>
+            </sc-for>
+          </sc-if>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;line-height:1.6;color:#B8B8B8;margin-top:14px;">Hover to switch — same numbers, one lens at a time.</div>
+        </div>
+        <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:22px 0 26px;">
+          <div style="display:flex;gap:18px;">
+            <sc-for list="{{ repPeriods }}" as="p" hint-placeholder-count="3">
+              <span onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</span>
+            </sc-for>
+          </div>
+          <button onClick="{{ repExport }}" style="background:transparent;border:1px solid #B4B4B4;padding:8px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">Export PDF</button>
+        </div>
+        <sc-if value="{{ repSecFlags.s01 }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:44px;">
+<!-- KPI STRIP -->
+      <div style="display:grid;overflow-x:auto;grid-template-columns:repeat(4,minmax(160px,1fr));border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);">
+        <sc-for list="{{ reportKpis }}" as="k" hint-placeholder-count="8">
+          <div style="padding:24px 22px 22px;border-right:1px solid #E3E3E3;border-bottom:1px solid #E3E3E3;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">{{ k.label }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:34px;line-height:1;margin-top:16px;color:#0D0D0D;">{{ k.value }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      
+<!-- ANNUAL TARGET HERO -->
+      <div style="margin-top:6px;border-top:1px solid #E3E3E3;padding-top:28px;">
+        <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+          <div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;">Annual GCI Target · 2026</div>
+            <div style="display:flex;align-items:baseline;gap:14px;margin-top:16px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:48px;line-height:1;color:#0D0D0D;">$3.8M</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:18px;color:#8F8F8F;">of $6.5M</span>
+            </div>
+          </div>
+          <div style="text-align:right;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:40px;line-height:1;color:#0D0D0D;">58%</div>
+            <div style="display:flex;align-items:center;gap:7px;justify-content:flex-end;margin-top:8px;">
+              <span style="width:6px;height:6px;border-radius:50%;background:#0D0D0D;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#0D0D0D;">On pace · +$0.3M vs plan</span>
+            </div>
+          </div>
+        </div>
+        <div style="height:10px;background:rgba(255,255,255,0.55);position:relative;margin-top:22px;">
+          <div style="position:absolute;left:0;top:0;height:100%;width:58%;background:#0D0D0D;"></div>
+          <div style="position:absolute;left:50%;top:-6px;bottom:-6px;width:0.5px;background:#5D5D5D;"></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;margin-top:8px;">
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Jan</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Plan · 50% by Jul</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Dec</span>
+        </div>
+      </div>
+
+      
+        </div>
+        </sc-if>
+        <sc-if value="{{ repSecFlags.s02 }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:44px;">
+<!-- FUNNEL -->
+          <section>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Pipeline by Status</div>
+            <div style="display:flex;flex-direction:column;gap:14px;">
+              <sc-for list="{{ funnel }}" as="f" hint-placeholder-count="7">
+                <div style="display:flex;align-items:center;gap:18px;">
+                  <span style="width:130px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;letter-spacing:0.06em;color:#303030;">{{ f.stage }}</span>
+                  <div style="flex:1;height:22px;background:rgba(255,255,255,0.55);position:relative;">
+                    <div style="position:absolute;left:0;top:0;height:100%;width:{{ f.width }};background:#0D0D0D;"></div>
+                  </div>
+                  <span style="width:40px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;color:#0D0D0D;">{{ f.count }}</span>
+                  <span style="width:56px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ f.conv }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+<!-- PIPELINE BY STAGE -->
+          <section>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Pipeline by Stage</div>
+            <div style="display:flex;flex-direction:column;gap:20px;">
+              <sc-for list="{{ divisionGci }}" as="d" hint-placeholder-count="3">
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#303030;">{{ d.label }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;color:#0D0D0D;">{{ d.value }}</span>
+                  </div>
+                  <div style="height:8px;background:rgba(255,255,255,0.55);position:relative;">
+                    <div style="position:absolute;left:0;top:0;height:100%;width:{{ d.width }};background:#0D0D0D;"></div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          
+
+        
+
+        
+        
+<!-- merged from Production -->
+          <!-- CHART GRID 2 -->
+      <div style="display:grid;grid-template-columns:1fr 1.1fr 1.2fr;gap:44px;margin-top:0;align-items:start;">
+
+        <!-- WON / LOST -->
+        <section>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Trailing 12-Month Outcomes</div>
+          <div style="display:flex;height:22px;">
+            <div style="width:32%;background:#0D0D0D;"></div>
+            <div style="width:68%;background:rgba(255,255,255,0.55);"></div>
+          </div>
+          <div style="display:flex;justify-content:space-between;margin-top:14px;">
+            <div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:30px;color:#0D0D0D;line-height:1;">11</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;margin-top:6px;">Won · 32%</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:30px;color:#8F8F8F;line-height:1;">23</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;margin-top:6px;">Lost · 68%</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- LOSS REASONS -->
+        <section>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Loss Reasons</div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <sc-for list="{{ lossReasons }}" as="l" hint-placeholder-count="4">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;">{{ l.reason }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ l.count }}</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.55);position:relative;">
+                  <div style="position:absolute;left:0;top:0;height:100%;width:{{ l.width }};background:#303030;"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <!-- ASSET MIX -->
+        <section>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Asset Mix</div>
+          <div style="display:flex;height:22px;">
+            <sc-for list="{{ assetMix }}" as="a" hint-placeholder-count="4">
+              <div style="width:{{ a.pct }};background:{{ a.shade }};"></div>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:11px;margin-top:18px;">
+            <sc-for list="{{ assetMix }}" as="a" hint-placeholder-count="4">
+              <div style="display:flex;align-items:center;justify-content:space-between;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="width:8px;height:8px;border-radius:50%;background:{{ a.shade }};flex:none;"></span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;">{{ a.label }}</span>
+                </div>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ a.pct }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+        </div>
+        </sc-if>
+        
+        <sc-if value="{{ repSecFlags.s04 }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:44px;">
+<!-- SOURCE PERFORMANCE -->
+          <section>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:18px;">Pipeline by Asset Type</div>
+            <div style="border-top:1px solid #E3E3E3;">
+              <sc-for list="{{ sources }}" as="s" hint-placeholder-count="4">
+                <div style="display:flex;align-items:baseline;justify-content:space-between;padding:14px 0;border-bottom:1px solid #E3E3E3;">
+                  <div>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ s.name }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;margin-left:10px;">{{ s.deals }}</span>
+                  </div>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14.5px;color:#0D0D0D;">{{ s.gci }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          
+<!-- CHART GRID 1 -->
+      <div style="display:grid;grid-template-columns:1.2fr 1fr 1.2fr;gap:44px;margin-top:0;align-items:start;">
+
+        <!-- SALES VELOCITY -->
+        <section>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Sales Velocity</div>
+          <div style="display:flex;flex-direction:column;gap:14px;">
+            <sc-for list="{{ velocity }}" as="v" hint-placeholder-count="6">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;">{{ v.stage }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ v.days }}</span>
+                </div>
+                <div style="height:6px;background:rgba(255,255,255,0.55);position:relative;">
+                  <div style="position:absolute;left:0;top:0;height:100%;width:{{ v.width }};background:#303030;"></div>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+
+        <!-- PRICE BAND DISTRIBUTION -->
+        <section>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Deal Size</div>
+          <div style="display:flex;align-items:flex-end;gap:16px;height:150px;border-bottom:1px solid #E3E3E3;">
+            <sc-for list="{{ priceBands }}" as="p" hint-placeholder-count="4">
+              <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;margin-bottom:8px;">{{ p.count }}</span>
+                <div style="width:100%;height:{{ p.h }};background:#303030;"></div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:16px;margin-top:10px;">
+            <sc-for list="{{ priceBands }}" as="p" hint-placeholder-count="4">
+              <span style="flex:1;text-align:center;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:10px;letter-spacing:0.04em;color:#8F8F8F;">{{ p.band }}</span>
+            </sc-for>
+          </div>
+        </section>
+
+        <!-- GEOGRAPHIC CONCENTRATION -->
+        <section>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Geographic Concentration</div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <sc-for list="{{ geography }}" as="g" hint-placeholder-count="5">
+              <div style="display:flex;align-items:center;gap:16px;">
+                <span style="width:96px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;">{{ g.area }}</span>
+                <div style="flex:1;height:16px;background:rgba(255,255,255,0.55);position:relative;">
+                  <div style="position:absolute;left:0;top:0;height:100%;width:{{ g.width }};background:#0D0D0D;"></div>
+                </div>
+                <span style="width:48px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ g.value }}</span>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      
+        </div>
+        </sc-if>
+        <sc-if value="{{ repSecFlags.s05 }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:44px;">
+<!-- ACTIVITY & OUTREACH -->
+          <section>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;">Activity &amp; Outreach</div>
+              <div style="display:flex;gap:16px;">
+                <sc-for list="{{ actvPeriods }}" as="p" hint-placeholder-count="3">
+                  <span onClick="{{ p.onClick }}" style="{{ p.style }}">{{ p.label }}</span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid #E3E3E3;border-left:1px solid #E3E3E3;">
+              <sc-for list="{{ actvMetrics }}" as="m" hint-placeholder-count="6">
+                <div style="border-right:1px solid #E3E3E3;border-bottom:1px solid #E3E3E3;padding:18px 18px 16px;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#8F8F8F;">{{ m.label }}</div>
+                  <div style="display:flex;align-items:baseline;gap:9px;margin-top:12px;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:34px;line-height:1;color:#0D0D0D;">{{ m.value }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:{{ m.deltaColor }};">{{ m.delta }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-top:14px;padding:0 2px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;">{{ actvTotalLabel }}</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ actvNote }}</span>
+            </div>
+          </section>
+<section style="border:1px solid #E3E3E3;padding:24px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;letter-spacing:0;color:#0D0D0D;">Agent Scorecard · Week 27</div>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11px;color:#8F8F8F;">everything reversible · full trail in History</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);border:1px solid #ECECEC;margin-top:16px;">
+              <sc-for list="{{ scStats }}" as="s" hint-placeholder-count="4">
+                <div style="padding:14px 16px;border-right:1px solid #ECECEC;border-bottom:1px solid #ECECEC;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">{{ s.label }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:26px;color:#0D0D0D;margin-top:6px;">{{ s.v }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;color:#8F8F8F;margin-top:2px;">{{ s.sub }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="margin-top:14px;">
+              <sc-for list="{{ scRows }}" as="r" hint-placeholder-count="5">
+                <div style="display:flex;align-items:baseline;gap:12px;padding:8px 2px;border-bottom:1px solid #ECECEC;">
+                  <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;">{{ r.label }}</span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12.5px;color:#0D0D0D;">{{ r.v }}</span>
+                  <span style="flex:1;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">{{ r.sub }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+          <section>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;">12-Month Forecast</div>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Expected closings · Monthly</span>
+            </div>
+            <div style="display:flex;align-items:flex-end;gap:18px;height:180px;border-bottom:1px solid #E3E3E3;padding:0 4px;">
+              <sc-for list="{{ production }}" as="b" hint-placeholder-count="8">
+                <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;">
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;margin-bottom:8px;">{{ b.v }}</span>
+                  <div style="width:100%;height:{{ b.h }};background:#303030;"></div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:18px;padding:0 4px;margin-top:10px;">
+              <sc-for list="{{ production }}" as="b" hint-placeholder-count="8">
+                <span style="flex:1;text-align:center;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">{{ b.m }}</span>
+              </sc-for>
+            </div>
+          </section>
+
+          
+        </div>
+        </sc-if>
+        <sc-if value="{{ repSecFlags.s06 }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:44px;">
+<!-- CUSTOM REPORT BUILDER -->
+          <section>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;">Custom Report</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ crSummary }}</span>
+            </div>
+            <div style="border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 20px;">
+              <div style="display:flex;flex-direction:column;gap:12px;">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span style="width:84px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;">Pipeline</span>
+                  <sc-for list="{{ crPipes }}" as="x" hint-placeholder-count="4"><div onClick="{{ x.onClick }}" style="{{ x.style }}">{{ x.l }}</div></sc-for>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span style="width:84px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;">Status</span>
+                  <sc-for list="{{ crHeats }}" as="x" hint-placeholder-count="3"><div onClick="{{ x.onClick }}" style="{{ x.style }}">{{ x.l }}</div></sc-for>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span style="width:84px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;">Group by</span>
+                  <sc-for list="{{ crGroups }}" as="x" hint-placeholder-count="5"><div onClick="{{ x.onClick }}" style="{{ x.style }}">{{ x.l }}</div></sc-for>
+                </div>
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                  <span style="width:84px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;">Metrics</span>
+                  <sc-for list="{{ crMetricChips }}" as="x" hint-placeholder-count="4"><div onClick="{{ x.onClick }}" style="{{ x.style }}">{{ x.l }}</div></sc-for>
+                </div>
+              </div>
+              <div style="margin:16px -20px 0;border-top:1px solid #E3E3E3;">
+                <div style="display:flex;align-items:baseline;gap:12px;padding:11px 20px;border-bottom:1px solid #ECECEC;background:rgba(255,255,255,0.38);">
+                  <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Segment</span>
+                  <sc-if value="{{ crShowCount }}" hint-placeholder-val="{{ true }}"><span style="width:70px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Deals</span></sc-if>
+                  <sc-if value="{{ crShowVol }}" hint-placeholder-val="{{ true }}"><span style="width:96px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Volume</span></sc-if>
+                  <sc-if value="{{ crShowGci }}" hint-placeholder-val="{{ true }}"><span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">GCI</span></sc-if>
+                  <sc-if value="{{ crShowWgci }}" hint-placeholder-val="{{ true }}"><span style="width:110px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Weighted GCI</span></sc-if>
+                </div>
+                <sc-for list="{{ crRows }}" as="r" hint-placeholder-count="4">
+                  <div style="position:relative;display:flex;align-items:baseline;gap:12px;padding:12px 20px;border-bottom:1px solid #ECECEC;">
+                    <div style="position:absolute;left:0;top:0;bottom:0;width:{{ r.barW }};background:rgba(13,13,13,0.035);pointer-events:none;"></div>
+                    <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.k }}</span>
+                    <sc-if value="{{ crShowCount }}" hint-placeholder-val="{{ true }}"><span style="width:70px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ r.count }}</span></sc-if>
+                    <sc-if value="{{ crShowVol }}" hint-placeholder-val="{{ true }}"><span style="width:96px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ r.volStr }}</span></sc-if>
+                    <sc-if value="{{ crShowGci }}" hint-placeholder-val="{{ true }}"><span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ r.gciStr }}</span></sc-if>
+                    <sc-if value="{{ crShowWgci }}" hint-placeholder-val="{{ true }}"><span style="width:110px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">{{ r.wgciStr }}</span></sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ crEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:18px 20px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#8F8F8F;">No deals match these filters — widen the pipeline or status.</div>
+                </sc-if>
+              </div>
+              <div style="display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap;">
+                <button onClick="{{ crSave }}" style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:9px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:opacity 150ms;" style-hover="opacity:0.85;">Save view</button>
+                <button onClick="{{ crExport }}" style="background:transparent;border:1px solid #B4B4B4;border-radius:999px;padding:9px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">Export PDF</button>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">live on the same 25 deals the board runs on</span>
+              </div>
+            </div>
+          </section>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ repSecFlags.s07 }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:44px;">
+<!-- INCOME & RECEIVABLES -->
+          <section>
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:22px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;">Income &amp; Receivables</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">cash view — what landed, what is coming, what is owed to partners</span>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #E3E3E3;border-left:1px solid #E3E3E3;">
+              <sc-for list="{{ incKpis }}" as="k" hint-placeholder-count="4">
+                <div style="border-right:1px solid #E3E3E3;border-bottom:1px solid #E3E3E3;padding:18px 18px 16px;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#8F8F8F;">{{ k.label }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:34px;line-height:1;color:#0D0D0D;margin-top:12px;">{{ k.value }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:6px;">{{ k.sub }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+
+          <section>
+            <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:12px;">
+              <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#0D0D0D;position:relative;top:-2px;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;color:#0D0D0D;">Receivables — open</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ incTotalLine }}</span>
+            </div>
+            <div style="overflow:hidden;border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);">
+              <div style="display:flex;align-items:baseline;gap:12px;padding:11px 20px;border-bottom:1px solid #ECECEC;background:rgba(255,255,255,0.38);">
+                <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Deal</span>
+                <span style="width:100px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Expected</span>
+                <span style="width:76px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">GCI</span>
+                <span style="width:86px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Referral</span>
+                <span style="width:86px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Net</span>
+                <span style="width:150px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Status</span>
+              </div>
+              <sc-for list="{{ incRecv }}" as="r" hint-placeholder-count="6">
+                <div onClick="{{ r.onOpen }}" style="display:flex;align-items:baseline;gap:12px;padding:13px 20px;border-bottom:1px solid #ECECEC;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.5);">
+                  <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.deal }}</span>
+                  <span style="width:100px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;">{{ r.when }}</span>
+                  <span style="width:76px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#5D5D5D;">{{ r.gci }}</span>
+                  <span style="width:86px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:{{ r.refColor }};">{{ r.ref }}</span>
+                  <span style="width:86px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">{{ r.net }}</span>
+                  <span style="width:150px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;color:{{ r.c }};">{{ r.st }}</span>
+                </div>
+              </sc-for>
+            </div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;line-height:1.6;color:#8F8F8F;margin-top:12px;">Statements reconcile monthly · referral payouts release 15 business days after commission receipt — §7 · pre-construction credits pro-rata as installments land — §6.5 · click a row to open the deal.</div>
+          </section>
+
+          <div style="display:grid;grid-template-columns:1fr 1.2fr;gap:20px;align-items:start;">
+            <section style="border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 20px;">
+              <div style="display:flex;align-items:baseline;gap:8px;"><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">Income history</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">net collected · monthly</span></div>
+              <div style="margin-top:12px;">
+                <sc-for list="{{ incHist }}" as="h" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:12px;padding:7px 0;">
+                    <span style="width:34px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;">{{ h.m }}</span>
+                    <div style="flex:1;height:12px;border-radius:3px;background:rgba(13,13,13,0.06);overflow:hidden;"><div style="height:100%;width:{{ h.w }};background:#0D0D0D;"></div></div>
+                    <span style="width:56px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;color:#0D0D0D;">{{ h.amt }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:10px;">YTD $975K · best month May — Sterling escrow release lands in Aug</div>
+            </section>
+            <section style="overflow:hidden;border-radius:12px;background:rgba(255,255,255,0.42);backdrop-filter:blur(22px) saturate(1.7);-webkit-backdrop-filter:blur(22px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);">
+              <div style="display:flex;align-items:baseline;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #ECECEC;background:rgba(255,255,255,0.38);">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13.5px;color:#0D0D0D;">Paid — history</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;">newest first · from closing statements</span>
+              </div>
+              <sc-for list="{{ incPaid }}" as="p" hint-placeholder-count="5">
+                <div style="display:flex;align-items:baseline;gap:12px;padding:12px 20px;border-bottom:1px solid #ECECEC;">
+                  <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ p.deal }}</span>
+                  <span style="width:96px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">{{ p.when }}</span>
+                  <span style="width:66px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#5D5D5D;">{{ p.gci }}</span>
+                  <span style="width:76px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12.5px;color:#10A37F;">{{ p.net }}</span>
+                </div>
+              </sc-for>
+            </section>
+          </div>
+        
+<!-- moved from Pipeline & Forecast -->
+          <!-- FORECAST -->
+          <section style="border:1px solid #E3E3E3;padding:24px;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;letter-spacing:0;color:#0D0D0D;">Forecast · Next 6 Months</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:40px;color:#0D0D0D;margin:16px 0 4px;">{{ wGciStr }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;margin-bottom:18px;">Weighted commission · Jul–Dec</div>
+            <sc-for list="{{ forecast }}" as="f" hint-placeholder-count="3">
+              <div style="display:flex;justify-content:space-between;padding:9px 0;border-top:1px solid #E3E3E3;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ f.m }}</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#0D0D0D;">{{ f.value }}</span>
+              </div>
+            </sc-for>
+          </section>
+
+          <section style="border:1px solid #E3E3E3;padding:24px;">
+            <div style="display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;letter-spacing:0;color:#0D0D0D;">Net Commission · Disbursements</div>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11px;color:#8F8F8F;">after referral &amp; splits</span>
+            </div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:40px;color:#0D0D0D;margin:16px 0 4px;">{{ netCommTotal }}</div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;margin-bottom:18px;">Net to A/CO · Jul–Dec · milestone-tied phases included</div>
+            <sc-for list="{{ netForecast }}" as="f" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:14px;padding:8px 2px;border-bottom:1px solid #ECECEC;">
+                <span style="width:34px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">{{ f.m }}</span>
+                <div style="flex:1;height:6px;background:#F1F0EC;"><div style="{{ f.barStyle }}"></div></div>
+                <span style="width:64px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">{{ f.v }}</span>
+              </div>
+            </sc-for>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11px;color:#8F8F8F;margin-top:12px;">Pre-construction phases (Rivage, St Regis) land in the month their milestone is forecast — re-forecast with the construction schedule.</div>
+          </section>
+
+
+        
+      
+
+      
+<!-- TOP WEIGHTED DEALS -->
+          <section>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Top Weighted Deals</div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <sc-for list="{{ topDeals }}" as="d" hint-placeholder-count="6">
+                <div style="display:flex;align-items:center;gap:16px;">
+                  <span style="width:200px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#303030;">{{ d.name }}</span>
+                  <div style="flex:1;height:16px;background:rgba(255,255,255,0.55);position:relative;">
+                    <div style="position:absolute;left:0;top:0;height:100%;width:{{ d.width }};background:#0D0D0D;"></div>
+                  </div>
+                  <span style="width:56px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:14px;color:#0D0D0D;">{{ d.wgci }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ repSecFlags.s08 }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:44px;">
+<!-- MARKETING · KPIS -->
+          <section>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid #E3E3E3;border-left:1px solid #E3E3E3;">
+              <sc-for list="{{ repMktKpis }}" as="k" hint-placeholder-count="4">
+                <div style="border-right:1px solid #E3E3E3;border-bottom:1px solid #E3E3E3;padding:18px 20px;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:700;font-size:9px;letter-spacing:0.2em;text-transform:uppercase;color:#8F8F8F;">{{ k.label }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:32px;line-height:1;color:#0D0D0D;margin-top:12px;">{{ k.value }}</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:6px;">{{ k.sub }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+<!-- MARKETING · CHANNELS -->
+          <section>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Channel Performance</div>
+            <div style="display:flex;flex-direction:column;gap:16px;">
+              <sc-for list="{{ repMktChannels }}" as="c" hint-placeholder-count="4">
+                <div>
+                  <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;">
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#303030;">{{ c.ch }}</span>
+                    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#8F8F8F;">{{ c.metric }}</span>
+                  </div>
+                  <div style="height:8px;background:rgba(255,255,255,0.55);position:relative;">
+                    <div style="position:absolute;left:0;top:0;height:100%;width:{{ c.w }};background:#0D0D0D;"></div>
+                  </div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;margin-top:5px;">{{ c.lead }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </section>
+<!-- MARKETING · GRID -->
+          <div style="display:grid;grid-template-columns:1.3fr 1fr;gap:44px;align-items:start;">
+            <section>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Attribution — campaign → pipeline</div>
+              <div style="border-top:1px solid #E3E3E3;">
+                <div style="display:flex;align-items:baseline;gap:12px;padding:10px 0;border-bottom:1px solid #E3E3E3;">
+                  <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Campaign</span>
+                  <span style="width:120px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Influenced</span>
+                  <span style="width:80px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">GCI</span>
+                </div>
+                <sc-for list="{{ repMktAttr }}" as="a" hint-placeholder-count="3">
+                  <div style="display:flex;align-items:baseline;gap:12px;padding:14px 0;border-bottom:1px solid #E3E3E3;">
+                    <div style="flex:1;min-width:0;">
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">{{ a.campaign }}</div>
+                      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">{{ a.chan }}</div>
+                    </div>
+                    <span style="width:120px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;color:#0D0D0D;">{{ a.influenced }}</span>
+                    <span style="width:80px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">{{ a.gci }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="margin-top:26px;">
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Top Content</div>
+                <div style="border-top:1px solid #E3E3E3;">
+                  <sc-for list="{{ repMktContent }}" as="p" hint-placeholder-count="3">
+                    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #E3E3E3;">
+                      <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ p.title }}</span>
+                      <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">{{ p.reach }}</span>
+                      <span style="width:78px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11.5px;color:#0D0D0D;">{{ p.saves }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </section>
+            <section>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;letter-spacing:0;color:#0D0D0D;margin-bottom:22px;">Audience Growth</div>
+              <div style="display:flex;flex-direction:column;gap:11px;">
+                <sc-for list="{{ repMktFollow }}" as="h" hint-placeholder-count="6">
+                  <div style="display:flex;align-items:center;gap:12px;">
+                    <span style="width:34px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;">{{ h.m }}</span>
+                    <div style="flex:1;height:12px;background:rgba(255,255,255,0.55);position:relative;"><div style="position:absolute;left:0;top:0;height:100%;width:{{ h.w }};background:#0D0D0D;"></div></div>
+                    <span style="width:44px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;color:#0D0D0D;">{{ h.amt }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;line-height:1.6;color:#8F8F8F;margin-top:14px;">Instagram followers · +87% trailing 6 months. Peak growth after the corridor market-data reel. Full campaign controls live in the Marketing hub.</div>
+            </section>
+          </div>
+        </div>
+        </sc-if>
+
+        <sc-if value="{{ repSecFlags.sv }}" hint-placeholder-val="{{ false }}">
+        <div style="display:flex;flex-direction:column;gap:24px;">
+          <section>
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px;">
+              <div>
+                <div style="display:flex;align-items:center;gap:10px;">
+                  <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+                  <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:16px;color:#0D0D0D;">{{ svTitle }}</span>
+                </div>
+                <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#8F8F8F;margin-top:5px;">Saved view · {{ crSummary }}</div>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onClick="{{ svEdit }}" style="background:transparent;border:1px solid #B4B4B4;border-radius:999px;padding:8px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;transition:background 150ms;" style-hover="background:rgba(255,255,255,0.55);">Edit filters</button>
+                <button onClick="{{ svRemove }}" style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:8px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#D0342C;cursor:pointer;transition:all 150ms;" style-hover="border-color:#D0342C;">Remove view</button>
+              </div>
+            </div>
+            <div style="border-radius:12px;overflow:hidden;background:rgba(255,255,255,0.40);backdrop-filter:blur(24px) saturate(1.7);-webkit-backdrop-filter:blur(24px) saturate(1.7);border:1px solid rgba(255,255,255,0.65);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);">
+              <div style="display:flex;align-items:baseline;gap:12px;padding:11px 20px;border-bottom:1px solid #ECECEC;background:rgba(255,255,255,0.38);">
+                  <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Segment</span>
+                  <sc-if value="{{ crShowCount }}" hint-placeholder-val="{{ true }}"><span style="width:70px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Deals</span></sc-if>
+                  <sc-if value="{{ crShowVol }}" hint-placeholder-val="{{ true }}"><span style="width:96px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Volume</span></sc-if>
+                  <sc-if value="{{ crShowGci }}" hint-placeholder-val="{{ true }}"><span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">GCI</span></sc-if>
+                  <sc-if value="{{ crShowWgci }}" hint-placeholder-val="{{ true }}"><span style="width:110px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;">Weighted GCI</span></sc-if>
+                </div>
+                <sc-for list="{{ crRows }}" as="r" hint-placeholder-count="4">
+                  <div style="position:relative;display:flex;align-items:baseline;gap:12px;padding:12px 20px;border-bottom:1px solid #ECECEC;">
+                    <div style="position:absolute;left:0;top:0;bottom:0;width:{{ r.barW }};background:rgba(13,13,13,0.035);pointer-events:none;"></div>
+                    <span style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ r.k }}</span>
+                    <sc-if value="{{ crShowCount }}" hint-placeholder-val="{{ true }}"><span style="width:70px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ r.count }}</span></sc-if>
+                    <sc-if value="{{ crShowVol }}" hint-placeholder-val="{{ true }}"><span style="width:96px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">{{ r.volStr }}</span></sc-if>
+                    <sc-if value="{{ crShowGci }}" hint-placeholder-val="{{ true }}"><span style="width:90px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">{{ r.gciStr }}</span></sc-if>
+                    <sc-if value="{{ crShowWgci }}" hint-placeholder-val="{{ true }}"><span style="width:110px;flex:none;text-align:right;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">{{ r.wgciStr }}</span></sc-if>
+                  </div>
+                </sc-for>
+                <sc-if value="{{ crEmpty }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding:18px 20px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#8F8F8F;">No deals match these filters — widen the pipeline or status.</div>
+                </sc-if>
+            </div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:12px;">Live — recalculated from the board every time you open it. Edit filters to refine; changes save as a new view.</div>
+          </section>
+        </div>
+        </sc-if>
+        </div>
+      </div>
+
+    </div>
+    </sc-if>
