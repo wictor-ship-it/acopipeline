@@ -1,0 +1,39 @@
+.placeholder {
+  padding: 48px;
+}
+
+.placeholder-card {
+  max-width: 520px;
+  border-radius: var(--radius-card);
+  background: var(--glass-card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  padding: 26px 28px;
+}
+
+.placeholder-eyebrow {
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gray-meta);
+}
+
+.placeholder-title {
+  font-family: var(--font-brand);
+  font-weight: 400;
+  font-size: 18px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  margin-top: 10px;
+}
+
+.placeholder-note {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--gray-secondary);
+  margin-top: 12px;
+}

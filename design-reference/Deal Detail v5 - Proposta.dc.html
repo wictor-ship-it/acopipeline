@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <meta name="design_doc_mode" content="canvas">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { margin:0; background:#EFEEEA; }
+    a { color:#0D0D0D; text-decoration:none; }
+    a:hover { color:#5D5D5D; }
+  </style>
+</helmet>
+
+<section style="display:flex;align-items:flex-start;gap:36px;padding:56px 64px 24px;flex-wrap:wrap;">
+  <div style="flex:none;width:100%;display:flex;align-items:baseline;gap:14px;">
+    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8F8F8F;">Turno 3 · workflow — o dia, não só a página</span>
+    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#B8B8B8;">última rodada sugerida antes de consolidar e implementar</span>
+  </div>
+
+  <!-- 3a · loop entre deals -->
+  <div id="3a" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#3a" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">3a</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">O loop do dia — fila zerada leva ao próximo deal</span>
+    </div>
+    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.6;color:#5D5D5D;margin-bottom:12px;">Limpou este deal → o sistema oferece o próximo que precisa de você. Trabalhar o pipeline vira um circuito, sem voltar à lista. Inclui ‹ › no record bar (como já existe em Contacts).</div>
+    <div style="border-radius:16px;background:linear-gradient(135deg,#F4F2ED,#EDEFEE);padding:18px;">
+      <div style="border-radius:12px;border:1px solid rgba(255,255,255,0.7);background:rgba(255,255,255,0.6);box-shadow:0 6px 20px rgba(0,0,0,0.05);padding:14px 18px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <span style="width:6px;height:6px;border-radius:50%;background:#10A37F;flex:none;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;">Faena 9B clear — <b>next deal needs you:</b> Sterling · Acqualina 4802 — 2 to review · $38K weighted</span>
+        <span style="flex:1;"></span>
+        <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:7px 15px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Open next →</button>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">or ‹ › to browse the pipeline in order</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3b · captura sem sair do fluxo -->
+  <div id="3b" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#3b" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">3b</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Captura na Memória — falou, virou registro estruturado</span>
+    </div>
+    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.6;color:#5D5D5D;margin-bottom:12px;">“+ Log” fixo no cabeçalho da Memória (voz ou texto). O agente estrutura, arquiva e — se o registro muda o jogo — ajusta o Plano e propõe o próximo passo na fila.</div>
+    <div style="border-radius:16px;background:linear-gradient(135deg,#F4F2ED,#EDEFEE);padding:18px;">
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#8F8F8F;flex:none;position:relative;top:-1px;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Memory</span>
+        <span style="flex:1;"></span>
+        <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid #0D0D0D;border-radius:999px;background:rgba(255,255,255,0.75);padding:6px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;color:#0D0D0D;cursor:pointer;white-space:nowrap;">+ Log · 🎙 or type</span>
+      </div>
+      <div style="border-radius:12px;border:1px solid rgba(255,255,255,0.7);border-left:2px solid #10A37F;background:rgba(255,255,255,0.6);padding:13px 16px;margin-top:12px;">
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#10A37F;">logged now · via voice · agent-structured</div>
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#303030;margin-top:6px;">“Camille ligou — o marido volta sexta, querem decidir no fim de semana.” → <b>Plano ajustado:</b> application movida para Jul 12 · <b>na fila:</b> draft de confirmação do tour com o marido.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3c · regras de workflow -->
+  <div id="3c" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#3c" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">3c</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Regras de fluxo — decisão, sem mock</span>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E3E3E3;border-radius:14px;padding:20px 24px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.7;color:#303030;">
+      <div style="padding:6px 0;border-bottom:1px solid #F2F2F0;"><b>Marco → cliente informado:</b> toda mudança de estágio gera draft de update ao cliente (WhatsApp + deal room) na fila. Você aprova; nada sai sozinho.</div>
+      <div style="padding:6px 0;border-bottom:1px solid #F2F2F0;"><b>Evento → brief pronto:</b> tour/reunião agendada gera item “brief ready” na fila na manhã do evento — rota, pontos, objeções prováveis.</div>
+      <div style="padding:6px 0;border-bottom:1px solid #F2F2F0;"><b>Fases finais → TC entra na mesma fila:</b> em Lease drafting/Signed os itens do coordenador aparecem com dono claro — você só aprova o que é seu, sem trocar de tela.</div>
+      <div style="padding:6px 0;"><b>Editar é inline:</b> budget, datas e probabilidade editam no lugar (como o 82%) — com trilha de quem mudou. Modais só para compor mensagens.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display:flex;align-items:flex-start;gap:36px;padding:56px 64px 24px;flex-wrap:wrap;">
+  <div style="flex:none;width:100%;display:flex;align-items:baseline;gap:14px;">
+    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8F8F8F;">Turno 2 · stress antes de implementar — 4 decisões + notas</span>
+    <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#B8B8B8;">cada cartão é aprovável separado · o mock completo (<a href="#1a">1a</a>) segue abaixo</span>
+  </div>
+
+  <!-- 2a · estado vazio do Now -->
+  <div id="2a" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#2a" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">2a</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Fila zerada — o Now precisa de estado de descanso</span>
+    </div>
+    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.6;color:#5D5D5D;margin-bottom:12px;">Se item concluído some, a zona não pode virar buraco. “All clear” fecha o dia com digest — e responde “para onde foi o que sumiu?”.</div>
+    <div style="border-radius:16px;background:linear-gradient(135deg,#F4F2ED,#EDEFEE);padding:18px;">
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#10A37F;flex:none;position:relative;top:-1px;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Now</span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">queue clear · 09:40</span>
+      </div>
+      <div style="border-radius:12px;border:1px solid rgba(255,255,255,0.7);background:rgba(255,255,255,0.6);box-shadow:0 6px 20px rgba(0,0,0,0.05);padding:16px 18px;margin-top:10px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:280px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13.5px;color:#0D0D0D;">Nothing needs you on this deal right now.</div>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;margin-top:3px;">agent watches replies, deadlines and documents — items land here when they need a decision</div>
+        </div>
+        <span style="display:inline-flex;align-items:center;gap:7px;border:1px solid #E3E3E3;border-radius:999px;background:rgba(255,255,255,0.7);padding:6px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#5D5D5D;"><span style="width:5px;height:5px;border-radius:50%;background:#D0342C;"></span>next: Application · Jul 14</span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;color:#10A37F;cursor:pointer;text-decoration:underline;text-underline-offset:3px;">3 done today ›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2b · advance com gates -->
+  <div id="2b" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#2b" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">2b</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Advance stage com consciência — gates do playbook</span>
+    </div>
+    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.6;color:#5D5D5D;margin-bottom:12px;">Hoje o botão avança às cegas. Proposto: clicar mostra o que falta para o próximo estágio; “Nudge” manda o agente cobrar — avançar mesmo assim continua possível.</div>
+    <div style="border-radius:16px;background:linear-gradient(135deg,#F4F2ED,#EDEFEE);padding:18px;display:flex;justify-content:flex-end;">
+      <div style="position:relative;">
+        <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:8px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Advance › Application</button>
+        <div style="margin-top:10px;width:360px;border-radius:14px;background:#FFFFFF;border:1px solid #E3E3E3;box-shadow:0 14px 40px rgba(0,0,0,0.12);padding:16px 18px;">
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12.5px;color:#0D0D0D;">Advance to Application — 2 gates open</div>
+          <div style="margin-top:10px;">
+            <div style="display:flex;align-items:baseline;gap:9px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="color:#10A37F;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12px;">✓</span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12.5px;color:#8F8F8F;">Tour completed · feedback logged</span></div>
+            <div style="display:flex;align-items:baseline;gap:9px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="width:8px;height:8px;border:1px solid #B45309;border-radius:50%;position:relative;top:1px;flex:none;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12.5px;color:#303030;">Application received — <b style="color:#B45309;">client</b></span></div>
+            <div style="display:flex;align-items:baseline;gap:9px;padding:6px 0;"><span style="width:8px;height:8px;border:1px solid #D0342C;border-radius:50%;position:relative;top:1px;flex:none;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:12.5px;color:#303030;">Lease rider approved — <b style="color:#D0342C;">you</b></span></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:14px;">
+            <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:7px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Nudge gates · agent drafts</button>
+            <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:7px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;">Advance anyway</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2c · gargalo visível no plano -->
+  <div id="2c" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#2c" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">2c</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Plano — o gargalo salta aos olhos</span>
+    </div>
+    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.6;color:#5D5D5D;margin-bottom:12px;">Filtro por dono no cabeçalho + atraso em vermelho com ação de cobrança inline. Responde “quem está travando o deal?” sem ler a lista inteira.</div>
+    <div style="border-radius:16px;background:linear-gradient(135deg,#F4F2ED,#EDEFEE);padding:18px;">
+      <div style="display:flex;align-items:baseline;gap:10px;">
+        <span style="width:7px;height:7px;border-radius:50%;background:#0D0D0D;flex:none;position:relative;top:-1px;"></span>
+        <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">The plan to close</span>
+        <span style="flex:1;"></span>
+        <span style="display:flex;gap:6px;">
+          <span style="border:1px solid #0D0D0D;border-radius:999px;padding:4px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;color:#0D0D0D;background:rgba(255,255,255,0.7);">All · 5</span>
+          <span style="border:1px solid #E3E3E3;border-radius:999px;padding:4px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;color:#D0342C;">You · 1</span>
+          <span style="border:1px solid #E3E3E3;border-radius:999px;padding:4px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;color:#B45309;">Client · 1</span>
+          <span style="border:1px solid #E3E3E3;border-radius:999px;padding:4px 11px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;color:#8F8F8F;">Agent · 3</span>
+        </span>
+      </div>
+      <div style="border-top:1px solid #E3E3E3;margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:14px;padding:11px 4px;border-bottom:1px solid #ECECEC;background:rgba(208,52,44,0.04);">
+          <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12px;color:#D0342C;">Jul 08</span>
+          <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#D0342C;"></span>
+          <div style="flex:1;min-width:0;">
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">Proof of funds letter <span style="font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#D0342C;margin-left:6px;">overdue 2d</span></div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">blocks the board file · client said “this week” on Jul 05</div>
+          </div>
+          <button style="background:transparent;border:1px solid #D0342C;border-radius:999px;padding:5px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.05em;text-transform:uppercase;color:#D0342C;cursor:pointer;">Nudge · agent drafts</button>
+          <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#B45309;">client</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;padding:11px 4px;">
+          <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#5D5D5D;">Jul 14</span>
+          <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+          <div style="flex:1;min-width:0;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">Application + credit file to the building</div>
+          <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">Planned</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2d · linha de atenção condicional -->
+  <div id="2d" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#2d" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">2d</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Vitals — a linha do agente vira risco quando há risco</span>
+    </div>
+    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.6;color:#5D5D5D;margin-bottom:12px;">Uma única linha sob os vitals, com dois modos. Nunca as duas ao mesmo tempo, nunca mais de um risco — o resto fica no Plano.</div>
+    <div style="border-radius:16px;background:linear-gradient(135deg,#F4F2ED,#EDEFEE);padding:18px;display:flex;flex-direction:column;gap:12px;">
+      <div>
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#B8B8B8;margin-bottom:6px;">modo padrão — sugestão</div>
+        <div style="display:flex;align-items:center;gap:10px;border-radius:10px;background:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.7);padding:10px 14px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#0D0D0D;flex:none;"></span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;">Agent suggests <b>90%</b> after Saturday&#39;s tour — reply cadence 2× faster than stage average.</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Apply</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.1em;text-transform:uppercase;color:#B8B8B8;margin-bottom:6px;">modo risco — só quando existe, máx. 1</div>
+        <div style="display:flex;align-items:center;gap:10px;border-radius:10px;background:rgba(208,52,44,0.05);border:1px solid rgba(208,52,44,0.25);padding:10px 14px;">
+          <span style="width:6px;height:6px;border-radius:50%;background:#D0342C;flex:none;"></span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;"><b style="color:#D0342C;">Holds expire tonight 22:00</b> — no reply since Saturday · deal stalls if the tour slips.</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#D0342C;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Fix in Now ›</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2e · notas de comportamento -->
+  <div id="2e" style="flex:none;width:700px;">
+    <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:10px;">
+      <a href="#2e" style="display:inline-flex;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:3px 9px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10.5px;letter-spacing:0.08em;">2e</a>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;color:#0D0D0D;">Regras de comportamento — sem mock, só decisão</span>
+    </div>
+    <div style="background:#FFFFFF;border:1px solid #E3E3E3;border-radius:14px;padding:20px 24px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.7;color:#303030;">
+      <div style="padding:6px 0;border-bottom:1px solid #F2F2F0;"><b>Ordem da fila:</b> expiração primeiro (holds, prazos), depois valor. O follow-up principal fica sempre no topo como cartão grande.</div>
+      <div style="padding:6px 0;border-bottom:1px solid #F2F2F0;"><b>Teclado:</b> ⏎ aprova · E edita · S pula — a fila anda sozinha para o próximo item.</div>
+      <div style="padding:6px 0;border-bottom:1px solid #F2F2F0;"><b>Sem sinal duplo:</b> item de docs na fila não soma com o badge “Documents · 2” — o badge é o total, a fila mostra só o que precisa de você hoje.</div>
+      <div style="padding:6px 0;border-bottom:1px solid #F2F2F0;"><b>Welcome agrega, deal filtra:</b> a mesma fila alimenta o Welcome (todos os deals) e aqui aparece só deste deal — mesma gramática, zero duplicação.</div>
+      <div style="padding:6px 0;"><b>Telas estreitas:</b> vitals viram 2+3, fila empilha botões abaixo do texto — nada some.</div>
+    </div>
+  </div>
+</section>
+
+<section style="display:flex;align-items:flex-start;gap:44px;padding:56px 64px 96px;flex-wrap:wrap;">
+
+  <!-- ===================== OPTION 1a · MOCK ===================== -->
+  <div id="1a" style="flex:none;width:1480px;">
+    <div style="display:flex;align-items:baseline;gap:14px;margin-bottom:16px;">
+      <a href="#1a" style="display:inline-flex;align-items:center;justify-content:center;background:#E9E8E4;color:#0D0D0D;border-radius:6px;padding:4px 10px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.08em;">1a</a>
+      <span style="font-family:'Syncopate',sans-serif;font-weight:400;font-size:13px;letter-spacing:0.06em;color:#0D0D0D;">A/CO</span>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8F8F8F;">Deal Detail · proposta v5 — para aprovação</span>
+      <span style="flex:1;"></span>
+      <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">6 zonas · numeradas — rationale ao lado</span>
+    </div>
+
+    <!-- ambient canvas -->
+    <div style="position:relative;border-radius:22px;background:linear-gradient(135deg,#F4F2ED 0%,#EFEFEC 55%,#EAECEC 100%);padding:22px;overflow:hidden;">
+      <div style="position:absolute;top:-120px;right:-80px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,#E7DFCF 0%,transparent 70%);opacity:0.7;"></div>
+      <div style="position:absolute;bottom:-140px;left:-60px;width:460px;height:460px;border-radius:50%;background:radial-gradient(circle,#D9E2E4 0%,transparent 70%);opacity:0.6;"></div>
+
+      <!-- main canvas card -->
+      <div style="position:relative;border-radius:18px;background:rgba(255,255,255,0.55);border:1px solid rgba(255,255,255,0.65);box-shadow:0 10px 34px rgba(0,0,0,0.06);overflow:hidden;">
+
+        <!-- record bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 40px;border-bottom:1px solid #E3E3E3;">
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;letter-spacing:0.14em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;">‹ Pipeline</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:8px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;">Share room</button>
+            <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:8px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;">Actions ▾</button>
+            <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:8px 18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Advance stage →</button>
+          </div>
+        </div>
+
+        <!-- 01 · HERO — identidade + vitals -->
+        <div style="position:relative;padding:26px 40px 0;background:rgba(255,255,255,0.45);">
+          <span style="position:absolute;top:26px;right:40px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;">1</span>
+          <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#8F8F8F;">Rentals · Broker network · since Jun 2026 <span style="color:#10A37F;">· referral — A. Bittencourt · protected to Sep 12 · fee 25%</span></div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:6px;flex-wrap:wrap;">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:28px;color:#0D0D0D;">Faena Residence 9B</span>
+            <span style="display:inline-flex;align-items:center;gap:7px;"><span style="width:6px;height:6px;border-radius:50%;background:#D0342C;"></span><span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:#0D0D0D;">Hot</span></span>
+            <span style="flex:1;"></span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#5D5D5D;">Camille Laurent · tenant — <span style="text-decoration:underline;text-underline-offset:3px;cursor:pointer;">3 related contacts</span></span>
+          </div>
+
+          <!-- vitals — os únicos 5 números -->
+          <div style="display:grid;grid-template-columns:1.3fr 1fr 1fr 1fr 1fr;border-top:1px solid #E3E3E3;margin-top:20px;">
+            <div style="padding:16px 24px 18px 0;border-right:1px solid #E3E3E3;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Stage</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:26px;color:#0D0D0D;margin-top:6px;">Showings</div>
+              <div style="display:flex;align-items:center;gap:5px;margin-top:8px;">
+                <span style="width:22px;height:3px;border-radius:2px;background:#0D0D0D;"></span>
+                <span style="width:22px;height:3px;border-radius:2px;background:#0D0D0D;"></span>
+                <span style="width:22px;height:3px;border-radius:2px;background:#0D0D0D;"></span>
+                <span style="width:22px;height:3px;border-radius:2px;background:#DCDCD8;"></span>
+                <span style="width:22px;height:3px;border-radius:2px;background:#DCDCD8;"></span>
+                <span style="width:22px;height:3px;border-radius:2px;background:#DCDCD8;"></span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-left:6px;">3 of 6 · next: Application</span>
+              </div>
+            </div>
+            <div style="padding:16px 24px;border-right:1px solid #E3E3E3;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Budget</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:26px;color:#0D0D0D;margin-top:6px;">$45K<span style="font-size:15px;color:#8F8F8F;">/mo</span></div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:8px;">24-month term · Sep 01</div>
+            </div>
+            <div style="padding:16px 24px;border-right:1px solid #E3E3E3;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Probability</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:26px;color:#0D0D0D;margin-top:6px;border-bottom:1px solid #B4B4B4;display:inline-block;padding-bottom:1px;">82%</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:8px;">editable · click to set</div>
+            </div>
+            <div style="padding:16px 24px;border-right:1px solid #E3E3E3;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Weighted GCI</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:26px;color:#0D0D0D;margin-top:6px;">$22.5K</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:8px;">of $27K potential</div>
+            </div>
+            <div style="padding:16px 0 16px 24px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Momentum</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:200;font-size:26px;color:#0D0D0D;margin-top:6px;">84 <span style="font-size:15px;color:#10A37F;">↗</span></div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#8F8F8F;margin-top:8px;">strong · hover for factors</div>
+            </div>
+          </div>
+
+          <!-- a única linha do agente sobre os números -->
+          <div style="display:flex;align-items:center;gap:10px;border-top:1px solid #E3E3E3;padding:12px 0;">
+            <span style="width:6px;height:6px;border-radius:50%;background:#0D0D0D;flex:none;"></span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;color:#303030;">Agent suggests <span style="font-weight:600;">90%</span> after Saturday&#39;s tour — reply cadence 2× faster than stage average.</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#0D0D0D;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Apply</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#B8B8B8;">why ›</span>
+          </div>
+        </div>
+
+        <!-- 02 · MENU segmentado — replicado do Contact -->
+        <div style="position:relative;display:flex;justify-content:center;padding:16px 40px 0;">
+          <span style="position:absolute;top:16px;right:40px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;">2</span>
+          <div style="display:flex;align-items:center;gap:2px;background:rgba(255,255,255,0.42);border:1px solid rgba(255,255,255,0.75);border-radius:999px;padding:3px;box-shadow:0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7);">
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;letter-spacing:0.04em;color:#0D0D0D;padding:7px 22px;border-radius:999px;background:#FFFFFF;box-shadow:0 2px 8px rgba(0,0,0,0.06);cursor:pointer;">Now</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;letter-spacing:0.04em;color:#8F8F8F;padding:7px 22px;border-radius:999px;cursor:pointer;">Agent</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;letter-spacing:0.04em;color:#8F8F8F;padding:7px 22px;border-radius:999px;cursor:pointer;">Documents · 2</span>
+            <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;letter-spacing:0.04em;color:#8F8F8F;padding:7px 22px;border-radius:999px;cursor:pointer;">Financial</span>
+          </div>
+        </div>
+
+        <!-- corpo · coluna única 980 -->
+        <div style="max-width:980px;margin:0 auto;padding:30px 48px 64px;">
+
+          <!-- 03 · NOW -->
+          <div style="position:relative;">
+            <span style="position:absolute;top:0;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;">3</span>
+            <div style="display:flex;align-items:baseline;gap:10px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#D0342C;flex:none;position:relative;top:-1px;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Now</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">the deal&#39;s queue today — 4 to review · done items leave the screen</span>
+              <span style="flex:1;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#B8B8B8;">Lease playbook v2</span>
+            </div>
+            <div style="border-radius:12px;border:1px solid rgba(255,255,255,0.65);border-left:2px solid #0D0D0D;background:rgba(255,255,255,0.55);box-shadow:0 8px 28px rgba(0,0,0,0.06),inset 0 1px 0 rgba(255,255,255,0.7);padding:18px 20px;margin-top:12px;">
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:14.5px;color:#0D0D0D;">Post-tour follow-up — Camille went quiet 48h after Saturday at the 9B</div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13.5px;line-height:1.6;font-style:italic;color:#5D5D5D;border-left:2px solid #E3E3E3;padding-left:14px;margin-top:10px;">“Camille — the building confirmed pets are cleared for 9B and I can hold the unit until Friday. Shall I send the application link?”</div>
+              <div style="display:flex;gap:8px;align-items:center;margin-top:14px;flex-wrap:wrap;">
+                <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:8px 16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Approve &amp; send · WhatsApp</button>
+                <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:8px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;">Edit draft</button>
+                <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:8px 14px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;">Skip</button>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;">in her language · logged · <span style="text-decoration:underline;text-underline-offset:3px;cursor:pointer;color:#5D5D5D;">+2 queued — dossier to attorney · recap to broker</span></span>
+              </div>
+            </div>
+            <!-- fila — mesmas ações, revisáveis aqui · somem ao concluir -->
+            <div style="display:flex;flex-direction:column;gap:8px;margin-top:10px;">
+              <div style="display:flex;align-items:center;gap:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.65);background:rgba(255,255,255,0.42);box-shadow:0 4px 16px rgba(0,0,0,0.04);padding:12px 16px;flex-wrap:wrap;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#D0342C;flex:none;"></span>
+                <div style="flex:1;min-width:260px;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">MLS Match — 3 new listings fit this search</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">agent pre-selected all 3 · draft ready in her language</div>
+                </div>
+                <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:6px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Approve &amp; send · 3</button>
+                <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;">Review</button>
+                <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;">Skip</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.65);background:rgba(255,255,255,0.42);box-shadow:0 4px 16px rgba(0,0,0,0.04);padding:12px 16px;flex-wrap:wrap;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#B45309;flex:none;"></span>
+                <div style="flex:1;min-width:260px;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">Tour Thursday 14:00 — 2 stops to confirm</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">Continuum 2404 + Setai 1808 · holds expire tonight</div>
+                </div>
+                <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:6px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Confirm both</button>
+                <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#5D5D5D;cursor:pointer;">Adjust</button>
+                <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;">Skip</button>
+              </div>
+              <div style="display:flex;align-items:center;gap:14px;border-radius:12px;border:1px solid rgba(255,255,255,0.65);background:rgba(255,255,255,0.42);box-shadow:0 4px 16px rgba(0,0,0,0.04);padding:12px 16px;flex-wrap:wrap;">
+                <span style="width:6px;height:6px;border-radius:50%;background:#8F8F8F;flex:none;"></span>
+                <div style="flex:1;min-width:260px;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">Documents — 2 need you before the board file</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">ID renewal received · lease rider awaiting your OK</div>
+                </div>
+                <button style="background:#E9E8E4;border:1px solid #E0DFDA;border-radius:999px;padding:6px 13px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#0D0D0D;cursor:pointer;">Review · 2</button>
+                <button style="background:transparent;border:1px solid #E3E3E3;border-radius:999px;padding:6px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;cursor:pointer;">Skip</button>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:10px 2px 0;">
+              <span style="width:6px;height:6px;border-radius:50%;background:#10A37F;flex:none;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#10A37F;">Broker recap — sent 09:12 ✓ · left the queue · logged in Memory</span>
+              <span style="flex:1;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.05em;text-transform:uppercase;color:#8F8F8F;text-decoration:underline;text-underline-offset:3px;cursor:pointer;">Undo · ⌘Z</span>
+            </div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#B8B8B8;margin-top:6px;">approve or skip and the item leaves Now — nothing stacks up here · trail stays in Memory</div>
+          </div>
+
+          <!-- 04 · PLAN -->
+          <div style="position:relative;margin-top:36px;">
+            <span style="position:absolute;top:0;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;">4</span>
+            <div style="display:flex;align-items:baseline;gap:10px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#0D0D0D;flex:none;position:relative;top:-1px;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">The plan to close</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">one list — plan + critical path, merged</span>
+              <span style="flex:1;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10.5px;color:#B8B8B8;">playbook drives this · hover a row to move it</span>
+            </div>
+            <div style="border-top:1px solid #E3E3E3;margin-top:12px;">
+              <div style="display:flex;align-items:center;gap:16px;padding:12px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#5D5D5D;">Jul 10</span>
+                <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#10A37F;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">Confirm Thursday tour — Continuum 2404 + Setai 1808</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">agent holds both slots · falls back to Friday if she can&#39;t</div>
+                </div>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">agent</span>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#10A37F;">Scheduled</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;padding:12px 8px;border-bottom:1px solid #ECECEC;border-left:2px solid #0D0D0D;background:rgba(255,255,255,0.5);">
+                <span style="width:48px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12px;color:#0D0D0D;">Jul 14</span>
+                <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#D0342C;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:13px;color:#0D0D0D;">Application + credit file to the building <span style="font-weight:400;font-size:9.5px;letter-spacing:0.08em;text-transform:uppercase;color:#D0342C;border:1px solid #EAD9BF;border-radius:999px;padding:2px 8px;margin-left:8px;position:relative;top:-1px;">next milestone</span></div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">gates lease drafting · Camille has the checklist since Jul 06</div>
+                </div>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#B45309;">client</span>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#B45309;">Waiting</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;padding:12px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#5D5D5D;">Jul 18</span>
+                <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">Lease draft to R. Weiss for markup</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">agent drafts from the playbook · you approve before it goes out</div>
+                </div>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">agent → you</span>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">Planned</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;padding:12px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#5D5D5D;">Jul 22</span>
+                <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">Board interview — agent books the slot</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">building requires it before signature · docs must be resolved</div>
+                </div>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">agent</span>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">Planned</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:16px;padding:12px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:12px;color:#5D5D5D;">Jul 25</span>
+                <span style="width:6px;height:6px;flex:none;border-radius:50%;background:#0D0D0D;"></span>
+                <div style="flex:1;min-width:0;">
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;color:#0D0D0D;">Signature — DocuSign + first payment schedule</div>
+                  <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;margin-top:2px;">agent sends, tracks and files the executed copy · GCI books here</div>
+                </div>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:10px;letter-spacing:0.06em;text-transform:uppercase;color:#8F8F8F;">agent</span>
+                <span style="flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:9.5px;letter-spacing:0.06em;text-transform:uppercase;color:#B8B8B8;">Armed</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 05 · MEMORY -->
+          <div style="position:relative;margin-top:36px;">
+            <span style="position:absolute;top:0;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;">5</span>
+            <div style="display:flex;align-items:baseline;gap:10px;">
+              <span style="width:7px;height:7px;border-radius:50%;background:#8F8F8F;flex:none;position:relative;top:-1px;"></span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:13px;letter-spacing:0.08em;text-transform:uppercase;color:#0D0D0D;">Memory</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;color:#8F8F8F;">one history — memory + activity, merged</span>
+              <span style="flex:1;"></span>
+              <span style="display:flex;gap:16px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11px;">
+                <span style="color:#0D0D0D;font-weight:500;border-bottom:1px solid #0D0D0D;padding-bottom:2px;cursor:pointer;">All</span>
+                <span style="color:#8F8F8F;cursor:pointer;">Notes</span>
+                <span style="color:#8F8F8F;cursor:pointer;">Tours</span>
+                <span style="color:#8F8F8F;cursor:pointer;">Docs</span>
+                <span style="color:#8F8F8F;cursor:pointer;">Messages</span>
+              </span>
+            </div>
+            <div style="border-top:1px solid #E3E3E3;margin-top:12px;">
+              <div style="display:flex;align-items:baseline;gap:16px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11.5px;color:#8F8F8F;">Jul 06</span>
+                <span style="width:76px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Tour</span>
+                <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#303030;">Faena 9B + Continuum 2404 — “9B won on light, kitchen felt dated.” <span style="font-style:italic;font-size:10px;color:#8F8F8F;">via voice memo · agent-structured</span></span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:16px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11.5px;color:#8F8F8F;">Jul 05</span>
+                <span style="width:76px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">WhatsApp</span>
+                <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#303030;">Camille asked about the pet policy — agent answered from the building file, logged the thread.</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:16px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11.5px;color:#8F8F8F;">Jul 03</span>
+                <span style="width:76px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Qualified</span>
+                <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#303030;">Budget confirmed $45K/mo · start Sep 01 · 24-month term · attorney will review the lease.</span>
+              </div>
+              <div style="display:flex;align-items:baseline;gap:16px;padding:11px 4px;border-bottom:1px solid #ECECEC;">
+                <span style="width:52px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:11.5px;color:#8F8F8F;">Jul 01</span>
+                <span style="width:76px;flex:none;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:#8F8F8F;">Inquiry</span>
+                <span style="flex:1;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.55;color:#303030;">Referred by A. Bittencourt — broker network · agent opened the file and registered protection.</span>
+              </div>
+              <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#8F8F8F;padding:10px 4px;">Show all 14 ›</div>
+            </div>
+          </div>
+
+          <!-- 06 · FILE -->
+          <div style="position:relative;margin-top:36px;">
+            <span style="position:absolute;top:0;right:-4px;display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:10px;">6</span>
+            <div style="display:flex;align-items:baseline;gap:10px;">
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:#8F8F8F;">File</span>
+              <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#B8B8B8;">reference — closed by default, one line each</span>
+            </div>
+            <div style="border-top:1px solid #E3E3E3;margin-top:10px;">
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #ECECEC;cursor:pointer;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:13px;color:#8F8F8F;">›</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">Narrative &amp; competitive set</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">9B vs Continuum 2404 · $/SF favors 9B by 8%</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #ECECEC;cursor:pointer;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:13px;color:#8F8F8F;">›</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">Commission &amp; splits</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">$27K GCI · referral 25% · full detail in Financial</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #ECECEC;cursor:pointer;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:13px;color:#8F8F8F;">›</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">Related contacts · 4</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">Camille · R. Weiss · A. Bittencourt · building mgmt</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;padding:13px 4px;border-bottom:1px solid #ECECEC;cursor:pointer;">
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:300;font-size:13px;color:#8F8F8F;">›</span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:500;font-size:12.5px;color:#0D0D0D;">Deal room</span>
+                <span style="flex:1;"></span>
+                <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11.5px;color:#8F8F8F;">shared Jul 04 · client opened 2× · expires Jul 18</span>
+              </div>
+            </div>
+            <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:11px;color:#B8B8B8;margin-top:22px;">Everything reversible · full trail in History · the agent watches replies, deadlines and documents.</div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== RATIONALE ===================== -->
+  <div style="flex:none;width:470px;">
+    <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#8F8F8F;margin-bottom:14px;">Revisão profunda · diagnóstico &amp; hierarquia</div>
+
+    <div style="background:#FFFFFF;border:1px solid #E3E3E3;border-radius:14px;padding:24px 26px;">
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:15px;color:#0D0D0D;">O que a página pede hoje</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;">
+        <span style="border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11.5px;color:#5D5D5D;"><b style="color:#D0342C;">14 blocos</b> → 6 zonas</span>
+        <span style="border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11.5px;color:#5D5D5D;"><b style="color:#D0342C;">8 números</b> antes da 1ª ação → 5</span>
+        <span style="border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11.5px;color:#5D5D5D;"><b style="color:#D0342C;">3 filas</b> de aprovação → 1</span>
+        <span style="border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11.5px;color:#5D5D5D;"><b style="color:#D0342C;">2 planos</b> → 1</span>
+        <span style="border:1px solid #E3E3E3;border-radius:999px;padding:5px 12px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:11.5px;color:#5D5D5D;"><b style="color:#D0342C;">2 históricos</b> → 1</span>
+      </div>
+
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;margin-top:26px;border-top:1px solid #ECECEC;padding-top:20px;">Diagnóstico — por que parece poluída</div>
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.65;color:#303030;margin-top:10px;">
+        <div style="padding:7px 0;border-bottom:1px solid #F2F2F0;"><b>Números demais antes de agir.</b> 4 stats do hero + 4 tiles de inteligência competem antes do “Now”. Orientação vira ruído.</div>
+        <div style="padding:7px 0;border-bottom:1px solid #F2F2F0;"><b>Três filas de aprovação.</b> Now, “Drafts” no Agent Panel e acordeões (MLS/Tour) pedem decisão em lugares diferentes. Nunca fica claro onde clicar.</div>
+        <div style="padding:7px 0;border-bottom:1px solid #F2F2F0;"><b>Tudo existe duas vezes.</b> “Plan to close” ≈ “Critical Path” · “Memory” ≈ “Activity” · Momentum tile ≈ Momentum bars · Comissão no acordeão ≈ aba Financial.</div>
+        <div style="padding:7px 0;border-bottom:1px solid #F2F2F0;"><b>Acordeões pesados no meio do fluxo.</b> MLS, Tour e Comissão empurram o Plano para baixo mesmo fechados.</div>
+        <div style="padding:7px 0;"><b>Grid analítico no fim repete o topo</b> (Narrative, Comp Set, Momentum, Hygiene) — leitura de consulta misturada com trabalho do dia.</div>
+      </div>
+
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;margin-top:26px;border-top:1px solid #ECECEC;padding-top:20px;">Sequência proposta — pergunta que cada zona responde</div>
+      <div style="margin-top:10px;">
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F2F2F0;align-items:baseline;">
+          <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;position:relative;top:3px;">1</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13px;line-height:1.6;color:#303030;"><b>Onde estamos?</b> — identidade + 5 vitals (Stage, Budget, Prob, Weighted, Momentum) e uma única linha do agente. Stepper vira barra dentro do Stage.</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F2F2F0;align-items:baseline;">
+          <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;position:relative;top:3px;">2</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13px;line-height:1.6;color:#303030;"><b>Como navego?</b> — menu segmentado replicado do Contact (seu pedido): Now · Agent · Documents · Financial.</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F2F2F0;align-items:baseline;">
+          <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;position:relative;top:3px;">3</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13px;line-height:1.6;color:#303030;"><b>O que decido agora?</b> — UMA fila: o Now absorve os drafts do Agent Panel e as ações de MLS/Tour/Docs, cada uma aprovável ali mesmo. Item concluído some da tela na hora — a trilha fica na Memória.</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F2F2F0;align-items:baseline;">
+          <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;position:relative;top:3px;">4</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13px;line-height:1.6;color:#303030;"><b>O que vem?</b> — Plano único (Plan to close + Critical Path fundidos): data · o quê · dono · status, próximo marco destacado.</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid #F2F2F0;align-items:baseline;">
+          <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;position:relative;top:3px;">5</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13px;line-height:1.6;color:#303030;"><b>O que houve?</b> — Memória única (Memory + Activity fundidos) com filtros inline.</span>
+        </div>
+        <div style="display:flex;gap:12px;padding:8px 0;align-items:baseline;">
+          <span style="flex:none;display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#E9E8E4;color:#0D0D0D;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:9.5px;position:relative;top:3px;">6</span>
+          <span style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-size:13px;line-height:1.6;color:#303030;"><b>Consulta.</b> — Arquivo: Narrativa + Comp Set, Comissão (resumo — detalhe na aba Financial), Contatos, Deal room. Nasce fechado, 1 linha cada.</span>
+        </div>
+      </div>
+
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;margin-top:26px;border-top:1px solid #ECECEC;padding-top:20px;">Destino de cada bloco atual</div>
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12.5px;line-height:1.6;color:#303030;margin-top:10px;">
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Hero stats (4) + Intelligence tiles (4)</span><span style="flex:none;color:#10A37F;font-weight:500;">fundem → Vitals (5)</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Path to close (stepper)</span><span style="flex:none;color:#10A37F;font-weight:500;">entra no vital Stage</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Acordeões MLS · Tour · pendências de docs</span><span style="flex:none;color:#10A37F;font-weight:500;">viram ações na fila do Now — somem ao concluir</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Acordeão Commission &amp; Splits</span><span style="flex:none;color:#B45309;font-weight:500;">→ aba Financial + 1 linha no Arquivo</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Plan to close + Critical Path</span><span style="flex:none;color:#10A37F;font-weight:500;">fundem → Plano</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Memory + Activity (+ filtros)</span><span style="flex:none;color:#10A37F;font-weight:500;">fundem → Memória</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Agent Panel · drafts</span><span style="flex:none;color:#10A37F;font-weight:500;">entram na fila do Now</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Probability Arbitrage + Hygiene</span><span style="flex:none;color:#10A37F;font-weight:500;">viram a linha do agente (zona 1)</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid #F2F2F0;"><span style="flex:1;">Momentum bars (coluna direita)</span><span style="flex:none;color:#B45309;font-weight:500;">→ hover/popover do vital Momentum</span></div>
+        <div style="display:flex;gap:10px;padding:6px 0;"><span style="flex:1;">Narrative + Competitive Set</span><span style="flex:none;color:#B45309;font-weight:500;">→ Arquivo (fechado)</span></div>
+      </div>
+
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:600;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:#5D5D5D;margin-top:26px;border-top:1px solid #ECECEC;padding-top:20px;">Regras para manter limpo</div>
+      <div style="font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:13px;line-height:1.8;color:#303030;margin-top:8px;">
+        · no máximo 5 números acima da dobra<br>
+        · uma única fila de aprovação — sempre no Now; item concluído sai da tela<br>
+        · nenhuma informação aparece duas vezes na mesma tela<br>
+        · referência nasce recolhida (1 linha) e abre sob demanda<br>
+        · coluna única de trabalho, como no Contact — leitura de cima para baixo
+      </div>
+
+      <div style="border-top:1px solid #ECECEC;margin-top:24px;padding-top:18px;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;font-weight:400;font-size:12px;line-height:1.7;color:#8F8F8F;">Nada foi alterado no v4 Glass — isto é proposta. Aprovando (ou marcando ajustes direto no mock), aplico por fases: ① header + vitals → ② menu + Now/sinais → ③ fusões Plano/Memória → ④ Arquivo.</div>
+    </div>
+  </div>
+
+</section>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:2120,&quot;height&quot;:1560}}"></script>
+</body>
+</html>

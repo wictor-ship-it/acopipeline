@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls -la design_handoff_fase1/)",
+      "Bash(ls -la design-reference/)",
+      "Bash(find . -maxdepth 2 -name \"*.html\")",
+      "Bash(npm --version)",
+      "Bash(git --version)",
+      "Read(//Users/wictorarraes/**)",
+      "Read(//Users/wictorarraes/.nvm/versions/**)",
+      "Read(//usr/local/bin/**)",
+      "Bash(command -v brew)",
+      "Bash(brew --prefix)",
+      "Bash(echo \"PATH=$PATH\"; echo \"---\"; find /usr/local /opt /Users/wictorarraes -maxdepth 4 -name \"node\" -type f 2>/dev/null | head; echo \"--- .zprofile/.zshrc node refs ---\"; grep -l -i \"node\\\\|nvm\\\\|fnm\\\\|volta\" ~/.zshrc ~/.zprofile ~/.bash_profile 2>/dev/null; echo \"--- corepack/npx ---\"; ls /usr/local/bin 2>/dev/null | grep -i \"node\\\\|npm\\\\|npx\\\\|yarn\\\\|pnpm\")",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} in %{time_total}s\\\\n\" --max-time 20 https://www.google.com)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} in %{time_total}s\\\\n\" --max-time 30 https://registry.npmjs.org/react)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code} in %{time_total}s\\\\n\" --max-time 30 https://registry.npmjs.org/react/-/react-18.3.1.tgz)",
+      "Bash(curl -4 -s -o /dev/null -w \"%{http_code} in %{time_total}s\\\\n\" --max-time 30 https://registry.npmjs.org/react)",
+      "Bash(curl -6 -s -o /dev/null -w \"%{http_code} in %{time_total}s\\\\n\" --max-time 15 https://registry.npmjs.org/react)",
+      "Bash(dscacheutil -q host -a name registry.npmjs.org)",
+      "Bash(git add *)",
+      "Bash(git commit -q -m 'Step 1: scaffold + design tokens + app shell \\(login, sidebar, top bar, view-as\\) *)"
+    ]
+  }
+}
