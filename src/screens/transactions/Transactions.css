@@ -1,0 +1,3 @@
+/* Transactions — hover states (fragment 04 style-hover). */
+.tc-back:hover { color: #0D0D0D; }
+.tc-openrec:hover { background: rgba(255, 255, 255, 0.55); color: #0D0D0D; }

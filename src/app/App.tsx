@@ -7,6 +7,7 @@ import { Placeholder } from "./Placeholder";
 import { Contacts } from "../screens/contacts/Contacts";
 import { Command } from "../screens/command/Command";
 import { Opportunities } from "../screens/opportunities/Opportunities";
+import { Transactions } from "../screens/transactions/Transactions";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -34,7 +35,7 @@ export function App() {
         <Route path="/marketing" element={<Placeholder name="Marketing" />} />
         <Route path="/reports" element={<Placeholder name="Reports" />} />
         <Route path="/settings" element={<Placeholder name="Settings" />} />
-        <Route path="/transactions" element={<Placeholder name="Transactions" />} />
+        <Route path="/transactions" element={<Transactions />} />
         <Route path="/activities" element={<Placeholder name="Activities" />} />
         <Route path="/partner/dashboard" element={<Placeholder name="Partner Dashboard" />} />
         <Route path="/partner/pipeline" element={<Placeholder name="Partner Pipeline" />} />
