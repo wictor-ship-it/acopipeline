@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Contact } from "../../domain/types";
 import { useCollection } from "../../data/hooks";
 import content from "../../data/seed/content.json";
@@ -59,6 +60,7 @@ const REPORTS = [
 ];
 
 export function Contacts() {
+  const navigate = useNavigate();
   const { items: contacts } = useCollection<Contact>("contacts");
   const [segment, setSegment] = useState<string>("all");
   const [query, setQuery] = useState("");
@@ -199,7 +201,7 @@ export function Contacts() {
         </div>
 
         {rows.map((c) => (
-          <div className="ct-row" style={grid} key={c.id}>
+          <div className="ct-row" style={grid} key={c.id} onClick={() => navigate(`/contact/${c.id}`)}>
             <div className="ct-cell-name">
               <span className="ct-dot" style={{ background: dotFor(c) }} />
               <span className="ct-name" title="Open contact record">{c.name}</span>

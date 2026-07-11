@@ -30,7 +30,8 @@
       "Bash(git commit -q -m 'Step 3: AgentService contract + Fase 1 mock \\(README §12\\) *)",
       "Bash(git commit -q -m 'Step 4a: Contacts directory screen \\(README §6\\) *)",
       "Bash(git commit -q -m 'Step 4b: Welcome \\(Command Center\\) + Intelligence screens *)",
-      "Bash(git commit -q -m 'Step 4c: Opportunities screen \\(pipeline board + list + peek\\) *)"
+      "Bash(git commit -q -m 'Step 4c: Opportunities screen \\(pipeline board + list + peek\\) *)",
+      "Bash(git commit -q -m 'Step 4e: Contact Detail \\(locked grammar §6.1\\) *)"
     ]
   }
 }
