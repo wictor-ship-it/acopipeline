@@ -64,7 +64,8 @@
       "Bash(grep -oE \"\\(sideStyle|topBarStyle|topDividerStyle|loginBgStyle|ambientBaseStyle|ambientBlob1|ambientBlob2|ambientBlob3|micStyleSm\\)[^;]*=[^\\\\n]{0,320}\" logic-and-data.js)",
       "Bash(git commit -q -m 'Step 1 \\(greenfield rebuild\\): scaffold + tokens + shell from fragment 00 *)",
       "Bash(node node_modules/typescript/bin/tsc --noEmit)",
-      "Bash(echo \"---EXIT $?---\")"
+      "Bash(echo \"---EXIT $?---\")",
+      "Bash(git commit -q -m ' *)"
     ]
   }
 }
