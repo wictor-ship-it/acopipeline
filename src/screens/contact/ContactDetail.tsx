@@ -95,6 +95,30 @@ interface Vital {
   sub?: string;
 }
 
+const CADENCE_LABEL: Record<string, string> = {
+  hot: "follow-up within 24–48h",
+  warm: "touch every 7 days",
+  nurturing: "monthly value touch",
+  won: "post-close care — quarterly + key dates",
+  lost: "re-engage ping every 90d",
+};
+
+/** Synthesized relationship signals for non-reference contacts (v5 shows
+ *  signals for every contact; the agent derives them from the record). */
+function synthSignals(c: Contact): { dot: string; text: string }[] {
+  const out: { dot: string; text: string }[] = [];
+  if (c.agent_note) out.push({ dot: "#B45309", text: c.agent_note });
+  out.push({ dot: "#10A37F", text: `Last touch ${c.last_touch ?? "—"} · cadence: ${CADENCE_LABEL[c.status] ?? "agent watching"}` });
+  return out;
+}
+
+function synthPlan(c: Contact): { d: string; what: string; why: string; st: string }[] {
+  return [
+    { d: c.last_touch ?? "Soon", what: "Next touch — per status cadence", why: `${c.status} · ${CADENCE_LABEL[c.status] ?? "agent-run"}`, st: "Scheduled" },
+    { d: "Ongoing", what: "Re-qualify goals against the mandate", why: "relationship check · agent prepares the brief", st: "Planned" },
+  ];
+}
+
 function synthVitals(c: Contact): Vital[] {
   return [
     { label: "Lifetime GCI", value: c.lifetime_gci ?? "—" },
@@ -136,26 +160,22 @@ function NowSection({ contact, isReference }: { contact: Contact; isReference: b
         )}
       </div>
 
-      {isReference && (
-        <>
-          <div className="cd-sec">
-            <div className="cd-sec-title">Relationship signals</div>
-            {E.relationshipSignals.map((s, i) => (
-              <div className="cd-signal" key={i}><span className="dot" style={{ background: s.dot }} /><span className="txt">{s.text}</span></div>
-            ))}
+      <div className="cd-sec">
+        <div className="cd-sec-title">Relationship signals</div>
+        {(isReference ? E.relationshipSignals : synthSignals(contact)).map((s, i) => (
+          <div className="cd-signal" key={i}><span className="dot" style={{ background: s.dot }} /><span className="txt">{s.text}</span></div>
+        ))}
+      </div>
+      <div className="cd-sec">
+        <div className="cd-sec-title">Plan</div>
+        {(isReference ? E.planItems : synthPlan(contact)).map((p, i) => (
+          <div className="cd-tl-row" key={i}>
+            <span className="cd-tl-date">{p.d}</span>
+            <div style={{ flex: 1 }}><div className="cd-tl-what">{p.what}</div><div className="cd-tl-why">{p.why}</div></div>
+            <span className="cd-tl-status">{p.st}</span>
           </div>
-          <div className="cd-sec">
-            <div className="cd-sec-title">Plan</div>
-            {E.planItems.map((p, i) => (
-              <div className="cd-tl-row" key={i}>
-                <span className="cd-tl-date">{p.d}</span>
-                <div style={{ flex: 1 }}><div className="cd-tl-what">{p.what}</div><div className="cd-tl-why">{p.why}</div></div>
-                <span className="cd-tl-status">{p.st}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
+        ))}
+      </div>
 
       <div className="cd-sec">
         <div className="cd-sec-title">Memory</div>

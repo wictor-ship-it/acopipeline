@@ -42,7 +42,17 @@
       "Bash(git commit -q -m 'Chrome pass: global top bar, command bar, notifications, palette, shortcuts *)",
       "Bash(git commit -q -m 'Fidelity pass: contact header essence + Google Contacts triage banner *)",
       "Bash(git commit -q -m 'Fidelity pass 2: Inbox chrome + deal breadcrumb + context chip *)",
-      "Bash(git commit -q -m 'Fidelity pass 3: Marketing structure \\(tabs + KPI band + WhatsApp rules\\) *)"
+      "Bash(git commit -q -m 'Fidelity pass 3: Marketing structure \\(tabs + KPI band + WhatsApp rules\\) *)",
+      "Bash(node --input-type=module -e ' *)",
+      "Bash(sed -n '5376,6041p' \"/Users/wictorarraes/Desktop/A:CO Collaterals/ACO APP Claude handsoff/design-reference/Pipeline Intelligence v5.dc.html\")",
+      "Read(//private/tmp/**)",
+      "Bash(python3 -c ' *)",
+      "Bash(sed -n '6041,6593p' \"/Users/wictorarraes/Desktop/A:CO Collaterals/ACO APP Claude handsoff/design-reference/Pipeline Intelligence v5.dc.html\" > /private/tmp/partner_v5.txt; echo \"PARTNER lines:\"; grep -n 'data-screen-label\\\\|SCREEN\\\\|font-weight:600;font-size:1[0-9]px\\\\|sc-for list\\\\|placeholder=' /private/tmp/partner_v5.txt | head -80)",
+      "Bash(sed -n '6593,6856p' \"/Users/wictorarraes/Desktop/A:CO Collaterals/ACO APP Claude handsoff/design-reference/Pipeline Intelligence v5.dc.html\" > /private/tmp/act_v5.txt; echo \"=== ACTIVITIES+INBOX v5 ===\"; cat /private/tmp/act_v5.txt)",
+      "Bash(sed -n '2267,2627p' \"/Users/wictorarraes/Desktop/A:CO Collaterals/ACO APP Claude handsoff/design-reference/Pipeline Intelligence v5.dc.html\")",
+      "Read(//tmp/**)",
+      "Bash(sed -n '6856,7755p' \"/Users/wictorarraes/Desktop/A:CO Collaterals/ACO APP Claude handsoff/design-reference/Pipeline Intelligence v5.dc.html\" > /private/tmp/set_v5.txt; echo \"section headers / labels:\"; grep -nE 'data-screen-label|§0[0-9]|SCREEN ·|font-weight:600;font-size:1[0-9]|sc-for list|placeholder=|>0[0-9] ·|toggle|Autonomy|autonomy' /private/tmp/set_v5.txt | head -100)",
+      "Bash(git commit -q -m 'Reconcile vs canonical v5 \\(batch 1\\): grammar + queue fixes *)"
     ]
   }
 }

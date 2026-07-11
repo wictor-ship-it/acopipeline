@@ -23,7 +23,7 @@ const KPIS = [
 
 const WA_RULES = [
   { status: "HOT", color: "#0D0D0D", rule: "1:1, you approve each" },
-  { status: "WARM", color: "#8F8F8F", rule: "1:1 by the agent, inside approved campaigns" },
+  { status: "WARM", color: "#B45309", rule: "1:1 by the agent, inside approved campaigns" },
   { status: "NURTURE", color: "#8F8F8F", rule: "segment broadcast" },
 ];
 

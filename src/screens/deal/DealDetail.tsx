@@ -3,16 +3,17 @@ import { useNavigate, useParams } from "react-router-dom";
 import content from "../../data/seed/content.json";
 import type { Opportunity } from "../../domain/types";
 import { getById, recordAction } from "../../data/repository";
+import { agentService } from "../../agent/MockAgentService";
 import "./DealDetail.css";
 
-type Seg = "now" | "plan" | "memory" | "file";
+type Seg = "dashboard" | "documents" | "agent";
 
 const D = content.dealDetail;
 
 export function DealDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [seg, setSeg] = useState<Seg>("now");
+  const [seg, setSeg] = useState<Seg>("dashboard");
   const [opp, setOpp] = useState<Opportunity | null>(null);
 
   useEffect(() => {
@@ -80,7 +81,7 @@ export function DealDetail() {
         </div>
 
         <div className="dl-menu">
-          {(["now", "plan", "memory", "file"] as Seg[]).map((s) => (
+          {(["dashboard", "documents", "agent"] as Seg[]).map((s) => (
             <div key={s} className={`dl-seg${seg === s ? " active" : ""}`} onClick={() => setSeg(s)}>
               {s}
             </div>
@@ -89,17 +90,22 @@ export function DealDetail() {
       </div>
 
       <div className="dl-body">
-        {!isReference ? (
-          <SyntheticSection seg={seg} opp={opp} />
-        ) : seg === "now" ? (
-          <NowQueue />
-        ) : seg === "plan" ? (
-          <PlanSection />
-        ) : seg === "memory" ? (
-          <MemorySection />
-        ) : (
-          <FileSection />
+        {seg === "dashboard" && (
+          isReference ? (
+            // Locked grammar (README §6.2): Now → Plan → Memory as one
+            // continuous scroll, File reference born collapsed.
+            <>
+              <NowQueue />
+              <PlanSection />
+              <MemorySection />
+              <CollapsedFile />
+            </>
+          ) : (
+            <SyntheticDashboard opp={opp} />
+          )
         )}
+        {seg === "documents" && <DocumentsSection opp={opp} />}
+        {seg === "agent" && <DealAgentSection opp={opp} />}
       </div>
     </div>
   );
@@ -260,67 +266,117 @@ function MemorySection() {
   );
 }
 
-function FileSection() {
+/** File reference — born collapsed (README §6.2). */
+function CollapsedFile() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="dl-collapse">
+      <button className="dl-collapse-head" onClick={() => setOpen((o) => !o)}>
+        <span className="dl-sec-title" style={{ margin: 0 }}>File — reference</span>
+        <span className="dl-collapse-chevron">{open ? "▾" : "▸"}</span>
+      </button>
+      {open && (
+        <div className="dl-collapse-body">
+          <div className="dl-file-block">
+            <div className="dl-file-h">MLS facts</div>
+            {D.file.mlsFacts.map((f, i) => (
+              <div className="dl-file-row" key={i}><span className="k">{f[0]}</span><span className="v">{f[1]}</span></div>
+            ))}
+          </div>
+          <div className="dl-file-block">
+            <div className="dl-file-h">Drive files</div>
+            {D.file.driveFiles.map((f, i) => (
+              <div className="dl-file-row" key={i}><span className="k">{f[0]}</span><span className="v">{f[1]}</span></div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/** Documents — parties, contract fields, checklist & compliance (TC surface). */
+function DocumentsSection({ opp }: { opp: Opportunity | null }) {
+  const parties = opp?.id === "op_rivage_pha" ? D.parties : [];
+  const docs = D.documents;
   return (
     <>
-      <div className="dl-sec-title">File — reference</div>
+      <div className="dl-sec-title">Parties</div>
       <div className="dl-file-block">
-        <div className="dl-file-h">MLS facts</div>
-        {D.file.mlsFacts.map((f, i) => (
-          <div className="dl-file-row" key={i}><span className="k">{f[0]}</span><span className="v">{f[1]}</span></div>
+        {parties.length === 0 && <div className="dl-item-lang">No parties recorded — the agent adds them as the deal progresses.</div>}
+        {parties.map((p, i) => (
+          <div className="dl-file-row" key={i}><span className="k">{p.name}</span><span className="v">{p.role}</span></div>
         ))}
       </div>
-      <div className="dl-file-block">
-        <div className="dl-file-h">Drive files</div>
-        {D.file.driveFiles.map((f, i) => (
-          <div className="dl-file-row" key={i}><span className="k">{f[0]}</span><span className="v">{f[1]}</span></div>
+
+      <div className="dl-sec-title" style={{ marginTop: 24 }}>Deal Overview — contract fields</div>
+      {docs.contractFields.map((f, i) => (
+        <div className="dl-fieldrow" key={i}>
+          <span className="fl">{f.label}</span>
+          <span className="fv">{f.value}</span>
+          {f.review && <span className="fs">{f.src}</span>}
+        </div>
+      ))}
+
+      <div className="dl-sec-title" style={{ marginTop: 24 }}>Checklist &amp; compliance</div>
+      {docs.checklist.map((c) => (
+        <div className="dl-tl-row" key={c.step}>
+          <span className="dl-tl-date">{c.step}</span>
+          <div className="dl-tl-main"><div className="dl-tl-what">{c.form}</div><div className="dl-tl-why">{c.meta}</div></div>
+          <span className="dl-tl-status" style={{ color: c.status === "Needs you" ? "#D0342C" : c.status === "Executed" || c.status === "Done" ? "#10A37F" : "#8F8F8F" }}>{c.status}</span>
+        </div>
+      ))}
+      <div className="dl-item-lang" style={{ marginTop: 14 }}>Drag documents onto the full record to file them to this deal's Drive folder · e-signature via {docs.docusignCounterparty}.</div>
+    </>
+  );
+}
+
+/** Deal-scoped agent chat. */
+function DealAgentSection({ opp }: { opp: Opportunity | null }) {
+  const [msgs, setMsgs] = useState<{ role: "agent" | "user"; text: string }[]>([
+    { role: "agent", text: `Tracking ${opp?.name ?? "this deal"}. Ask me anything — I watch the milestones, chase the parties, and draft in ${opp?.language ?? "the client's"} language.` },
+  ]);
+  const [input, setInput] = useState("");
+  async function send() {
+    const t = input.trim();
+    if (!t) return;
+    setInput("");
+    setMsgs((m) => [...m, { role: "user", text: t }]);
+    const { reply } = await agentService.ask(t);
+    setMsgs((m) => [...m, { role: "agent", text: reply }]);
+  }
+  return (
+    <>
+      <div className="dl-sec-title">Agent · this deal</div>
+      <div className="dl-chat">
+        {msgs.map((m, i) => (
+          <div key={i} className={`dl-chat-msg ${m.role === "agent" ? "agent" : "user"}`}>{m.text}</div>
         ))}
+      </div>
+      <div className="dl-chat-input">
+        <input placeholder="Ask the agent about this deal…" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void send(); }} />
+        <button className="dl-btn dl-btn-primary" onClick={() => void send()}>Send</button>
       </div>
     </>
   );
 }
 
-function SyntheticSection({ seg, opp }: { seg: Seg; opp: Opportunity | null }) {
+function SyntheticDashboard({ opp }: { opp: Opportunity | null }) {
   if (!opp) return <div className="dl-sec-title">Loading…</div>;
-  if (seg === "now") {
-    return (
-      <>
-        <div className="dl-sec-title">Now</div>
-        <div className="dl-queue">
-          <div className="dl-item">
-            <div className="dl-item-label">{opp.heat} · {opp.stage}</div>
-            <div className="dl-item-head">{opp.next_action}</div>
-            <div className="dl-item-lang">Due {opp.next_due}</div>
-          </div>
-        </div>
-      </>
-    );
-  }
-  if (seg === "memory") {
-    return (
-      <>
-        <div className="dl-sec-title">Memory</div>
-        <div className="dl-tl"><div className="dl-tl-row"><div className="dl-tl-main"><div className="dl-tl-why" style={{ fontSize: 13, color: "var(--body)" }}>{opp.narrative ?? "No history logged yet."}</div></div></div></div>
-      </>
-    );
-  }
-  if (seg === "file") {
-    return (
-      <>
-        <div className="dl-sec-title">File</div>
-        <div className="dl-file-block">
-          <div className="dl-file-row"><span className="k">Pipeline</span><span className="v">{opp.pipeline}</span></div>
-          <div className="dl-file-row"><span className="k">Division</span><span className="v">{opp.division ?? "—"}</span></div>
-          <div className="dl-file-row"><span className="k">Source</span><span className="v">{opp.source ?? "—"}</span></div>
-          <div className="dl-file-row"><span className="k">Budget</span><span className="v">{opp.budget ?? "—"}</span></div>
-        </div>
-      </>
-    );
-  }
   return (
     <>
-      <div className="dl-sec-title">Plan</div>
+      <div className="dl-sec-title">Now</div>
+      <div className="dl-queue">
+        <div className="dl-item">
+          <div className="dl-item-label">{opp.heat} · {opp.stage}</div>
+          <div className="dl-item-head">{opp.next_action}</div>
+          <div className="dl-item-lang">Due {opp.next_due}</div>
+        </div>
+      </div>
+      <div className="dl-sec-title" style={{ marginTop: 24 }}>Plan</div>
       <div className="dl-tl"><div className="dl-tl-row"><span className="dl-tl-date">{opp.next_due}</span><div className="dl-tl-main"><div className="dl-tl-what">{opp.next_action}</div></div></div></div>
+      <div className="dl-sec-title" style={{ marginTop: 24 }}>Memory</div>
+      <div className="dl-tl"><div className="dl-tl-row"><div className="dl-tl-main"><div className="dl-tl-why" style={{ fontSize: 13, color: "var(--body)" }}>{opp.narrative ?? "No history logged yet."}</div></div></div></div>
     </>
   );
 }

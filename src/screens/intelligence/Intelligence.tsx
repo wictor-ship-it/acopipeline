@@ -60,14 +60,7 @@ export function Intelligence() {
           <span className="in-sec-title">{I.touchToday.header}</span>
           <span className="in-sec-hint">{I.touchToday.headerHint}</span>
         </div>
-        <div className="in-queue">
-          {pending.length === 0 && (
-            <div className="in-item">All caught up — the queue is clear. The agent stages the next batch overnight.</div>
-          )}
-          {pending.map((d) => (
-            <DraftCard key={d.id} draft={d} />
-          ))}
-        </div>
+        <TouchToday drafts={pending} />
         <div className="in-bulk" style={{ marginTop: 12 }}>
           <span className="in-bulk-note">{I.touchToday.footer}</span>
         </div>
@@ -153,14 +146,63 @@ export function Intelligence() {
   );
 }
 
-function DraftCard({ draft }: { draft: Draft }) {
+/** Touch Today queue with bulk approve (R5 — "bulk approve em filas"). */
+function TouchToday({ drafts }: { drafts: Draft[] }) {
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+
+  function toggle(id: string) {
+    setSelected((s) => {
+      const n = new Set(s);
+      if (n.has(id)) n.delete(id); else n.add(id);
+      return n;
+    });
+  }
+  async function approveMany(ids: string[]) {
+    for (const id of ids) await agentService.resolve(id, "approved");
+    setSelected(new Set());
+  }
+
+  if (drafts.length === 0) {
+    return <div className="in-queue"><div className="in-item">All caught up — the queue is clear. The agent stages the next batch overnight.</div></div>;
+  }
+
+  return (
+    <>
+      <div className="in-bulkbar">
+        <label className="in-bulk-select">
+          <input
+            type="checkbox"
+            checked={selected.size === drafts.length}
+            onChange={(e) => setSelected(e.target.checked ? new Set(drafts.map((d) => d.id)) : new Set())}
+          />
+          Select all
+        </label>
+        <div className="in-bulk-spacer" />
+        <button className="in-btn in-btn-ghost" disabled={selected.size === 0} onClick={() => void approveMany([...selected])}>
+          Approve selected · {selected.size}
+        </button>
+        <button className="in-btn in-btn-primary" onClick={() => void approveMany(drafts.map((d) => d.id))}>
+          Approve all · {drafts.length}
+        </button>
+      </div>
+      <div className="in-queue">
+        {drafts.map((d) => (
+          <DraftCard key={d.id} draft={d} selected={selected.has(d.id)} onToggle={() => toggle(d.id)} />
+        ))}
+      </div>
+    </>
+  );
+}
+
+function DraftCard({ draft, selected, onToggle }: { draft: Draft; selected: boolean; onToggle: () => void }) {
   const [editing, setEditing] = useState(false);
   const [body, setBody] = useState(draft.body);
 
   return (
     <div className="in-item agent">
       <div className="in-item-meta">
-        <span className="in-item-label">{draft.name_label} · {draft.value_label} · {draft.language}</span>
+        <input type="checkbox" className="in-item-check" checked={selected} onChange={onToggle} />
+        <span className="in-item-label">{draft.name_label} · {draft.value_label} · <span className="in-chan-tag">{draft.channel === "whatsapp" ? "WA" : draft.channel}</span> · {draft.language}</span>
       </div>
       <div className="in-item-body" style={{ fontSize: 13.5 }}>{draft.subject}</div>
       {draft.plan && <div className="in-item-plan">{draft.plan}</div>}

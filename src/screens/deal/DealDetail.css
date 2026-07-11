@@ -88,6 +88,25 @@
 .dl-crit-text { flex: 1; font-size: 13px; color: var(--body); }
 .dl-crit-owner { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); }
 
+/* Collapsed File (born collapsed, §6.2) */
+.dl-collapse { border-top: 1px solid var(--border); margin-top: 30px; }
+.dl-collapse-head { display: flex; align-items: center; justify-content: space-between; width: 100%; background: none; border: none; padding: 18px 0 6px; cursor: pointer; }
+.dl-collapse-chevron { font-size: 12px; color: var(--gray-meta); }
+.dl-collapse-body { padding-top: 8px; }
+
+/* Deal-scoped agent chat */
+.dl-chat { display: flex; flex-direction: column; gap: 10px; margin: 12px 0 16px; }
+.dl-chat-msg { max-width: 78%; padding: 12px 16px; border-radius: 12px; font-size: 13.5px; line-height: 1.6; }
+.dl-chat-msg.agent { align-self: flex-start; background: rgba(255,255,255,0.6); border: 1px solid var(--border); color: var(--body); }
+.dl-chat-msg.user { align-self: flex-end; background: var(--ink); color: #fff; }
+.dl-chat-input { display: flex; gap: 10px; align-items: center; border: 1px solid var(--border); border-radius: 999px; padding: 10px 16px; background: rgba(255,255,255,0.5); }
+.dl-chat-input input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: var(--ink); }
+
+/* section spacing within continuous dashboard */
+.dl-body .dl-sec-title { margin-top: 30px; }
+.dl-body > :first-child.dl-sec-title,
+.dl-body .dl-queue + .dl-sec-title { margin-top: 30px; }
+
 /* File */
 .dl-file-block { margin-bottom: 26px; }
 .dl-file-h { font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-secondary); margin-bottom: 10px; }
