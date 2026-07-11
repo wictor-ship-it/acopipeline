@@ -18,12 +18,9 @@ function isDealRecord(p: string) { return p.startsWith("/deal/") || p.startsWith
 function isRecord(p: string) { return isContactRecord(p) || isDealRecord(p); }
 
 function breadcrumb(p: string): { arrow: string; title: string } | null {
-  // Contact record: top bar carries the breadcrumb + actions (v5).
   if (isContactRecord(p)) return { arrow: "‹ ", title: "Contact" };
-  // Deal / Deal Record keep their own sub-action-bar with back nav, so the
-  // top bar shows a plain title (no duplicate back arrow).
-  if (p.startsWith("/dealpage/")) return { arrow: "", title: "Deal Record" };
-  if (p.startsWith("/deal/")) return { arrow: "", title: "Deal" };
+  if (p.startsWith("/dealpage/")) return { arrow: "‹ ", title: "Deal Record" };
+  if (p.startsWith("/deal/")) return { arrow: "‹ ", title: "Deal Detail" };
   return null;
 }
 
@@ -33,6 +30,9 @@ export function TopBar() {
   const [notifOpen, setNotifOpen] = useState(false);
   const [logOpen, setLogOpen] = useState(false);
   const [read, setRead] = useState(false);
+
+  // Inbox is a full-bleed two-pane surface — no top bar (README §5, v5).
+  if (pathname.startsWith("/inbox")) return null;
 
   const bc = breadcrumb(pathname);
   const title = bc ? bc.title : titleForPath(pathname);

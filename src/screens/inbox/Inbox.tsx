@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import content from "../../data/seed/content.json";
 import type { Contact, Draft, Language, Message, Thread } from "../../domain/types";
 import { useCollection } from "../../data/hooks";
@@ -48,20 +49,26 @@ export function Inbox() {
           ))}
         </div>
         <div className="ib-thread-list">
-          {visibleThreads.map((t) => (
-            <div key={t.id} className={`ib-thread${active?.id === t.id ? " active" : ""}`} onClick={() => setActiveId(t.id)}>
-              <div className="ib-avatar">{t.initials}</div>
-              <div className="ib-thread-main">
-                <div className="ib-thread-top">
-                  <span className="ib-thread-name">{contactName(t.contact_id)}</span>
-                  <span className="ib-thread-time">{t.last_time}</span>
+          {visibleThreads.map((t) => {
+            const last = messages.filter((m) => m.thread_id === t.id).slice(-1)[0];
+            const preview = last ? (last.dir === "out" ? `You: ${last.body}` : last.body) : t.subject;
+            return (
+              <div key={t.id} className={`ib-thread${active?.id === t.id ? " active" : ""}`} onClick={() => setActiveId(t.id)}>
+                <div className="ib-avatar">{t.initials}</div>
+                <div className="ib-thread-main">
+                  <div className="ib-thread-top">
+                    <span className="ib-thread-name">{contactName(t.contact_id)}</span>
+                    <span className="ib-thread-time">{t.last_time}</span>
+                  </div>
+                  <div className="ib-thread-preview-row">
+                    <span className="ib-chan-pill">{t.channel}</span>
+                    <span className="ib-thread-preview">{preview}</span>
+                  </div>
                 </div>
-                <div className="ib-thread-sub">{t.subject}</div>
-                <div className="ib-thread-chan">{t.channel}</div>
+                {t.unread_count ? <span className="ib-unread">{t.unread_count}</span> : null}
               </div>
-              {t.unread_count ? <span className="ib-unread">{t.unread_count}</span> : null}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -73,6 +80,7 @@ export function Inbox() {
           lang={contactLang(active.contact_id)}
           messages={convMessages}
           draft={pendingDraft}
+          contactId={active.contact_id}
         />
       ) : (
         <div className="ib-conv" style={{ alignItems: "center", justifyContent: "center", color: "var(--gray-meta)" }}>
@@ -83,9 +91,10 @@ export function Inbox() {
   );
 }
 
-function Conversation({ thread, name, lang, messages, draft }: {
-  thread: Thread; name: string; lang: Language; messages: Message[]; draft?: Draft;
+function Conversation({ thread, name, lang, messages, draft, contactId }: {
+  thread: Thread; name: string; lang: Language; messages: Message[]; draft?: Draft; contactId: string;
 }) {
+  const navigate = useNavigate();
   const [text, setText] = useState("");
   const [sentLog, setSentLog] = useState<Message[]>([]);
   const [draftResolved, setDraftResolved] = useState(false);
@@ -102,8 +111,14 @@ function Conversation({ thread, name, lang, messages, draft }: {
   return (
     <div className="ib-conv">
       <div className="ib-conv-head">
-        <div className="ib-conv-name">{name}</div>
-        <div className="ib-conv-sub">{thread.subject} · {thread.channel} · {lang}</div>
+        <div className="ib-conv-head-left">
+          <div className="ib-conv-name">{name}</div>
+          <div className="ib-conv-sub">{thread.subject} · {thread.channel}</div>
+        </div>
+        <div className="ib-conv-actions">
+          <button className="ib-conv-btn" onClick={() => navigate("/opportunities")}>Open Deal</button>
+          <button className="ib-conv-btn" onClick={() => navigate(`/contact/${contactId}`)}>Contact</button>
+        </div>
       </div>
 
       <div className="ib-messages">

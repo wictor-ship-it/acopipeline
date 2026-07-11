@@ -53,9 +53,13 @@ function CommandBar() {
     let alive = true;
     const idMatch = pathname.match(/^\/(contact|deal|dealpage)\/([^/]+)/);
     if (idMatch) {
-      const store = idMatch[1] === "contact" ? "contacts" : "opportunities";
+      const isContact = idMatch[1] === "contact";
+      const store = isContact ? "contacts" : "opportunities";
       void getById<{ id: string; name?: string }>(store as "contacts" | "opportunities", idMatch[2]).then((r) => {
-        if (alive) setCtx(r?.name ? r.name.split(" ")[0] : null);
+        if (!alive) return;
+        if (!r?.name) { setCtx(null); return; }
+        // Contacts → first name; deals → the property name before the "·".
+        setCtx(isContact ? r.name.split(" ")[0] : r.name.split("·")[0].trim());
       });
     } else {
       setCtx(null);
