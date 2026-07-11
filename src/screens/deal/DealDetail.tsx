@@ -35,7 +35,7 @@ export function DealDetail() {
         <button className="dl-back" onClick={() => navigate("/opportunities")}>‹ Pipeline</button>
         <div className="dl-actions">
           <button className="dl-abtn">Share room</button>
-          <button className="dl-abtn">Actions ▾</button>
+          <button className="dl-abtn" onClick={() => navigate(`/dealpage/${id}`)}>Full record</button>
           <button className="dl-abtn solid">Advance stage</button>
         </div>
       </div>

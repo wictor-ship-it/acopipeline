@@ -10,6 +10,7 @@ import { ContactDetail } from "../screens/contact/ContactDetail";
 import { Opportunities } from "../screens/opportunities/Opportunities";
 import { DealDetail } from "../screens/deal/DealDetail";
 import { Transactions } from "../screens/transactions/Transactions";
+import { DealRecord } from "../screens/dealrecord/DealRecord";
 import { Settings } from "../screens/settings/Settings";
 import { Reports } from "../screens/reports/Reports";
 import { Marketing } from "../screens/marketing/Marketing";
@@ -40,6 +41,7 @@ export function App() {
         <Route path="/contact/:id" element={<ContactDetail />} />
         <Route path="/opportunities" element={<Opportunities />} />
         <Route path="/deal/:id" element={<DealDetail />} />
+        <Route path="/dealpage/:id" element={<DealRecord />} />
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/marketing" element={<Marketing />} />
