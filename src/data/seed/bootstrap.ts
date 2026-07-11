@@ -9,7 +9,7 @@ import { seedBulk } from "../repository";
 import { fixtures } from "./fixtures";
 
 const SEED_KEY = "seed_version";
-const SEED_VERSION = 1;
+const SEED_VERSION = 2;
 
 export async function ensureSeeded(): Promise<void> {
   const meta = await idbGet<{ id: string; value: number }>("meta", SEED_KEY);

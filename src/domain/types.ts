@@ -29,6 +29,7 @@ export interface Contact {
   referral_of?: string;
   since?: string;
   /* v5 display fields */
+  dot?: string;
   relationship?: string;
   location?: string;
   directory_status?: string;

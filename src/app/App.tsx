@@ -4,6 +4,7 @@ import { homePathForRole } from "./roles";
 import { Login } from "./Login";
 import { Shell } from "./Shell";
 import { Placeholder } from "./Placeholder";
+import { Contacts } from "../screens/contacts/Contacts";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -24,7 +25,8 @@ export function App() {
         {/* Screens are built one per step from their fragments. */}
         <Route path="/welcome" element={<Placeholder name="Welcome" />} />
         <Route path="/intelligence" element={<Placeholder name="Intelligence" />} />
-        <Route path="/contacts" element={<Placeholder name="Contacts" />} />
+        <Route path="/contacts" element={<Contacts />} />
+        <Route path="/contacts/:id" element={<Placeholder name="Contact Detail" />} />
         <Route path="/opportunities" element={<Placeholder name="Opportunities" />} />
         <Route path="/inbox" element={<Placeholder name="Inbox" />} />
         <Route path="/marketing" element={<Placeholder name="Marketing" />} />

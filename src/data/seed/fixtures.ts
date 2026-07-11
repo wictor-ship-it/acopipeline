@@ -12,7 +12,7 @@ import type {
 /* ---------- Contacts (directory, 12) ---------- */
 export const contacts: Contact[] = [
   {
-    id: "marcelo", name: "Marcelo Carvalho", category: "client", status: "HOT",
+    id: "marcelo", name: "Marcelo Carvalho", category: "client", status: "HOT", dot: "#0D0D0D",
     relationship: "Client · Buyer", location: "São Paulo, BR", language: ["PT"],
     phone: "+55 11 9 8842 ····", email: "m.carvalho@···", since: "2026",
     lifetime_gci: "$555K", deals_won: "0", active_deals: "1", last_touch: "Jul 04",
@@ -23,7 +23,7 @@ export const contacts: Contact[] = [
     agent_note: "Confirm the second Rivage visit before Wednesday — momentum is above the stated probability.",
   },
   {
-    id: "keller", name: "Anton Keller", category: "prospect", status: "HOT",
+    id: "keller", name: "Anton Keller", category: "prospect", status: "HOT", dot: "#0D0D0D",
     relationship: "Prospect · Family Office", location: "Zurich, CH", language: ["EN"],
     phone: "+41 44 ··· ····", email: "a.keller@zfo.ch", since: "2026",
     lifetime_gci: "—", deals_won: "0", active_deals: "1", last_touch: "Jul 03",
@@ -33,7 +33,7 @@ export const contacts: Contact[] = [
     agent_note: "Push a principal call before Wednesday — counter has been open since Thursday.",
   },
   {
-    id: "sterling", name: "Robert Sterling", category: "client", status: "HOT",
+    id: "sterling", name: "Robert Sterling", category: "client", status: "HOT", dot: "#0D0D0D",
     relationship: "Client · Buyer", location: "New York, US", language: ["EN"],
     phone: "+1 212 ··· ····", email: "r.sterling@···", since: "2025",
     lifetime_gci: "$196K", deals_won: "1", active_deals: "1", last_touch: "Jul 03",
@@ -43,7 +43,7 @@ export const contacts: Contact[] = [
     agent_note: "Schedule the decisive tour this week; inspection window closes Jul 08.",
   },
   {
-    id: "bittencourt", name: "Ana Bittencourt", category: "sphere", status: "SPHERE",
+    id: "bittencourt", name: "Ana Bittencourt", category: "sphere", status: "SPHERE", dot: "#8F8F8F",
     relationship: "Sphere · Referrer", location: "Miami, US", language: ["PT", "EN"],
     phone: "+1 305 ··· ····", email: "ana@···", since: "2019",
     lifetime_gci: "$1.2M", deals_won: "7", active_deals: "0", last_touch: "Jun 30",
@@ -54,7 +54,7 @@ export const contacts: Contact[] = [
     agent_note: "No referral ask in 90 days — draft a warm re-engagement prepared.",
   },
   {
-    id: "zanotti", name: "Valdemar Zanotti", category: "client", status: "PAST",
+    id: "zanotti", name: "Valdemar Zanotti", category: "client", status: "PAST", dot: "#8F8F8F",
     relationship: "Client · Past", location: "Miami, US", language: ["PT", "EN"],
     phone: "+1 305 ··· ····", email: "v.zanotti@···", since: "2012",
     lifetime_gci: "$410K", deals_won: "1", active_deals: "0", last_touch: "2024",
@@ -64,7 +64,7 @@ export const contacts: Contact[] = [
     agent_note: "Owns an unlisted waterfront asset — listing conversation suggested.",
   },
   {
-    id: "nakamura", name: "Kenji Nakamura", category: "prospect", status: "WARM",
+    id: "nakamura", name: "Kenji Nakamura", category: "prospect", status: "WARM", dot: "#8F8F8F",
     relationship: "Prospect · Buyer", location: "Tokyo, JP", language: ["EN"],
     phone: "+81 3 ···· ····", email: "k.nakamura@···", since: "2026",
     lifetime_gci: "—", deals_won: "0", active_deals: "1", last_touch: "Jul 01",
@@ -74,7 +74,7 @@ export const contacts: Contact[] = [
     agent_note: "Follow up on the open offer — response due this week.",
   },
   {
-    id: "ravel", name: "Elena Ravel", category: "prospect", status: "WARM",
+    id: "ravel", name: "Elena Ravel", category: "prospect", status: "WARM", dot: "#8F8F8F",
     relationship: "Prospect · Buyer", location: "Paris, FR", language: ["EN"],
     phone: "+33 1 ·· ·· ·· ··", email: "e.ravel@···", since: "2026",
     lifetime_gci: "—", deals_won: "0", active_deals: "1", last_touch: "Jun 28",
@@ -84,7 +84,7 @@ export const contacts: Contact[] = [
     agent_note: "HOA approval package pending — due Jul 11; keep momentum.",
   },
   {
-    id: "alvarez", name: "Carlos Alvarez", category: "client", status: "WARM",
+    id: "alvarez", name: "Carlos Alvarez", category: "client", status: "WARM", dot: "#8F8F8F",
     relationship: "Client · Buyer", location: "Bogotá, CO", language: ["ES", "EN"],
     phone: "+57 1 ··· ····", email: "c.alvarez@···", since: "2025",
     lifetime_gci: "$410K", deals_won: "1", active_deals: "1", last_touch: "Jul 02",
@@ -94,7 +94,7 @@ export const contacts: Contact[] = [
     agent_note: "Appraisal pending — confirm receipt before Jul 18 close.",
   },
   {
-    id: "delgado", name: "M. Delgado", category: "vendor", status: "VENDOR",
+    id: "delgado", name: "M. Delgado", category: "vendor", status: "VENDOR", dot: "#0D0D0D",
     relationship: "Vendor · RE Attorney", location: "Miami, US", language: ["EN"],
     phone: "+1 305 ··· ····", email: "delgado@···law.com", since: "2021",
     lifetime_gci: "9 deals", deals_won: "9", active_deals: "2", last_touch: "Jul 01",
@@ -105,7 +105,7 @@ export const contacts: Contact[] = [
     agent_note: "Cadence: lunch due this quarter — 3 closings together this year.",
   },
   {
-    id: "coastal", name: "Coastal Title Co.", category: "vendor", status: "SLIPPING",
+    id: "coastal", name: "Coastal Title Co.", category: "vendor", status: "SLIPPING", dot: "#D0342C",
     relationship: "Vendor · Title", location: "Miami, US", language: ["EN"],
     phone: "+1 305 ··· ····", email: "orders@coastal···", since: "2022",
     lifetime_gci: "7 deals", deals_won: "7", active_deals: "1", last_touch: "Jun 30",
@@ -116,7 +116,7 @@ export const contacts: Contact[] = [
     agent_note: "Chase title commitment today — day 7 of usual 5. Consider First American for next contract.",
   },
   {
-    id: "katz", name: "R. Katz", category: "partner", status: "PARTNER",
+    id: "katz", name: "R. Katz", category: "partner", status: "PARTNER", dot: "#0D0D0D",
     relationship: "Partner · Co-broke", location: "Miami, US", language: ["EN"],
     phone: "+1 786 ··· ····", email: "rkatz@···", since: "2023",
     lifetime_gci: "$380K", deals_won: "4", active_deals: "1", last_touch: "Jun 22",
@@ -127,7 +127,7 @@ export const contacts: Contact[] = [
     agent_note: "Coffee due this month — explore off-market inventory swap.",
   },
   {
-    id: "itau", name: "Private Banker · Itaú Miami", category: "partner", status: "YOU OWE",
+    id: "itau", name: "Private Banker · Itaú Miami", category: "partner", status: "YOU OWE", dot: "#D0342C",
     relationship: "Partner · Private Bank", location: "Miami, US", language: ["PT", "EN"],
     phone: "+1 305 ··· ····", email: "—", since: "2024",
     lifetime_gci: "1 intro", deals_won: "1", active_deals: "0", last_touch: "May 28",
