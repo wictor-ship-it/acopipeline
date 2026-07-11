@@ -21,7 +21,12 @@
       "Bash(curl -6 -s -o /dev/null -w \"%{http_code} in %{time_total}s\\\\n\" --max-time 15 https://registry.npmjs.org/react)",
       "Bash(dscacheutil -q host -a name registry.npmjs.org)",
       "Bash(git add *)",
-      "Bash(git commit -q -m 'Step 1: scaffold + design tokens + app shell \\(login, sidebar, top bar, view-as\\) *)"
+      "Bash(git commit -q -m 'Step 1: scaffold + design tokens + app shell \\(login, sidebar, top bar, view-as\\) *)",
+      "Bash(ls design-reference/)",
+      "Bash(ls design_handoff_fase1/design-reference/)",
+      "Bash(wc -l \"design-reference/Pipeline Intelligence v5.dc.html\")",
+      "Bash(grep -oE '>[A-Z][^<{]{8,}<')",
+      "Bash(git commit -q -m 'Step 2: persisted data layer + prototype seed + audit_log + Undo *)"
     ]
   }
 }
