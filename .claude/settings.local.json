@@ -35,7 +35,8 @@
       "Bash(cat .claude/settings.local.json)",
       "Bash(cat .claude/settings.json)",
       "Bash(npm run *)",
-      "Bash(git commit -q -m 'Step 4f: Inbox \\(message center\\) + permission allowlist *)"
+      "Bash(git commit -q -m 'Step 4f: Inbox \\(message center\\) + permission allowlist *)",
+      "Bash(git commit -q -m 'Step 4h: Reports + Marketing + Activities *)"
     ]
   }
 }

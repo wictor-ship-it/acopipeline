@@ -1,0 +1,29 @@
+/* Marketing — campaign & collateral hub (v5). */
+
+.mk-wrap { padding: 24px 48px 100px; display: flex; flex-direction: column; gap: 36px; }
+.mk-sec-title { font-weight: 600; font-size: 15px; color: var(--ink); margin-bottom: 4px; }
+.mk-sec-desc { font-size: 12.5px; color: var(--gray-meta); margin-bottom: 16px; }
+
+.mk-campaigns { display: flex; flex-direction: column; gap: 12px; }
+.mk-campaign { border: 1px solid var(--border); border-left: 2px solid var(--accent); background: rgba(255,255,255,0.55); padding: 16px 18px; }
+.mk-campaign-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.mk-campaign-name { font-weight: 600; font-size: 14px; color: var(--ink); }
+.mk-campaign-status { font-size: 10px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); }
+.mk-campaign-body { font-size: 13px; line-height: 1.6; color: var(--gray-secondary); margin-top: 8px; }
+.mk-campaign-actions { display: flex; gap: 8px; margin-top: 12px; }
+.mk-btn { font-weight: 500; font-size: 11.5px; border-radius: 999px; padding: 7px 16px; cursor: pointer; }
+.mk-btn-primary { background: var(--ink); color: #fff; border: 1px solid var(--ink); }
+.mk-btn-ghost { background: transparent; color: var(--gray-secondary); border: 1px solid var(--border); }
+.mk-done { font-size: 12px; font-weight: 500; color: var(--accent); margin-top: 8px; }
+
+.mk-collaterals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.mk-coll { border-radius: 12px; background: var(--glass-card-bg); border: 1px solid rgba(255,255,255,0.65); box-shadow: var(--shadow-card); padding: 18px 20px; }
+.mk-coll-name { font-weight: 600; font-size: 15px; color: var(--ink); }
+.mk-coll-loc { font-size: 12px; color: var(--gray-meta); margin-top: 4px; }
+.mk-coll-meta { display: flex; justify-content: space-between; align-items: baseline; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border); }
+.mk-coll-from { font-weight: 500; font-size: 13px; color: var(--ink); }
+.mk-coll-status { font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-meta); }
+.mk-coll-kit { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px; }
+.mk-kit-chip { border: 1px solid var(--border); border-radius: 999px; padding: 3px 10px; font-size: 10px; color: var(--gray-secondary); cursor: pointer; }
+.mk-kit-chip:hover { border-color: var(--gray-meta); color: var(--ink); }
+.mk-coll-updated { font-size: 10px; color: var(--gray-hint); margin-top: 10px; }
