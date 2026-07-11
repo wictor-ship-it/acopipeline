@@ -7,12 +7,63 @@ interface SettingRow { id: string; [k: string]: unknown }
 
 const SECTIONS = [
   { num: "01", key: "profile", label: "Profile" },
-  { num: "02", key: "team", label: "Team & Roles" },
+  { num: "02", key: "types", label: "Contact Types" },
   { num: "03", key: "autonomy", label: "Agent Autonomy" },
-  { num: "04", key: "cadences", label: "Status Cadences" },
-  { num: "05", key: "types", label: "Contact Types" },
-  { num: "06", key: "integrations", label: "Integrations" },
-  { num: "07", key: "audit", label: "Audit Log" },
+  { num: "04", key: "cadences", label: "Cadence Rules" },
+  { num: "05", key: "economics", label: "Economics" },
+  { num: "06", key: "pipeline", label: "Pipeline & Stages" },
+  { num: "07", key: "scoring", label: "Scoring & Forecast" },
+  { num: "08", key: "mls", label: "MLS & Matching" },
+  { num: "09", key: "voice", label: "Voice & Templates" },
+  { num: "10", key: "integrations", label: "Integrations" },
+  { num: "11", key: "privacy", label: "Data & Privacy" },
+  { num: "12", key: "team", label: "Team & Access" },
+  { num: "13", key: "partners", label: "Referral Partners" },
+  { num: "14", key: "audit", label: "Audit Log" },
+];
+
+const ECONOMICS = [
+  ["Commission split · you", "70 / 30 to cap · $23K"],
+  ["Franchise / brokerage fee", "6% of GCI"],
+  ["Referral fee default", "25% of Gross Commission"],
+  ["Transaction fee", "$495 per side"],
+  ["Target GCI · annual", "$6.5M"],
+  ["Personal split · post-cap", "95 / 5"],
+];
+const PIPELINE_STAGES = {
+  Purchases: ["Qualified", "Toured", "Offer strategy", "Offer & negotiation", "Contract", "Escrow · diligence", "Closing"],
+  Listings: ["Consult", "Valuation", "Agreement", "Prep & staging", "Marketing", "Offers", "Contract", "Closing"],
+  Rentals: ["Inquiry", "Qualified", "Showings", "Application", "Lease drafting", "Signed"],
+};
+const SCORING = [
+  ["HOT threshold", "14 days since touch"],
+  ["WARM threshold", "30 days since touch"],
+  ["Listing threshold", "21 days since touch"],
+  ["Probability model", "Calibrated from 22 closed deals"],
+  ["Forecast basis", "Weighted · probability-adjusted"],
+];
+const MLS_MATCH = [
+  ["IDX feed", "Miami MLS · Matrix · connected (mock)"],
+  ["Match sensitivity", "≥ 85% fit surfaces to the queue"],
+  ["Auto-search refresh", "Nightly · 02:00"],
+  ["Off-market inclusion", "Whisper network + owner-direct"],
+];
+const VOICE_RULES = [
+  ["Banned superlatives", "ultra-luxury · world-class · exclusive · iconic · best-in-class · bespoke"],
+  ["Punctuation", "No exclamation marks · no emoji"],
+  ["Language", "Per contact · PT / EN / ES auto-detected"],
+  ["Conviction signal", "high / medium / low, always stated"],
+];
+const PRIVACY = [
+  ["Private vault", "Visible to Principal only · agent output cannot use it"],
+  ["Audit retention", "7 years · insert-only"],
+  ["Rollback window", "30 days (Agent Ledger)"],
+  ["LGPD / CCPA export", "On request · per contact"],
+];
+const PARTNERS = [
+  { name: "A. Bittencourt", terms: "25% of Gross Commission · 12-mo validity", status: "Active · 4 referred" },
+  { name: "R. Katz · Co-broke", terms: "Co-broke · case by case", status: "Active · 2 referred" },
+  { name: "Private Banker · Itaú Miami", terms: "25% · reciprocal", status: "Active · 1 referred" },
 ];
 
 const PROFILE = [
@@ -106,12 +157,17 @@ export function Settings() {
         )}
 
         {active === "team" && (
-          <Section num="02" title="Team & Roles" desc="View-as switches the workspace to each seat (README §5).">
+          <Section num="12" title="Team & Access" desc="Seats, view-as preview, and per-role commission — each role sees a filtered nav (README §5).">
+            <div className="st-auto-h">Roles</div>
             <div className="st-chips">
               {["Sales Agent", "Admin", "Transaction Coordinator", "Marketing", "Referral Partner"].map((r) => (
                 <span className="st-chip" key={r}>{r}</span>
               ))}
             </div>
+            <div className="st-auto-h" style={{ marginTop: 18 }}>Members</div>
+            {[["Wictor Arraes", "Principal · Admin", "70/30 to cap"], ["A/CO TC", "Transaction Coordinator", "flat / transaction"], ["Marketing seat", "Marketing", "—"]].map(([n, role, comm]) => (
+              <div className="st-int-row" key={n}><div><div className="st-int-name">{n}</div><div className="st-int-desc">{role}</div></div><span className="st-int-status">{comm}</span></div>
+            ))}
           </Section>
         )}
 
@@ -138,13 +194,48 @@ export function Settings() {
         )}
 
         {active === "types" && (
-          <Section num="05" title="Contact Types" desc="The classification vocabulary applied across the directory and records.">
-            <div className="st-chips">{types.map((t) => <span className="st-chip" key={t}>{t}</span>)}</div>
+          <Section num="02" title="Contact Types" desc="The classification vocabulary applied across the directory and records.">
+            <div className="st-chips">{types.map((t) => <span className="st-chip" key={t}>{t}</span>)}<span className="st-chip" style={{ borderStyle: "dashed", color: "var(--gray-meta)" }}>+ add type</span></div>
+          </Section>
+        )}
+
+        {active === "economics" && (
+          <Section num="05" title="Economics" desc="Splits, fees and targets the agent uses to compute weighted GCI and forecasts.">
+            <div className="st-grid">{ECONOMICS.map(([l, v]) => <div className="st-field" key={l}><span className="st-field-label">{l}</span><span className="st-field-value">{v}</span></div>)}</div>
+          </Section>
+        )}
+
+        {active === "pipeline" && (
+          <Section num="06" title="Pipeline & Stages" desc="The stage tracks each division runs — the board and playbooks read from here.">
+            {Object.entries(PIPELINE_STAGES).map(([pipe, stages]) => (
+              <div key={pipe} style={{ marginBottom: 18 }}>
+                <div className="st-auto-h">{pipe}</div>
+                <div className="st-chips">{stages.map((s) => <span className="st-chip" key={s}>{s}</span>)}</div>
+              </div>
+            ))}
+          </Section>
+        )}
+
+        {active === "scoring" && (
+          <Section num="07" title="Scoring & Forecast" desc="Aging thresholds and the probability model behind heat and weighted GCI.">
+            <div className="st-grid">{SCORING.map(([l, v]) => <div className="st-field" key={l}><span className="st-field-label">{l}</span><span className="st-field-value">{v}</span></div>)}</div>
+          </Section>
+        )}
+
+        {active === "mls" && (
+          <Section num="08" title="MLS & Matching" desc="How the agent sources and ranks inventory against each buyer profile.">
+            <div className="st-grid">{MLS_MATCH.map(([l, v]) => <div className="st-field" key={l}><span className="st-field-label">{l}</span><span className="st-field-value">{v}</span></div>)}</div>
+          </Section>
+        )}
+
+        {active === "voice" && (
+          <Section num="09" title="Voice & Templates" desc="The Constitution voice rules every draft obeys (README §12).">
+            <div className="st-grid">{VOICE_RULES.map(([l, v]) => <div className="st-field" key={l}><span className="st-field-label">{l}</span><span className="st-field-value">{v}</span></div>)}</div>
           </Section>
         )}
 
         {active === "integrations" && (
-          <Section num="06" title="Integrations" desc="Phase 1 runs every integration behind a mock adapter — the interface is real, the backend is stubbed.">
+          <Section num="10" title="Integrations" desc="Phase 1 runs every integration behind a mock adapter — the interface is real, the backend is stubbed.">
             {INTEGRATIONS.map(([name, desc, status]) => (
               <div className="st-int-row" key={name}>
                 <div><div className="st-int-name">{name}</div><div className="st-int-desc">{desc}</div></div>
@@ -154,8 +245,25 @@ export function Settings() {
           </Section>
         )}
 
+        {active === "privacy" && (
+          <Section num="11" title="Data & Privacy" desc="The vault, retention and regulatory export controls.">
+            <div className="st-grid">{PRIVACY.map(([l, v]) => <div className="st-field" key={l}><span className="st-field-label">{l}</span><span className="st-field-value">{v}</span></div>)}</div>
+          </Section>
+        )}
+
+        {active === "partners" && (
+          <Section num="13" title="Referral Partners" desc="Standing referral agreements and their terms — payouts flow through here.">
+            {PARTNERS.map((p) => (
+              <div className="st-int-row" key={p.name}>
+                <div><div className="st-int-name">{p.name}</div><div className="st-int-desc">{p.terms}</div></div>
+                <span className="st-int-status">{p.status}</span>
+              </div>
+            ))}
+          </Section>
+        )}
+
         {active === "audit" && (
-          <Section num="07" title="Audit Log" desc="Every mutation, insert-only — actor · action · entity · timestamp (Law 2). Retained 7 years; rollback 30 days.">
+          <Section num="14" title="Audit Log" desc="Every mutation, insert-only — actor · action · entity · timestamp (Law 2). Retained 7 years; rollback 30 days.">
             {audit.length === 0 ? (
               <div className="st-audit-empty">No entries yet — approve a draft or edit a field to see the trail populate.</div>
             ) : (

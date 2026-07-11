@@ -36,8 +36,29 @@ export function Reports() {
 
   const KPIS = content.transactionsClosed.kpis;
 
+  const RECEIVABLES = [
+    { deal: "Continuum 2904 · Alvarez", status: "Payable at closing", when: "Jul 18", amount: "$410K" },
+    { deal: "Faena 8C · Ravel", status: "Projected", when: "Jul 25", amount: "$530K" },
+    { deal: "Bal Harbour 1503 · Nakamura", status: "Projected", when: "Jul 29", amount: "$400K" },
+    { deal: "Rivage PH-A · Marcelo", status: "Projected", when: "Sep 2026", amount: "$412K" },
+  ];
+
   return (
     <div className="rp-wrap">
+      <section>
+        <div className="rp-target">
+          <div className="rp-target-top">
+            <div>
+              <div className="rp-target-label">Annual GCI Target</div>
+              <div className="rp-target-value">$3.1M <span className="of">of $6.5M</span></div>
+            </div>
+            <div className="rp-target-pace">58% on pace · 12 days ahead</div>
+          </div>
+          <div className="rp-target-bar"><span style={{ width: "48%" }} /></div>
+          <div className="rp-target-sub">$3.4M remaining · weighted pipeline covers $5.2M of it</div>
+        </div>
+      </section>
+
       <section>
         <div className="rp-sec-title">GCI &amp; volume · YTD</div>
         <div className="rp-sec-desc">Realized performance — net to A/CO</div>
@@ -85,6 +106,28 @@ export function Reports() {
           <div className="rp-kpi"><div className="rp-kpi-label">Open Opportunities</div><div className="rp-kpi-value">{opps.length - won - lost}</div><div className="rp-kpi-sub">pre-close</div></div>
           <div className="rp-kpi"><div className="rp-kpi-label">Won</div><div className="rp-kpi-value">{won}</div><div className="rp-kpi-sub">closed this book</div></div>
           <div className="rp-kpi"><div className="rp-kpi-label">Lost</div><div className="rp-kpi-value">{lost}</div><div className="rp-kpi-sub">recycled to nurture</div></div>
+        </div>
+      </section>
+
+      <section>
+        <div className="rp-sec-title">Income &amp; Receivables</div>
+        <div className="rp-sec-desc">What's booked, what's owed, and when it disburses</div>
+        <div className="rp-kpis" style={{ marginBottom: 18 }}>
+          <div className="rp-kpi"><div className="rp-kpi-label">Realized · YTD</div><div className="rp-kpi-value">$3.1M</div><div className="rp-kpi-sub">booked</div></div>
+          <div className="rp-kpi"><div className="rp-kpi-label">Payable</div><div className="rp-kpi-value">$410K</div><div className="rp-kpi-sub">disburses Jul 18</div></div>
+          <div className="rp-kpi"><div className="rp-kpi-label">Projected · 90d</div><div className="rp-kpi-value">$1.34M</div><div className="rp-kpi-sub">weighted</div></div>
+          <div className="rp-kpi"><div className="rp-kpi-label">Net after split</div><div className="rp-kpi-value">$2.2M</div><div className="rp-kpi-sub">70/30 to cap</div></div>
+        </div>
+        <div className="rp-table">
+          <div className="rp-trow head" style={{ gridTemplateColumns: "2fr 1.2fr 1fr 0.8fr" }}><span className="rp-th">Deal</span><span className="rp-th">Status</span><span className="rp-th">When</span><span className="rp-th">Amount</span></div>
+          {RECEIVABLES.map((r) => (
+            <div className="rp-trow" style={{ gridTemplateColumns: "2fr 1.2fr 1fr 0.8fr" }} key={r.deal}>
+              <span className="rp-td ink">{r.deal}</span>
+              <span className="rp-td" style={{ color: r.status.startsWith("Payable") ? "var(--accent)" : undefined }}>{r.status}</span>
+              <span className="rp-td">{r.when}</span>
+              <span className="rp-td ink">{r.amount}</span>
+            </div>
+          ))}
         </div>
       </section>
     </div>
