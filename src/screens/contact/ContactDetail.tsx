@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import content from "../../data/seed/content.json";
-import type { Contact, ContactStatus } from "../../domain/types";
+import type { Activity, Contact, ContactStatus } from "../../domain/types";
 import { getById, recordAction, save } from "../../data/repository";
+import { useCollection } from "../../data/hooks";
 import { agentService } from "../../agent/MockAgentService";
 import "./ContactDetail.css";
+
+const DEAL = content.dealDetail;
 
 type Seg = "profile" | "now" | "agent";
 const E = content.contactDetailExtras;
@@ -130,6 +133,8 @@ function synthVitals(c: Contact): Vital[] {
 
 function NowSection({ contact, isReference }: { contact: Contact; isReference: boolean }) {
   const [sent, setSent] = useState(false);
+  const { items: activities } = useCollection<Activity>("activities");
+  const touches = activities.filter((a) => a.contact_id === contact.id);
 
   function approve() {
     setSent(true);
@@ -166,6 +171,8 @@ function NowSection({ contact, isReference }: { contact: Contact; isReference: b
           <div className="cd-signal" key={i}><span className="dot" style={{ background: s.dot }} /><span className="txt">{s.text}</span></div>
         ))}
       </div>
+      {isReference && <MlsMatch />}
+
       <div className="cd-sec">
         <div className="cd-sec-title">Plan</div>
         {(isReference ? E.planItems : synthPlan(contact)).map((p, i) => (
@@ -177,14 +184,95 @@ function NowSection({ contact, isReference }: { contact: Contact; isReference: b
         ))}
       </div>
 
+      {isReference && <AgentLearnCard />}
+
       <div className="cd-sec">
         <div className="cd-sec-title">Memory</div>
-        <div className="cd-tl-row">
-          <span className="cd-tl-date">{contact.last_touch}</span>
-          <div style={{ flex: 1 }}><div className="cd-tl-why" style={{ fontSize: 13, color: "var(--body)" }}>{contact.narrative}</div></div>
-        </div>
+        {touches.length === 0 ? (
+          <div className="cd-tl-row">
+            <span className="cd-tl-date">{contact.last_touch}</span>
+            <div style={{ flex: 1 }}><div className="cd-tl-why" style={{ fontSize: 13, color: "var(--body)" }}>{contact.narrative}</div></div>
+          </div>
+        ) : (
+          touches.map((t) => (
+            <div className="cd-tl-row" key={t.id}>
+              <span className="cd-tl-date">{t.date}</span>
+              <span className="cd-tl-type-tag">{t.type}</span>
+              <div style={{ flex: 1 }}><div className="cd-tl-why" style={{ fontSize: 13, color: "var(--body)" }}>{t.body}</div></div>
+              <span className="cd-tl-status" style={{ color: t.outcome === "advanced" ? "#10A37F" : "#8F8F8F" }}>{t.outcome}</span>
+            </div>
+          ))
+        )}
+        <FileDrop contactId={contact.id} />
       </div>
     </>
+  );
+}
+
+/** MLS Match — search criteria + agent-found matches (v5 Now block). */
+function MlsMatch() {
+  const [open, setOpen] = useState(false);
+  const matches = DEAL.nowQueue.find((q) => q.type === "mls_match")?.matches ?? [];
+  return (
+    <div className="cd-sec">
+      <div className="cd-sec-title">MLS Match — {matches.length} matches for this search</div>
+      <div className="cd-mls-note">client is PT — everything goes out in Portuguese</div>
+      <button className="cd-mls-crit-toggle" onClick={() => setOpen((o) => !o)}>
+        Search criteria · Buyer Requirement Profile {open ? "▾" : "▸"}
+      </button>
+      {open && (
+        <div className="cd-mls-crit">
+          {E.searchCriteriaSummary.map(([k, v]) => (
+            <div className="cd-idrow" key={k}><span className="k">{k}</span><span className="v">{v}</span></div>
+          ))}
+        </div>
+      )}
+      {matches.map((m, i) => (
+        <div className="cd-mls-row" key={i}>
+          <span className="cd-mls-name">{m[0]}</span>
+          <span className="cd-mls-price">{m[1]}</span>
+          <span className="cd-mls-fit">{m[2]} fit</span>
+        </div>
+      ))}
+      <div className="cd-actions-row">
+        <button className="cd-btn cd-btn-primary">Suggest selected</button>
+        <button className="cd-btn cd-btn-ghost">Draft tour</button>
+      </div>
+    </div>
+  );
+}
+
+/** Agent-learned field card (save to profile / dismiss). */
+function AgentLearnCard() {
+  const [done, setDone] = useState<string | null>(null);
+  return (
+    <div className="cd-sec">
+      <div className="cd-learn-card">
+        <div className="cd-learn-eyebrow">Agent learned · save to profile</div>
+        <div className="cd-learn-text">{E.agentLearnCard.text}</div>
+        {done ? <div className="cd-sent">{done}</div> : (
+          <div className="cd-actions-row">
+            <button className="cd-btn cd-btn-primary" onClick={() => setDone("Saved to profile ✓")}>Save to profile</button>
+            <button className="cd-btn cd-btn-ghost" onClick={() => setDone("Dismissed")}>Dismiss</button>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function FileDrop({ contactId }: { contactId: string }) {
+  const [over, setOver] = useState(false);
+  return (
+    <div
+      className={`cd-drop${over ? " over" : ""}`}
+      style={{ marginTop: 16 }}
+      onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+      onDragLeave={() => setOver(false)}
+      onDrop={(e) => { e.preventDefault(); setOver(false); void contactId; }}
+    >
+      Drop documents here → filed to this contact's Drive folder (mock)
+    </div>
   );
 }
 
@@ -241,6 +329,15 @@ function ProfileSection({ contact, isReference }: { contact: Contact; isReferenc
 
       <div className="cd-sec">
         <div className="cd-sec-title">Classification</div>
+        <div className="cd-class-row"><span className="cd-class-label">Status</span><span className="cd-class-val">{contact.status}</span></div>
+        <div className="cd-class-row"><span className="cd-class-label">Type</span><span className="cd-class-val">{contact.relationship?.split("·")[1]?.trim() ?? contact.category}</span></div>
+        <div className="cd-class-row">
+          <span className="cd-class-label">Tags</span>
+          <span className="cd-tags">
+            {(contact.tags ?? []).map((t) => <span className="cd-tag" key={t}>{t}</span>)}
+            <span className="cd-tag-add">+ add tag</span>
+          </span>
+        </div>
         <div className="cd-cadence-note">Cadence for {contact.status}: {E.cadenceByStatus[contact.status as keyof typeof E.cadenceByStatus]}</div>
         <div className="cd-manage-link" style={{ marginTop: 6 }}>manage in Settings ›</div>
       </div>

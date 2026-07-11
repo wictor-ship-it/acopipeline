@@ -96,3 +96,26 @@
 .cd-chat-input input { flex: 1; border: none; background: transparent; outline: none; font-size: 14px; color: var(--ink); }
 .cd-drop { margin-top: 16px; border: 1px dashed var(--border-input); border-radius: 12px; padding: 26px; text-align: center; color: var(--gray-meta); font-size: 13px; transition: all var(--transition); }
 .cd-drop.over { border-color: var(--ink); color: var(--ink); background: rgba(255,255,255,0.5); }
+
+/* MLS Match + agent-learned + memory timeline extras */
+.cd-tl-type-tag { width: 70px; flex: none; font-weight: 600; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); }
+.cd-mls-note { font-size: 11.5px; font-style: italic; color: var(--gray-meta); margin-bottom: 10px; }
+.cd-mls-crit-toggle { background: none; border: none; padding: 0 0 10px; font-weight: 500; font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gray-secondary); cursor: pointer; }
+.cd-mls-crit-toggle:hover { color: var(--ink); }
+.cd-mls-crit { border: 1px solid var(--border); border-radius: 10px; padding: 6px 16px; margin-bottom: 12px; background: rgba(255,255,255,0.4); }
+.cd-mls-row { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.cd-mls-name { flex: 1; font-size: 13.5px; color: var(--body); }
+.cd-mls-price { font-size: 13.5px; color: var(--ink); font-weight: 500; }
+.cd-mls-fit { font-size: 12px; color: var(--accent); font-weight: 500; width: 60px; text-align: right; }
+.cd-learn-card { border: 1px solid var(--border); border-left: 2px solid var(--accent); background: rgba(255,255,255,0.55); padding: 16px 18px; }
+.cd-learn-eyebrow { font-weight: 600; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+.cd-learn-text { font-size: 13.5px; line-height: 1.6; color: var(--ink); margin-top: 8px; }
+
+/* Profile classification editors */
+.cd-class-row { display: flex; align-items: center; gap: 16px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.cd-class-label { width: 90px; flex: none; font-weight: 600; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); }
+.cd-class-val { font-size: 13px; color: var(--ink); text-transform: capitalize; }
+.cd-tags { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+.cd-tag { border: 1px solid var(--border-input); border-radius: 999px; padding: 3px 10px; font-size: 11px; color: var(--ink); background: rgba(255,255,255,0.5); }
+.cd-tag-add { font-size: 11px; color: var(--gray-meta); cursor: pointer; border: 1px dashed var(--border-input); border-radius: 999px; padding: 3px 10px; }
+.cd-tag-add:hover { color: var(--ink); border-color: var(--gray-meta); }
