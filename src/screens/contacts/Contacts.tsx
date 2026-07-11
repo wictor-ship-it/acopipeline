@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import type { Contact } from "../../domain/types";
+import type { Activity, Contact } from "../../domain/types";
 import { useCollection } from "../../data/hooks";
 import content from "../../data/seed/content.json";
 import "./Contacts.css";
@@ -62,7 +62,16 @@ const REPORTS = [
 export function Contacts() {
   const navigate = useNavigate();
   const { items: contacts } = useCollection<Contact>("contacts");
+  const { items: activities } = useCollection<Activity>("activities");
+  const [peek, setPeek] = useState<Contact | null>(null);
+  const [view, setView] = useState<"directory" | "queue">("directory");
   const [segment, setSegment] = useState<string>("all");
+  // Touch Today queue — contacts with an agent note, ranked by status heat.
+  const HEAT = { hot: 0, warm: 1, nurturing: 2, won: 3, lost: 4 } as const;
+  const queueContacts = useMemo(
+    () => contacts.filter((c) => c.agent_note).sort((a, b) => (HEAT[a.status] ?? 9) - (HEAT[b.status] ?? 9)),
+    [contacts],
+  );
   const [query, setQuery] = useState("");
   const [cols, setCols] = useState<Col[]>(DEFAULT_COLS);
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -141,11 +150,11 @@ export function Contacts() {
 
       <div className="ct-tabs">
         <div className="ct-tabs-left">
-          <div className="ct-tab active">Directory</div>
-          <div className="ct-tab">Queue</div>
-          <div className="ct-tab">Inbox →</div>
+          <div className={`ct-tab${view === "directory" ? " active" : ""}`} onClick={() => setView("directory")}>Directory</div>
+          <div className={`ct-tab${view === "queue" ? " active" : ""}`} onClick={() => setView("queue")}>Queue</div>
+          <div className="ct-tab" onClick={() => navigate("/inbox")}>Inbox →</div>
         </div>
-        <span className="ct-count">{rows.length} contacts</span>
+        <span className="ct-count">{view === "queue" ? `${queueContacts.length} to touch` : `${rows.length} contacts`}</span>
       </div>
 
       {!triageDismissed && (
@@ -162,6 +171,28 @@ export function Contacts() {
         </div>
       )}
 
+      {view === "queue" ? (
+        <div className="ct-queue">
+          <div className="ct-queue-head">
+            <span className="ct-queue-title">Touch Today</span>
+            <span className="ct-queue-sub">ranked by return per minute · agent read the context and drafted</span>
+          </div>
+          {queueContacts.map((c, i) => (
+            <div className="ct-queue-row" key={c.id} onClick={() => setPeek(c)}>
+              <span className="ct-queue-rank">{i + 1}</span>
+              <span className="ct-dot" style={{ background: dotFor(c) }} />
+              <div className="ct-queue-main">
+                <span className="ct-queue-name">{c.name}</span>
+                <span className="ct-queue-note">{c.agent_note}</span>
+              </div>
+              <span className="ct-queue-status">{c.directory_status}</span>
+              <button className="ct-queue-btn" onClick={(e) => { e.stopPropagation(); navigate(`/contact/${c.id}`); }}>Open ›</button>
+            </div>
+          ))}
+          <div className="ct-queue-footer">Cadence: HOT every 3 days · WARM every 7 · ACTIVE clients weekly · PAST clients quarterly. An inbound touch resets the clock automatically. · J/K move · L log · S snooze</div>
+        </div>
+      ) : (
+      <>
       <div className="ct-controls">
         <input className="ct-search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />
         <div className="ct-segments">
@@ -223,10 +254,10 @@ export function Contacts() {
         </div>
 
         {rows.map((c) => (
-          <div className="ct-row" style={grid} key={c.id} onClick={() => navigate(`/contact/${c.id}`)}>
+          <div className="ct-row" style={grid} key={c.id} onClick={() => setPeek(c)}>
             <div className="ct-cell-name">
               <span className="ct-dot" style={{ background: dotFor(c) }} />
-              <span className="ct-name" title="Open contact record">{c.name}</span>
+              <span className="ct-name" title="Open contact record" onClick={(e) => { e.stopPropagation(); navigate(`/contact/${c.id}`); }}>{c.name}</span>
             </div>
             {cols.slice(1).map((col) => {
               const cls =
@@ -239,6 +270,76 @@ export function Contacts() {
           </div>
         ))}
       </div>
+      </>
+      )}
+
+      {peek && (
+        <ContactPeek
+          contact={peek}
+          touches={activities.filter((a) => a.contact_id === peek.id)}
+          onClose={() => setPeek(null)}
+          onOpen={() => { const id = peek.id; setPeek(null); navigate(`/contact/${id}`); }}
+        />
+      )}
     </div>
+  );
+}
+
+function ContactPeek({ contact: c, touches, onClose, onOpen }: {
+  contact: Contact; touches: Activity[]; onClose: () => void; onOpen: () => void;
+}) {
+  const prefs = (c.preferences ?? {}) as Record<string, string>;
+  const net = (c.pinned as { network?: { got: string; gave: string; bal: string; move: string } } | undefined)?.network;
+  return (
+    <>
+      <div className="ct-peek-scrim" onClick={onClose} />
+      <div className="ct-peek">
+        <div className="ct-peek-head">
+          <div className="ct-peek-eyebrow">
+            <span>{c.relationship} · {c.location}</span>
+            <button className="ct-peek-close" onClick={onClose}>×</button>
+          </div>
+          <div className="ct-peek-name">{c.name}</div>
+          <div className="ct-peek-status"><span className="ct-dot" style={{ background: dotFor(c) }} /><span>{c.directory_status}</span></div>
+        </div>
+        <div className="ct-peek-body">
+          <div className="ct-peek-nums">
+            <div className="ct-peek-num"><div className="l">Lifetime GCI</div><div className="v">{c.lifetime_gci ?? "—"}</div></div>
+            <div className="ct-peek-num"><div className="l">Active</div><div className="v">{c.active_deals ?? "0"}</div></div>
+            <div className="ct-peek-num"><div className="l">Last touch</div><div className="v">{c.last_touch ?? "—"}</div></div>
+          </div>
+          {c.agent_note && (
+            <div className="ct-peek-note"><div className="k">Agent note</div><div className="t">{c.agent_note}</div></div>
+          )}
+          {net && (
+            <div className="ct-peek-sec">
+              <div className="sh">Reciprocity</div>
+              <div className="ct-peek-recip"><span>Got</span><span className="ink">{net.got}</span></div>
+              <div className="ct-peek-recip"><span>Gave</span><span className="ink">{net.gave}</span></div>
+              <div className="ct-peek-recip"><span>Balance</span><span className="ink">{net.bal}</span></div>
+              <div className="ct-peek-move">↳ {net.move}</div>
+            </div>
+          )}
+          {Object.keys(prefs).length > 0 && (
+            <div className="ct-peek-sec">
+              <div className="sh">Preferences</div>
+              {["asset", "areas", "budget"].filter((k) => prefs[k]).map((k) => (
+                <div className="ct-peek-recip" key={k}><span>{k}</span><span className="ink">{prefs[k]}</span></div>
+              ))}
+            </div>
+          )}
+          <div className="ct-peek-sec">
+            <div className="sh">Recent touches</div>
+            {touches.length === 0 ? <div className="ct-peek-empty">Nothing logged yet — the agent queues the next touch automatically.</div> :
+              touches.slice(0, 4).map((t) => (
+                <div className="ct-peek-touch" key={t.id}><span className="d">{t.date}</span><span className="ty">{t.type}</span><span className="b">{t.body}</span></div>
+              ))}
+          </div>
+        </div>
+        <div className="ct-peek-footer">
+          <button className="ct-peek-open" onClick={onOpen}>Open full record ›</button>
+        </div>
+      </div>
+    </>
   );
 }

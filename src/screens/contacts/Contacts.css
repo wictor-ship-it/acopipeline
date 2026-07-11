@@ -85,3 +85,52 @@
 .ct-cell.ink { font-size: 14px; color: var(--ink); }
 .ct-cell.body { font-size: 14px; color: var(--body); }
 .ct-cell.meta { color: var(--gray-meta); }
+
+/* Contact peek drawer (v5) */
+.ct-peek-scrim { position: fixed; inset: 0; background: rgba(0,0,0,0.32); z-index: 80; }
+.ct-peek { position: fixed; top: 0; right: 0; bottom: 0; width: 500px; max-width: 92vw; background: rgba(255,255,255,0.72); backdrop-filter: blur(30px) saturate(1.8); -webkit-backdrop-filter: blur(30px) saturate(1.8); border-left: 1px solid rgba(255,255,255,0.7); z-index: 81; display: flex; flex-direction: column; box-shadow: -24px 0 60px rgba(0,0,0,0.18); }
+.ct-peek-head { padding: 22px 28px 18px; border-bottom: 1px solid var(--border); }
+.ct-peek-eyebrow { display: flex; align-items: center; justify-content: space-between; font-weight: 400; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gray-meta); }
+.ct-peek-close { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); border-radius: 8px; font-size: 13px; color: var(--gray-meta); cursor: pointer; background: none; }
+.ct-peek-close:hover { border-color: var(--ink); color: var(--ink); }
+.ct-peek-name { font-weight: 300; font-size: 22px; color: var(--ink); margin-top: 8px; }
+.ct-peek-status { display: flex; align-items: center; gap: 9px; margin-top: 7px; font-weight: 400; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-secondary); }
+.ct-peek-body { flex: 1; overflow-y: auto; }
+.ct-peek-nums { display: grid; grid-template-columns: 1fr 1fr 1fr; border-bottom: 1px solid var(--border); }
+.ct-peek-num { padding: 16px 0 16px 28px; border-right: 1px solid var(--border); }
+.ct-peek-num:last-child { border-right: none; }
+.ct-peek-num .l { font-weight: 400; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-meta); }
+.ct-peek-num .v { font-weight: 300; font-size: 19px; color: var(--ink); margin-top: 5px; }
+.ct-peek-note { padding: 16px 28px; border-bottom: 1px solid var(--border); border-left: 2px solid var(--ink); background: rgba(255,255,255,0.55); }
+.ct-peek-note .k { font-weight: 600; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-secondary); }
+.ct-peek-note .t { font-weight: 400; font-size: 13px; line-height: 1.6; color: var(--body); margin-top: 6px; }
+.ct-peek-sec { padding: 18px 28px; border-bottom: 1px solid var(--border); }
+.ct-peek-sec .sh { font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-secondary); margin-bottom: 10px; }
+.ct-peek-recip { display: flex; justify-content: space-between; padding: 6px 0; font-size: 13px; color: var(--gray-secondary); }
+.ct-peek-recip .ink { color: var(--ink); }
+.ct-peek-recip span:first-child { text-transform: capitalize; }
+.ct-peek-move { font-size: 12.5px; color: var(--accent); margin-top: 8px; }
+.ct-peek-touch { display: flex; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(0,0,0,0.05); font-size: 12.5px; }
+.ct-peek-touch .d { width: 52px; flex: none; color: var(--gray-meta); }
+.ct-peek-touch .ty { width: 60px; flex: none; font-weight: 600; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); }
+.ct-peek-touch .b { flex: 1; color: var(--body); }
+.ct-peek-empty { font-size: 12.5px; color: var(--gray-meta); }
+.ct-peek-footer { padding: 16px 28px; border-top: 1px solid var(--border); }
+.ct-peek-open { background: var(--ink); color: #fff; border: none; border-radius: 999px; padding: 11px 18px; font-weight: 500; font-size: 12px; letter-spacing: 0.04em; cursor: pointer; }
+.ct-peek-open:hover { opacity: 0.88; }
+
+/* Queue view (Touch Today) */
+.ct-queue { border-top: 1px solid var(--border); margin-top: 8px; }
+.ct-queue-head { display: flex; align-items: baseline; gap: 14px; padding: 20px 0 14px; }
+.ct-queue-title { font-weight: 600; font-size: 16px; color: var(--ink); }
+.ct-queue-sub { font-size: 12px; font-style: italic; color: var(--gray-secondary); }
+.ct-queue-row { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--transition); }
+.ct-queue-row:hover { background: rgba(255,255,255,0.55); }
+.ct-queue-rank { width: 20px; flex: none; font-weight: 600; font-size: 12px; color: var(--gray-hint); text-align: center; }
+.ct-queue-main { flex: 1; min-width: 0; }
+.ct-queue-name { font-weight: 500; font-size: 14px; color: var(--ink); display: block; }
+.ct-queue-note { font-size: 12.5px; color: var(--gray-secondary); margin-top: 3px; display: block; }
+.ct-queue-status { font-weight: 600; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); flex: none; }
+.ct-queue-btn { flex: none; background: transparent; border: 1px solid var(--border); border-radius: 999px; padding: 7px 14px; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--gray-secondary); cursor: pointer; }
+.ct-queue-btn:hover { border-color: var(--ink); color: var(--ink); }
+.ct-queue-footer { padding: 16px 4px; font-size: 11.5px; color: var(--gray-meta); font-style: italic; }
