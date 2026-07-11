@@ -3,6 +3,7 @@ import { useAppState } from "./state";
 import { ROLES } from "./roles";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { UndoBar } from "./UndoBar";
 import "./Shell.css";
 
 /* App shell — literal from fragment 00: layout flex (line 130), ambient
@@ -34,6 +35,8 @@ export function Shell() {
         <TopBar />
         <Outlet />
       </main>
+
+      <UndoBar />
     </div>
   );
 }

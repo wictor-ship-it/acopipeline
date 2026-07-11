@@ -62,7 +62,9 @@
       "Bash(git commit -q -m 'Import v2 handoff \\(design_handoff_fase1/\\) + update root CLAUDE.md *)",
       "Bash(git branch *)",
       "Bash(grep -oE \"\\(sideStyle|topBarStyle|topDividerStyle|loginBgStyle|ambientBaseStyle|ambientBlob1|ambientBlob2|ambientBlob3|micStyleSm\\)[^;]*=[^\\\\n]{0,320}\" logic-and-data.js)",
-      "Bash(git commit -q -m 'Step 1 \\(greenfield rebuild\\): scaffold + tokens + shell from fragment 00 *)"
+      "Bash(git commit -q -m 'Step 1 \\(greenfield rebuild\\): scaffold + tokens + shell from fragment 00 *)",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit)",
+      "Bash(echo \"---EXIT $?---\")"
     ]
   }
 }

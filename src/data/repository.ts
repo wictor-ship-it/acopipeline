@@ -1,0 +1,110 @@
+/* =========================================================================
+   Repository — the swappable data layer (README §4). UI never touches IDB
+   directly. Every mutation writes an insert-only audit_log row (Law 2) and
+   pushes an inverse op on the undo stack (Law 3).
+   ========================================================================= */
+import type { Actor, AuditEntry } from "../domain/types";
+import { idbBulkPut, idbDelete, idbGet, idbGetAll, idbPut, type StoreName } from "./idb";
+
+export type EntityStore = Exclude<StoreName, "audit_log" | "meta">;
+
+export interface MutationMeta { actor: Actor; skill?: string; action: string; }
+
+let counter = 0;
+export function newId(prefix: string): string {
+  counter = (counter + 1) % 46656;
+  return `${prefix}_${Date.now().toString(36)}${counter.toString(36).padStart(3, "0")}`;
+}
+
+/* --- Undo (Law 3) --- */
+export interface UndoableAction { label: string; undo: () => Promise<void>; }
+type UndoListener = (top: UndoableAction | null) => void;
+
+class UndoStack {
+  private stack: UndoableAction[] = [];
+  private listeners = new Set<UndoListener>();
+  push(a: UndoableAction) { this.stack.push(a); if (this.stack.length > 10) this.stack.shift(); this.emit(); }
+  async undoLast(): Promise<string | null> {
+    const top = this.stack.pop();
+    if (!top) return null;
+    await top.undo();
+    this.emit();
+    return top.label;
+  }
+  peek(): UndoableAction | null { return this.stack[this.stack.length - 1] ?? null; }
+  subscribe(fn: UndoListener): () => void { this.listeners.add(fn); return () => this.listeners.delete(fn); }
+  private emit() { const t = this.peek(); for (const fn of this.listeners) fn(t); }
+}
+export const undoStack = new UndoStack();
+
+/* --- Audit (Law 2 — insert-only; no update/delete API exists) --- */
+async function writeAudit(meta: MutationMeta, entity: string, before: unknown, after: unknown): Promise<void> {
+  const entry: AuditEntry = {
+    id: newId("audit"), actor: meta.actor, skill: meta.skill, action: meta.action,
+    entity, before: before ?? null, after: after ?? null, created_at: new Date().toISOString(),
+  };
+  await idbPut("audit_log", entry);
+}
+
+export async function getAuditLog(): Promise<AuditEntry[]> {
+  const all = await idbGetAll<AuditEntry>("audit_log");
+  return all.sort((a, b) => b.created_at.localeCompare(a.created_at));
+}
+
+/** Audited, undoable action that isn't plain entity CRUD (content-driven queues). */
+export async function recordAction(meta: MutationMeta, entity: string, revert: () => void | Promise<void>): Promise<void> {
+  await writeAudit(meta, entity, null, { resolved: true });
+  undoStack.push({
+    label: meta.action,
+    undo: async () => {
+      await writeAudit({ actor: "user", action: `undo: ${meta.action}` }, entity, { resolved: true }, null);
+      await revert();
+    },
+  });
+}
+
+/* --- Change notification --- */
+type ChangeListener = (store: EntityStore) => void;
+const changeListeners = new Set<ChangeListener>();
+export function onDataChange(fn: ChangeListener): () => void { changeListeners.add(fn); return () => changeListeners.delete(fn); }
+function emitChange(store: EntityStore) { for (const fn of changeListeners) fn(store); }
+
+/* --- CRUD with audit + undo --- */
+export async function getAll<T extends { id: string }>(store: EntityStore): Promise<T[]> { return idbGetAll<T>(store); }
+export async function getById<T extends { id: string }>(store: EntityStore, id: string): Promise<T | undefined> { return idbGet<T>(store, id); }
+
+export async function save<T extends { id: string }>(store: EntityStore, value: T, meta: MutationMeta): Promise<void> {
+  const before = await idbGet<T>(store, value.id);
+  await idbPut(store, value);
+  await writeAudit(meta, `${store}/${value.id}`, before ?? null, value);
+  undoStack.push({
+    label: meta.action,
+    undo: async () => {
+      if (before === undefined) await idbDelete(store, value.id); else await idbPut(store, before);
+      await writeAudit({ actor: "user", action: `undo: ${meta.action}` }, `${store}/${value.id}`, value, before ?? null);
+      emitChange(store);
+    },
+  });
+  emitChange(store);
+}
+
+export async function remove<T extends { id: string }>(store: EntityStore, id: string, meta: MutationMeta): Promise<void> {
+  const before = await idbGet<T>(store, id);
+  if (before === undefined) return;
+  await idbDelete(store, id);
+  await writeAudit(meta, `${store}/${id}`, before, null);
+  undoStack.push({
+    label: meta.action,
+    undo: async () => {
+      await idbPut(store, before);
+      await writeAudit({ actor: "user", action: `undo: ${meta.action}` }, `${store}/${id}`, null, before);
+      emitChange(store);
+    },
+  });
+  emitChange(store);
+}
+
+/** Seed-only bulk write — no audit/undo (baseline state, not a user/agent action). */
+export async function seedBulk<T extends { id: string }>(store: EntityStore, values: T[]): Promise<void> {
+  await idbBulkPut(store, values);
+}
