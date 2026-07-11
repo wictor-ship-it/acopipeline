@@ -16,6 +16,9 @@ const PIPES: { key: Pipeline | "all" | "closed"; label: string }[] = [
 ];
 
 const STAGE_ORDER = content.pipelineExtras.boardStageOrderAll;
+const REF = content.pipelineExtras.partnerReferralPending;
+const CLOSED_WON = content.transactionsClosed.rows;
+const CLOSED_KPIS = content.transactionsClosed.kpis;
 
 function heatDot(heat?: string): string {
   if (heat === "HOT") return "#0D0D0D";
@@ -42,6 +45,7 @@ export function Opportunities() {
   const { items: opps } = useCollection<Opportunity>("opportunities");
   const [pipe, setPipe] = useState<Pipeline | "all" | "closed">("all");
   const [view, setView] = useState<"board" | "list" | "week">("board");
+  const [refDismissed, setRefDismissed] = useState(false);
   const [peek, setPeek] = useState<Opportunity | null>(null);
   const [query, setQuery] = useState("");
   const [sortKey, setSortKey] = useState<string | null>(null);
@@ -151,6 +155,18 @@ export function Opportunities() {
         </div>
       </div>
 
+      {!refDismissed && (
+        <div className="op-refbanner">
+          <span className="op-refbanner-dot" />
+          <div className="op-refbanner-main">
+            <div className="op-refbanner-title"><strong>Partner referral — {REF.name}</strong> · by {REF.by} · {REF.registered}</div>
+            <div className="op-refbanner-sub">{REF.want} · {REF.line2}</div>
+          </div>
+          <button className="op-refbanner-accept" onClick={() => setRefDismissed(true)}>{REF.actions[0]}</button>
+          <button className="op-refbanner-decline" onClick={() => setRefDismissed(true)}>{REF.actions[1]}</button>
+        </div>
+      )}
+
       <div className="op-filter-row">
         <div className="op-pipes">
           {PIPES.map((p) => (
@@ -159,14 +175,18 @@ export function Opportunities() {
             </div>
           ))}
         </div>
-        <div className="op-views">
-          <div className={`op-view${view === "board" ? " active" : ""}`} onClick={() => setView("board")}>Board</div>
-          <div className={`op-view${view === "list" ? " active" : ""}`} onClick={() => setView("list")}>List</div>
-          <div className={`op-view${view === "week" ? " active" : ""}`} onClick={() => setView("week")}>Week</div>
-        </div>
+        {pipe !== "closed" && (
+          <div className="op-views">
+            <div className={`op-view${view === "board" ? " active" : ""}`} onClick={() => setView("board")}>Board</div>
+            <div className={`op-view${view === "list" ? " active" : ""}`} onClick={() => setView("list")}>List</div>
+            <div className={`op-view${view === "week" ? " active" : ""}`} onClick={() => setView("week")}>Week</div>
+          </div>
+        )}
       </div>
 
-      {view === "board" ? (
+      {pipe === "closed" ? (
+        <ClosedSection lost={filtered.filter((o) => o.stage === "Lost")} />
+      ) : view === "board" ? (
         <div className="op-board">
           {columns.map(([stage, cards]) => (
             <div className="op-col" key={stage}>
@@ -264,6 +284,49 @@ export function Opportunities() {
       )}
 
       {peek && <Peek opp={peek} onClose={() => setPeek(null)} />}
+    </div>
+  );
+}
+
+function ClosedSection({ lost }: { lost: Opportunity[] }) {
+  const [seg, setSeg] = useState<"won" | "lost">("won");
+  return (
+    <div className="op-closed">
+      <div className="op-closed-kpis">
+        {CLOSED_KPIS.map(([l, v]) => (
+          <div className="op-closed-kpi" key={l}><div className="op-closed-kpi-label">{l}</div><div className="op-closed-kpi-value">{v}</div></div>
+        ))}
+      </div>
+      <div className="op-closed-toggle">
+        <div className={`op-closed-seg${seg === "won" ? " active" : ""}`} onClick={() => setSeg("won")}>Won</div>
+        <div className={`op-closed-seg${seg === "lost" ? " active" : ""}`} onClick={() => setSeg("lost")}>Lost</div>
+      </div>
+      {seg === "won" ? (
+        <>
+          <div className="op-closed-table">
+            <div className="op-closed-head op-closed-wongrid"><span>Deal</span><span>Asset</span><span>Closed</span><span>Volume</span><span>GCI</span><span>Post-close</span></div>
+            {CLOSED_WON.map((r) => (
+              <div className="op-closed-row op-closed-wongrid" key={r.name}>
+                <span className="ink">{r.name}</span><span>{r.asset}</span><span>{r.closed}</span><span>{r.volume}</span><span className="ink">{r.gci}</span><span className="op-closed-post">{r.post}</span>
+              </div>
+            ))}
+          </div>
+          <div className="op-closed-footer">Closed relationships feed referral mining · anniversary gestures · cross-sell radar.</div>
+        </>
+      ) : (
+        <>
+          <div className="op-closed-table">
+            <div className="op-closed-head op-closed-lostgrid"><span>Deal</span><span>Pipeline</span><span>Value</span><span>Lost</span><span>Reason</span></div>
+            {lost.length === 0 ? <div className="op-closed-row"><span>No lost deals in this view.</span></div> :
+              lost.map((o) => (
+                <div className="op-closed-row op-closed-lostgrid" key={o.id}>
+                  <span className="ink">{o.name}</span><span>{o.pipeline}</span><span>{o.budget}</span><span>{o.next_due}</span><span>{o.narrative?.split(".")[0] ?? o.next_action}</span>
+                </div>
+              ))}
+          </div>
+          <div className="op-closed-footer">Lost deals move to quarterly nurture — the agent watches for the re-entry signal.</div>
+        </>
+      )}
     </div>
   );
 }
