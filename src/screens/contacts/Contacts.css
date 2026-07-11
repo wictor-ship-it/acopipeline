@@ -34,6 +34,18 @@
 .ct-segment:hover { color: var(--ink); }
 .ct-segment.active { color: var(--ink); border-bottom: 1px solid var(--ink); }
 
+/* Google Contacts triage banner (v5) */
+.ct-triage { display: flex; align-items: center; gap: 16px; border: 1px solid var(--border); border-left: 2px solid var(--risk); background: rgba(255,255,255,0.55); padding: 14px 18px; margin-top: 18px; }
+.ct-triage-main { flex: 1; min-width: 0; }
+.ct-triage-head { display: flex; align-items: baseline; gap: 10px; }
+.ct-triage-title { font-weight: 600; font-size: 13px; color: var(--ink); }
+.ct-triage-tag { font-weight: 400; font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gray-meta); }
+.ct-triage-sub { font-weight: 400; font-size: 12.5px; color: var(--gray-secondary); margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ct-triage-btn { flex: none; background: #E9E8E4; border: 1px solid #E0DFDA; border-radius: 999px; padding: 8px 16px; font-weight: 400; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink); cursor: pointer; white-space: nowrap; }
+.ct-triage-btn:hover { opacity: 0.85; }
+.ct-triage-later { flex: none; font-weight: 400; font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--gray-secondary); border: 1px solid var(--border); background: transparent; padding: 7px 13px; border-radius: 999px; cursor: pointer; white-space: nowrap; }
+.ct-triage-later:hover { color: var(--ink); border-color: var(--gray-meta); }
+
 /* Table */
 .ct-table { border-top: 1px solid var(--border); }
 .ct-thead { display: grid; padding: 13px 4px; border-bottom: 1px solid var(--border); align-items: center; background: rgba(255, 255, 255, 0.55); }

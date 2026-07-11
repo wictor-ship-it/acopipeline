@@ -15,6 +15,12 @@
   border: 1px solid var(--border-input); border-radius: 999px; padding: 7px 12px;
   background: rgba(255,255,255,0.6); color: var(--ink); cursor: pointer; outline: none;
 }
+.cd-eyebrow { font-weight: 400; font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gray-meta); }
+.cd-edit { cursor: pointer; }
+.cd-edit:hover { color: var(--ink); }
+.cd-head-top { margin-top: 6px; }
+.cd-contacts-line { font-weight: 400; font-size: 13px; color: var(--gray-secondary); margin-top: 8px; }
+.cd-essence { font-weight: 400; font-size: 14px; line-height: 1.55; color: var(--body); margin-top: 10px; max-width: 720px; }
 .cd-head-sub { font-weight: 400; font-size: 13px; color: var(--gray-secondary); margin-top: 8px; }
 .cd-referral { display: flex; align-items: center; gap: 9px; margin-top: 10px; }
 .cd-referral .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); flex: none; }

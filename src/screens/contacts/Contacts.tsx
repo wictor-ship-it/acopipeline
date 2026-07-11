@@ -103,12 +103,15 @@ export function Contacts() {
     } else { setSortKey(key); setSortDir(1); }
   }
 
+  const [triageDismissed, setTriageDismissed] = useState(false);
+  const banner = content.contactDetailExtras.googleSyncBanner;
+
   return (
     <div className="ct-wrap">
       <div className="ct-report">
         <div className="ct-report-head">
           <span className="ct-report-title">Contacts report</span>
-          <span className="ct-report-meta">relationship health · all segments</span>
+          <span className="ct-report-meta">All · 486 active · relationship health · trend vs. prior period</span>
         </div>
         <div className="ct-report-grid">
           {REPORTS.map((r) => (
@@ -144,6 +147,20 @@ export function Contacts() {
         </div>
         <span className="ct-count">{rows.length} contacts</span>
       </div>
+
+      {!triageDismissed && (
+        <div className="ct-triage">
+          <div className="ct-triage-main">
+            <div className="ct-triage-head">
+              <span className="ct-triage-title">1 new contact synced from Google Contacts</span>
+              <span className="ct-triage-tag">needs categorization</span>
+            </div>
+            <div className="ct-triage-sub">{banner.contact.name} · {banner.contact.email} · {banner.contact.phone} — held outside the pipeline until you classify it</div>
+          </div>
+          <button className="ct-triage-btn" onClick={() => setTriageDismissed(true)}>Categorize</button>
+          <button className="ct-triage-later" onClick={() => setTriageDismissed(true)}>Later</button>
+        </div>
+      )}
 
       <div className="ct-controls">
         <input className="ct-search" placeholder="Search" value={query} onChange={(e) => setQuery(e.target.value)} />

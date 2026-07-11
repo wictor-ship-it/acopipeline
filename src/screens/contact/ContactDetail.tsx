@@ -35,6 +35,9 @@ export function ContactDetail() {
   return (
     <div>
       <div className="cd-header">
+        <div className="cd-eyebrow">
+          {contact.relationship?.split("·")[1]?.trim() ?? contact.category} · {contact.location} · since {contact.since} · <span className="cd-edit">edit ›</span>
+        </div>
         <div className="cd-head-top">
           <span className="cd-name">{contact.name}</span>
           <select className="cd-status-select" value={contact.status} onChange={(e) => void onStatusChange(e.target.value as ContactStatus)}>
@@ -44,7 +47,8 @@ export function ContactDetail() {
             {E.typeOptions.map((t) => <option key={t}>{t}</option>)}
           </select>
         </div>
-        <div className="cd-head-sub">{contact.relationship} · {contact.location} · since {contact.since}</div>
+        <div className="cd-contacts-line">{contact.phone} &nbsp;·&nbsp; {contact.email}</div>
+        <div className="cd-essence">{isReference ? E.essence : contact.narrative}</div>
         {isReference && (
           <div className="cd-referral">
             <span className="dot" />
