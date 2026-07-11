@@ -5,6 +5,7 @@ import { Login } from "./Login";
 import { Shell } from "./Shell";
 import { Placeholder } from "./Placeholder";
 import { Contacts } from "../screens/contacts/Contacts";
+import { Command } from "../screens/command/Command";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -23,7 +24,7 @@ export function App() {
     <Routes>
       <Route element={<Shell />}>
         {/* Screens are built one per step from their fragments. */}
-        <Route path="/welcome" element={<Placeholder name="Welcome" />} />
+        <Route path="/welcome" element={<Command />} />
         <Route path="/intelligence" element={<Placeholder name="Intelligence" />} />
         <Route path="/contacts" element={<Contacts />} />
         <Route path="/contacts/:id" element={<Placeholder name="Contact Detail" />} />

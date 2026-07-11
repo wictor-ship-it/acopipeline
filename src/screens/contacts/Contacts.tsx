@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CSSProperties } from "react";
 import { useCollection } from "../../data/hooks";
 import { recordAction } from "../../data/repository";
@@ -43,10 +43,11 @@ function sortVal(c: Contact, key: string): string | number {
 
 export function Contacts() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { items: contacts } = useCollection<Contact>("contacts");
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
 
-  const [view, setView] = useState<"directory" | "queue">("directory");
+  const [view, setView] = useState<"directory" | "queue">(searchParams.get("view") === "queue" ? "queue" : "directory");
   const [seg, setSeg] = useState("all");
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState("name");
