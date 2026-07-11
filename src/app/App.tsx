@@ -4,6 +4,7 @@ import { AppShell } from "./AppShell";
 import { Login } from "../screens/login/Login";
 import { Welcome } from "../screens/welcome/Welcome";
 import { Intelligence } from "../screens/intelligence/Intelligence";
+import { Inbox } from "../screens/inbox/Inbox";
 import { Contacts } from "../screens/contacts/Contacts";
 import { ContactDetail } from "../screens/contact/ContactDetail";
 import { Opportunities } from "../screens/opportunities/Opportunities";
@@ -34,7 +35,7 @@ export function App() {
         <Route path="/contact/:id" element={<ContactDetail />} />
         <Route path="/opportunities" element={<Opportunities />} />
         <Route path="/deal/:id" element={<DealDetail />} />
-        <Route path="/inbox" element={<Placeholder name="Inbox" />} />
+        <Route path="/inbox" element={<Inbox />} />
         <Route path="/marketing" element={<Placeholder name="Marketing" />} />
         <Route path="/reports" element={<Placeholder name="Reports" />} />
         <Route path="/settings" element={<Placeholder name="Settings" />} />

@@ -1,0 +1,56 @@
+/* Inbox — message center (v5). Two-pane; sending = approving. */
+
+.ib-wrap { display: flex; height: 100vh; background: rgba(255,255,255,0.62); }
+
+/* Threads */
+.ib-threads { width: 344px; flex: none; border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; background: rgba(249,249,249,0.55); }
+.ib-search-wrap { padding: 16px 12px 8px; }
+.ib-search { width: 100%; background: rgba(255,255,255,0.55); border: none; border-radius: 999px; padding: 9px 14px; font-size: 13.5px; color: var(--ink); outline: none; }
+.ib-filters { display: flex; gap: 8px; padding: 4px 12px 12px; border-bottom: 1px solid #ECECEC; }
+.ib-filter { font-weight: 500; font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); padding: 5px 10px; border-radius: 999px; cursor: pointer; transition: all var(--transition); }
+.ib-filter:hover { color: var(--ink); }
+.ib-filter.active { background: var(--ink); color: #fff; }
+.ib-thread-list { flex: 1; overflow-y: auto; }
+.ib-thread { display: flex; gap: 12px; padding: 14px 16px; border-bottom: 1px solid #ECECEC; cursor: pointer; transition: background var(--transition); }
+.ib-thread:hover { background: rgba(255,255,255,0.55); }
+.ib-thread.active { background: rgba(255,255,255,0.75); }
+.ib-avatar { width: 38px; height: 38px; flex: none; border-radius: 50%; background: var(--ink); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; }
+.ib-thread-main { flex: 1; min-width: 0; }
+.ib-thread-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ib-thread-name { font-weight: 500; font-size: 14px; color: var(--ink); }
+.ib-thread-time { font-size: 11px; color: var(--gray-meta); flex: none; }
+.ib-thread-sub { font-size: 12px; color: var(--gray-secondary); margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ib-thread-chan { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); margin-top: 3px; }
+.ib-unread { min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 10px; font-weight: 600; line-height: 18px; text-align: center; flex: none; }
+
+/* Conversation */
+.ib-conv { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.ib-conv-head { padding: 16px 24px; border-bottom: 1px solid var(--border); background: rgba(252,252,251,0.82); }
+.ib-conv-name { font-weight: 500; font-size: 16px; color: var(--ink); }
+.ib-conv-sub { font-size: 12px; color: var(--gray-meta); margin-top: 2px; }
+.ib-messages { flex: 1; overflow-y: auto; padding: 24px; display: flex; flex-direction: column; gap: 12px; }
+.ib-msg { max-width: 68%; padding: 11px 15px; border-radius: 14px; font-size: 13.5px; line-height: 1.55; }
+.ib-msg.in { align-self: flex-start; background: rgba(255,255,255,0.7); border: 1px solid var(--border); color: var(--body); }
+.ib-msg.out { align-self: flex-end; background: var(--ink); color: #fff; }
+.ib-msg-time { font-size: 10px; color: var(--gray-hint); margin-top: 5px; }
+.ib-msg.out .ib-msg-time { color: rgba(255,255,255,0.6); text-align: right; }
+
+/* Agent draft in queue */
+.ib-draft { margin: 0 24px; border: 1px solid var(--border); border-left: 2px solid var(--accent); background: rgba(255,255,255,0.6); padding: 14px 16px; }
+.ib-draft-label { font-weight: 600; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); }
+.ib-draft-body { font-size: 13.5px; line-height: 1.6; color: var(--body); margin-top: 8px; }
+.ib-draft-actions { display: flex; gap: 8px; margin-top: 12px; }
+
+/* Composer */
+.ib-composer { border-top: 1px solid var(--border); padding: 14px 24px; background: rgba(252,252,251,0.82); }
+.ib-quick { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.ib-quick-chip { font-size: 11.5px; color: var(--gray-secondary); border: 1px solid var(--border); border-radius: 999px; padding: 5px 12px; cursor: pointer; transition: all var(--transition); }
+.ib-quick-chip:hover { border-color: var(--gray-meta); color: var(--ink); }
+.ib-quick-lang { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); align-self: center; }
+.ib-input-row { display: flex; gap: 10px; align-items: center; }
+.ib-input { flex: 1; border: 1px solid var(--border); border-radius: 999px; padding: 11px 16px; font-size: 14px; color: var(--ink); outline: none; background: rgba(255,255,255,0.6); }
+.ib-send { background: var(--ink); color: #fff; border: none; border-radius: 999px; padding: 11px 20px; font-weight: 500; font-size: 12px; letter-spacing: 0.04em; cursor: pointer; }
+.ib-send:hover { opacity: 0.88; }
+.ib-btn { font-weight: 500; font-size: 11.5px; border-radius: 999px; padding: 7px 16px; cursor: pointer; }
+.ib-btn-primary { background: var(--ink); color: #fff; border: 1px solid var(--ink); }
+.ib-btn-ghost { background: transparent; color: var(--gray-secondary); border: 1px solid var(--border); }

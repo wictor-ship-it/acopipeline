@@ -31,7 +31,11 @@
       "Bash(git commit -q -m 'Step 4a: Contacts directory screen \\(README §6\\) *)",
       "Bash(git commit -q -m 'Step 4b: Welcome \\(Command Center\\) + Intelligence screens *)",
       "Bash(git commit -q -m 'Step 4c: Opportunities screen \\(pipeline board + list + peek\\) *)",
-      "Bash(git commit -q -m 'Step 4e: Contact Detail \\(locked grammar §6.1\\) *)"
+      "Bash(git commit -q -m 'Step 4e: Contact Detail \\(locked grammar §6.1\\) *)",
+      "Bash(cat .claude/settings.local.json)",
+      "Bash(cat .claude/settings.json)",
+      "Bash(npm run *)",
+      "Bash(git commit -q -m 'Step 4f: Inbox \\(message center\\) + permission allowlist *)"
     ]
   }
 }
