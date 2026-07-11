@@ -15,7 +15,12 @@ import { Settings } from "../screens/settings/Settings";
 import { Reports } from "../screens/reports/Reports";
 import { Marketing } from "../screens/marketing/Marketing";
 import { Activities } from "../screens/activities/Activities";
-import { Placeholder } from "../screens/Placeholder";
+import {
+  PartnerDashboard,
+  PartnerPipeline,
+  PartnerNewReferral,
+  PartnerCollaterals,
+} from "../screens/partner/PartnerPortal";
 import { homePathForRole } from "./roles";
 
 export function App() {
@@ -50,22 +55,10 @@ export function App() {
         <Route path="/activities" element={<Activities />} />
 
         {/* Partner portal (README §6) */}
-        <Route
-          path="/partner/dashboard"
-          element={<Placeholder name="Partner Dashboard" />}
-        />
-        <Route
-          path="/partner/pipeline"
-          element={<Placeholder name="Partner Pipeline" />}
-        />
-        <Route
-          path="/partner/new-referral"
-          element={<Placeholder name="New Referral" />}
-        />
-        <Route
-          path="/partner/collaterals"
-          element={<Placeholder name="Collaterals" />}
-        />
+        <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+        <Route path="/partner/pipeline" element={<PartnerPipeline />} />
+        <Route path="/partner/new-referral" element={<PartnerNewReferral />} />
+        <Route path="/partner/collaterals" element={<PartnerCollaterals />} />
       </Route>
 
       <Route path="*" element={<Navigate to={home} replace />} />

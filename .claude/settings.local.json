@@ -37,7 +37,8 @@
       "Bash(npm run *)",
       "Bash(git commit -q -m 'Step 4f: Inbox \\(message center\\) + permission allowlist *)",
       "Bash(git commit -q -m 'Step 4h: Reports + Marketing + Activities *)",
-      "Bash(git commit -q -m 'Step 4i: Deal Record \\(editable ficha, inline edit, doc drop -> Drive\\) *)"
+      "Bash(git commit -q -m 'Step 4i: Deal Record \\(editable ficha, inline edit, doc drop -> Drive\\) *)",
+      "Bash(git commit -q -m 'Step 4j: Partner Portal \\(dashboard, board, new referral, collaterals\\) *)"
     ]
   }
 }
