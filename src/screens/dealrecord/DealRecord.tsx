@@ -6,7 +6,7 @@ import { getById, newId, remove, save } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
 import "./DealRecord.css";
 
-type Tab = "record" | "documents" | "activity";
+type Tab = "record" | "critical" | "documents" | "activity";
 const D = content.dealDetail;
 
 function fmtSize(n: number): string {
@@ -37,16 +37,56 @@ export function DealRecord() {
         <div className="dr-sub">{opp.contact_name} · {opp.division ?? opp.pipeline} · {opp.source}</div>
       </div>
       <div className="dr-tabs">
-        {(["record", "documents", "activity"] as Tab[]).map((t) => (
-          <div key={t} className={`dr-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t}</div>
+        {(["record", "critical", "documents", "activity"] as Tab[]).map((t) => (
+          <div key={t} className={`dr-tab${tab === t ? " active" : ""}`} onClick={() => setTab(t)}>{t === "critical" ? "critical path" : t}</div>
         ))}
       </div>
       <div className="dr-body">
         {tab === "record" && <RecordTab opp={opp} onChange={setOpp} />}
+        {tab === "critical" && <CriticalPathTab opp={opp} />}
         {tab === "documents" && <DocumentsTab dealId={opp.id} />}
         {tab === "activity" && <ActivityTab />}
       </div>
     </div>
+  );
+}
+
+function CriticalPathTab({ opp }: { opp: Opportunity }) {
+  const isRef = opp.id === "op_rivage_pha";
+  const path = isRef ? D.criticalPath : [{ when: opp.next_due ?? "Next", text: opp.next_action ?? "Advance the deal", owner: "Wictor", urgent: opp.overdue ?? false }];
+  const plan = isRef ? D.plan : [];
+  return (
+    <>
+      <div className="dr-cp-strip">
+        <div className="dr-cp-stat"><div className="l">Closing</div><div className="v">{opp.next_due ?? "—"}</div></div>
+        <div className="dr-cp-stat"><div className="l">Stage</div><div className="v">{opp.stage}</div></div>
+        <div className="dr-cp-stat"><div className="l">Probability</div><div className="v">{opp.probability}%</div></div>
+        <div className="dr-cp-stat"><div className="l">Status</div><div className="v" style={{ color: opp.overdue ? "#D0342C" : "#10A37F" }}>{opp.overdue ? "At risk" : "On track"}</div></div>
+      </div>
+
+      <div className="dr-sec-title">Path to close</div>
+      {plan.map((p, i) => (
+        <div className="dr-check-row" key={i}>
+          <span className="dr-check-step">{p.date}</span>
+          <div className="dr-check-main"><div className="dr-check-form">{p.what}</div><div className="dr-check-meta">{p.why}</div></div>
+          <span className="dr-check-status" style={{ color: p.color }}>{p.status}</span>
+        </div>
+      ))}
+      {plan.length === 0 && path.map((c, i) => (
+        <div className="dr-check-row" key={i}>
+          <span className="dr-check-step">{c.when}</span>
+          <div className="dr-check-main"><div className="dr-check-form">{c.text}</div></div>
+          <span className="dr-check-status" style={{ color: c.urgent ? "#D0342C" : "#8F8F8F" }}>{c.owner}</span>
+        </div>
+      ))}
+
+      <div className="dr-kill">
+        <div className="dr-kill-title">What can kill this deal</div>
+        <div className="dr-kill-item">Construction-timeline concern from the spouse — neutralized by the developer schedule now in hand.</div>
+        <div className="dr-kill-item">Competing Estates unit — client leans Rivage on layout; keep the momentum with a fast second visit.</div>
+        <div className="dr-kill-item">Financing not a factor — cash acquisition, proof of funds on file.</div>
+      </div>
+    </>
   );
 }
 

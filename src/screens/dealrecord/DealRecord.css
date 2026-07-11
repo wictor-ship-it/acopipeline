@@ -41,3 +41,13 @@
 .dr-doc-meta { font-size: 11.5px; color: var(--gray-secondary); }
 .dr-doc-remove { color: var(--gray-hint); cursor: pointer; background: none; border: none; font-size: 15px; text-align: right; }
 .dr-doc-remove:hover { color: var(--risk); }
+
+/* Critical Path tab */
+.dr-cp-strip { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.42); margin-bottom: 30px; }
+.dr-cp-stat { padding: 16px 20px; border-right: 1px solid var(--border); }
+.dr-cp-stat:last-child { border-right: none; }
+.dr-cp-stat .l { font-weight: 600; font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--gray-meta); }
+.dr-cp-stat .v { font-weight: 300; font-size: 22px; color: var(--ink); margin-top: 6px; }
+.dr-kill { border: 1px solid var(--border); border-left: 2px solid var(--risk); border-radius: 4px; background: rgba(255,255,255,0.5); padding: 18px 20px; margin-top: 30px; }
+.dr-kill-title { font-weight: 600; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--risk); margin-bottom: 12px; }
+.dr-kill-item { font-size: 13px; line-height: 1.6; color: var(--body); padding: 7px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }

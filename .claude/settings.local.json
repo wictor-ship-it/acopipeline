@@ -56,7 +56,8 @@
       "Bash(git commit -q -m 'Reconcile: deepen Intelligence to v5 \\(collapsible blocks + missing sub-systems\\) *)",
       "Bash(git commit -q -m 'Reconcile: deepen Contacts — peek drawer + Queue view *)",
       "Bash(git commit -q -m 'Reconcile: deepen Contact Detail \\(MLS Match, memory timeline, profile\\) *)",
-      "Bash(git commit -q -m 'Reconcile: Opportunities partner-referral banner + Closed Won/Lost tables *)"
+      "Bash(git commit -q -m 'Reconcile: Opportunities partner-referral banner + Closed Won/Lost tables *)",
+      "Bash(git commit -q -m 'Reconcile: Transactions T-3 alert + Deal Record Critical Path tab *)"
     ]
   }
 }

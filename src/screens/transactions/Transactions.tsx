@@ -8,16 +8,15 @@ const KPIS = content.transactionsClosed.kpis;
 
 /** Milestones synthesized from the progress label (v5 keeps richer data on
  *  the record; Phase 1 shows a representative checklist). */
-function milestonesFor(t: Transaction): { label: string; done: boolean; due?: string }[] {
-  const base = [
-    { label: "Contract effective", done: true },
-    { label: "Escrow deposit received", done: true },
-    { label: "Inspection period", done: (t.pct ?? "0%") >= "33%" },
-    { label: "HOA / association approval", done: false, due: t.next_peek },
-    { label: "Clear to close", done: false },
-    { label: "Closing", done: false, due: t.close_date },
+function milestonesFor(t: Transaction): { label: string; done: boolean; due?: string; owner: string; action?: string }[] {
+  return [
+    { label: "Contract effective", done: true, owner: "Both", action: "Filed" },
+    { label: "Escrow deposit received", done: true, owner: "Buyer", action: "Receipt on file" },
+    { label: "Inspection period", done: (t.pct ?? "0%") >= "33%", owner: "Vendor", due: t.next_peek, action: "Chase inspector" },
+    { label: "HOA / association approval", done: false, owner: "Association", due: t.next_peek, action: "Nudge · agent drafts" },
+    { label: "Clear to close", done: false, owner: "Lender", action: "Track" },
+    { label: "Closing", done: false, owner: "Title", due: t.close_date, action: "Verify wire by phone" },
   ];
-  return base;
 }
 
 export function Transactions() {
@@ -36,8 +35,16 @@ export function Transactions() {
     else { setSortKey(k); setSortDir(1); }
   }
 
+  const t3 = txs.filter((t) => (t.status ?? "").includes("T-3") || (t.status_color === "#D0342C")).length;
+
   return (
     <div className="tc-wrap">
+      {t3 > 0 && (
+        <div className="tc-t3">
+          <span className="tc-t3-dot" />
+          <span className="tc-t3-text"><strong>{t3} milestones inside the T-3 window</strong> — the agent has chased each and staged the reminders. Nothing closes late on our watch.</span>
+        </div>
+      )}
       <div className="tc-kpis">
         {KPIS.map(([label, value]) => (
           <div className="tc-kpi" key={label}>
@@ -94,7 +101,9 @@ export function Transactions() {
                 <div className="tc-ms-row" key={i}>
                   <span className="tc-ms-dot" style={{ background: m.done ? "#10A37F" : "#D9D9D9" }} />
                   <span className="tc-ms-label">{m.label}</span>
+                  <span className="tc-ms-owner">{m.owner}</span>
                   {m.due && <span className="tc-ms-due">{m.due}</span>}
+                  {!m.done && m.action && <span className="tc-ms-action">{m.action}</span>}
                 </div>
               ))}
             </div>
