@@ -5,6 +5,7 @@ import { Login } from "../screens/login/Login";
 import { Welcome } from "../screens/welcome/Welcome";
 import { Intelligence } from "../screens/intelligence/Intelligence";
 import { Contacts } from "../screens/contacts/Contacts";
+import { Opportunities } from "../screens/opportunities/Opportunities";
 import { Placeholder } from "../screens/Placeholder";
 import { homePathForRole } from "./roles";
 
@@ -28,10 +29,7 @@ export function App() {
         <Route path="/welcome" element={<Welcome />} />
         <Route path="/intelligence" element={<Intelligence />} />
         <Route path="/contacts" element={<Contacts />} />
-        <Route
-          path="/opportunities"
-          element={<Placeholder name="Opportunities" />}
-        />
+        <Route path="/opportunities" element={<Opportunities />} />
         <Route path="/inbox" element={<Placeholder name="Inbox" />} />
         <Route path="/marketing" element={<Placeholder name="Marketing" />} />
         <Route path="/reports" element={<Placeholder name="Reports" />} />
