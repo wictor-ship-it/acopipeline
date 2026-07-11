@@ -25,7 +25,13 @@ export function titleForPath(pathname: string): string {
   return hit ? TITLES[hit] : "A/CO";
 }
 
-/** The top bar is hidden on the Inbox (README §5). */
+/** The top bar is hidden on the Inbox (README §5) and on record screens,
+ *  which carry their own breadcrumb action bar (README §6). */
 export function topbarHidden(pathname: string): boolean {
-  return pathname.startsWith("/inbox");
+  return (
+    pathname.startsWith("/inbox") ||
+    pathname.startsWith("/deal/") ||
+    pathname.startsWith("/dealpage/") ||
+    pathname.startsWith("/contact/")
+  );
 }

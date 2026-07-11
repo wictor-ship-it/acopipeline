@@ -95,6 +95,32 @@ export async function getAuditLog(): Promise<AuditEntry[]> {
   return all.sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
+/**
+ * Record an audited, undoable action that isn't a plain entity CRUD — e.g.
+ * approving a content-driven queue item (deal Now, Needs Your Decision).
+ * Honors Law 2 (audit) and Law 3 (undo) for every queue, not only drafts.
+ * `revert` restores the caller's UI/domain state on undo.
+ */
+export async function recordAction(
+  meta: MutationMeta,
+  entity: string,
+  revert: () => void | Promise<void>,
+): Promise<void> {
+  await writeAudit(meta, entity, null, { resolved: true });
+  undoStack.push({
+    label: meta.action,
+    undo: async () => {
+      await writeAudit(
+        { actor: "user", action: `undo: ${meta.action}` },
+        entity,
+        { resolved: true },
+        null,
+      );
+      await revert();
+    },
+  });
+}
+
 /* --- Change notification: screens re-read after any mutation --- */
 
 type ChangeListener = (store: EntityStore) => void;

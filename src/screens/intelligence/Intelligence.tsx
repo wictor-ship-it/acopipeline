@@ -2,6 +2,7 @@ import { useState } from "react";
 import content from "../../data/seed/content.json";
 import type { Draft } from "../../domain/types";
 import { useCollection } from "../../data/hooks";
+import { recordAction } from "../../data/repository";
 import { agentService } from "../../agent/MockAgentService";
 import "./Intelligence.css";
 
@@ -200,7 +201,19 @@ function NeedsDecision() {
               <div className="in-done">{resolved[d.id]}</div>
             ) : (
               <div className="in-actions">
-                <button className="in-btn in-btn-primary" onClick={() => setResolved((r) => ({ ...r, [d.id]: "Approved ✓" }))}>Approve</button>
+                <button
+                  className="in-btn in-btn-primary"
+                  onClick={() => {
+                    setResolved((r) => ({ ...r, [d.id]: "Approved ✓" }));
+                    void recordAction(
+                      { actor: "user", skill: "chief-of-staff", action: `Decision approved — ${d.label}` },
+                      `decision/${d.id}`,
+                      () => setResolved((r) => { const n = { ...r }; delete n[d.id]; return n; }),
+                    );
+                  }}
+                >
+                  Approve
+                </button>
                 <button className="in-btn in-btn-ghost" onClick={() => setResolved((r) => ({ ...r, [d.id]: "Skipped" }))}>Skip</button>
               </div>
             )}

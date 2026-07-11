@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import type { Opportunity, Pipeline } from "../../domain/types";
 import { useCollection } from "../../data/hooks";
 import content from "../../data/seed/content.json";
@@ -210,6 +211,7 @@ export function Opportunities() {
 }
 
 function Peek({ opp, onClose }: { opp: Opportunity; onClose: () => void }) {
+  const navigate = useNavigate();
   return (
     <>
       <div className="op-peek-overlay" onClick={onClose} />
@@ -244,6 +246,9 @@ function Peek({ opp, onClose }: { opp: Opportunity; onClose: () => void }) {
             </div>
           )}
         </div>
+        <button className="dl-btn dl-btn-primary op-peek-open" onClick={() => navigate(`/deal/${opp.id}`)}>
+          Open deal record ›
+        </button>
       </div>
     </>
   );
