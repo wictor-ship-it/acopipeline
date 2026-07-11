@@ -52,7 +52,8 @@
       "Bash(sed -n '2267,2627p' \"/Users/wictorarraes/Desktop/A:CO Collaterals/ACO APP Claude handsoff/design-reference/Pipeline Intelligence v5.dc.html\")",
       "Read(//tmp/**)",
       "Bash(sed -n '6856,7755p' \"/Users/wictorarraes/Desktop/A:CO Collaterals/ACO APP Claude handsoff/design-reference/Pipeline Intelligence v5.dc.html\" > /private/tmp/set_v5.txt; echo \"section headers / labels:\"; grep -nE 'data-screen-label|§0[0-9]|SCREEN ·|font-weight:600;font-size:1[0-9]|sc-for list|placeholder=|>0[0-9] ·|toggle|Autonomy|autonomy' /private/tmp/set_v5.txt | head -100)",
-      "Bash(git commit -q -m 'Reconcile vs canonical v5 \\(batch 1\\): grammar + queue fixes *)"
+      "Bash(git commit -q -m 'Reconcile vs canonical v5 \\(batch 1\\): grammar + queue fixes *)",
+      "Bash(git commit -q -m 'Reconcile: deepen Intelligence to v5 \\(collapsible blocks + missing sub-systems\\) *)"
     ]
   }
 }
