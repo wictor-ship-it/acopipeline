@@ -2,6 +2,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAppState } from "./state";
 import { AppShell } from "./AppShell";
 import { Login } from "../screens/login/Login";
+import { Welcome } from "../screens/welcome/Welcome";
+import { Intelligence } from "../screens/intelligence/Intelligence";
 import { Contacts } from "../screens/contacts/Contacts";
 import { Placeholder } from "../screens/Placeholder";
 import { homePathForRole } from "./roles";
@@ -23,11 +25,8 @@ export function App() {
     <Routes>
       <Route element={<AppShell />}>
         {/* Internal screens (README §6) */}
-        <Route path="/welcome" element={<Placeholder name="Welcome" />} />
-        <Route
-          path="/intelligence"
-          element={<Placeholder name="Intelligence" />}
-        />
+        <Route path="/welcome" element={<Welcome />} />
+        <Route path="/intelligence" element={<Intelligence />} />
         <Route path="/contacts" element={<Contacts />} />
         <Route
           path="/opportunities"

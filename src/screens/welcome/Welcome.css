@@ -1,0 +1,104 @@
+/* Welcome · Command Center — conversational hero (v5 lines 926–1047). */
+
+.wc-wrap { padding: 0 0 60px; }
+
+.wc-hero {
+  padding: 0 48px;
+  min-height: calc(100vh - 210px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.wc-greeting {
+  font-weight: 500;
+  font-size: 22px;
+  color: var(--ink);
+  text-align: center;
+}
+.wc-greeting .sub { font-weight: 400; color: var(--gray-secondary); }
+
+.wc-ask {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  border-radius: 999px;
+  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.38);
+  backdrop-filter: blur(18px) saturate(1.9);
+  -webkit-backdrop-filter: blur(18px) saturate(1.9);
+  padding: 12px 14px 12px 20px;
+  margin-top: 22px;
+  width: min(720px, 92%);
+}
+.wc-ask .plus { font-weight: 300; font-size: 17px; color: var(--gray-meta); flex: none; cursor: pointer; transition: color var(--transition); background: none; border: none; }
+.wc-ask .plus:hover { color: var(--ink); }
+.wc-ask input { flex: 1; min-width: 0; background: transparent; border: none; outline: none; font-weight: 400; font-size: 15px; color: var(--ink); }
+.wc-ask input::placeholder { color: var(--gray-meta); }
+.wc-ask .voice { font-weight: 400; font-size: 10px; letter-spacing: 0.05em; color: var(--gray-meta); flex: none; }
+.wc-ask .mic { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--ink); color: #fff; cursor: pointer; flex: none; font-size: 14px; transition: opacity var(--transition); border: none; }
+.wc-ask .mic:hover { opacity: 0.85; }
+
+.wc-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 14px; }
+.wc-chip {
+  white-space: nowrap;
+  font-weight: 400;
+  font-size: 12.5px;
+  color: var(--gray-secondary);
+  border-radius: 12px;
+  background: var(--glass-card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow-card);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.wc-chip:hover { color: var(--ink); border-color: var(--gray-meta); }
+
+.wc-thread { width: min(720px, 92%); margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+.wc-answer {
+  border-radius: 12px;
+  background: var(--glass-card-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: var(--shadow-card);
+  padding: 16px 20px;
+}
+.wc-answer .q { font-weight: 400; font-size: 12.5px; color: var(--gray-meta); }
+.wc-answer .a { font-weight: 400; font-size: 14.5px; line-height: 1.65; color: var(--body); margin-top: 8px; }
+.wc-clear { align-self: center; font-weight: 400; font-size: 11px; color: var(--gray-meta); cursor: pointer; background: none; border: none; }
+.wc-clear:hover { color: var(--ink); }
+
+.wc-reminders { width: min(680px, 88%); margin: 30px auto 0; display: flex; flex-direction: column; }
+.wc-reminder {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 8px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.wc-reminder:hover { background: rgba(255, 255, 255, 0.55); }
+.wc-reminder .dot { width: 6px; height: 6px; flex: none; border-radius: 50%; }
+.wc-reminder .text { flex: 1; font-weight: 400; font-size: 13.5px; color: var(--body); }
+.wc-reminder .action { font-weight: 400; font-size: 12px; color: var(--gray-meta); flex: none; white-space: nowrap; }
+
+.wc-cockpit {
+  align-self: center;
+  margin-top: 20px;
+  font-weight: 500;
+  font-size: 12.5px;
+  letter-spacing: 0.03em;
+  color: var(--gray-secondary);
+  cursor: pointer;
+  transition: color var(--transition);
+  background: none;
+  border: none;
+}
+.wc-cockpit:hover { color: var(--ink); }
