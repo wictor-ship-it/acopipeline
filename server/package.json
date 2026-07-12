@@ -1,0 +1,28 @@
+{
+  "name": "aco-bff",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A/CO Pipeline Intelligence — thin Backend-for-Frontend (Phase 2 Google integration)",
+  "scripts": {
+    "dev": "node --import tsx src/index.ts",
+    "build": "node ./node_modules/typescript/bin/tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "node ./node_modules/typescript/bin/tsc --noEmit"
+  },
+  "dependencies": {
+    "cookie": "^0.6.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "google-auth-library": "^9.14.1"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.6.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.16.2",
+    "typescript": "^5.5.4"
+  }
+}
