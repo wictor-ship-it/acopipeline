@@ -1,0 +1,51 @@
+/* Deal Detail — glass surfaces + hover states (fragment 03). */
+.dd-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 45;
+  background: rgba(252, 252, 251, 0.86);
+  backdrop-filter: blur(26px) saturate(1.6);
+  -webkit-backdrop-filter: blur(26px) saturate(1.6);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset;
+}
+.dd-vlabel {
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8F8F8F;
+}
+.dd-segbar {
+  background: rgba(255, 255, 255, 0.42);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.dd-nowcard,
+.dd-clear,
+.dd-avatar,
+.dd-drop {
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(22px) saturate(1.7);
+  -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.dd-drop { border: 1px dashed #C9C9C9; box-shadow: none; }
+.dd-abubble {
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
+.dd-composer {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(26px) saturate(1.7);
+  -webkit-backdrop-filter: blur(26px) saturate(1.7);
+  border: 1px solid rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.10);
+}
+.dd-approve:hover { opacity: 0.85; }
+.dd-skip:hover { color: #0D0D0D; }
+.dd-planrow:hover { background: rgba(255, 255, 255, 0.45); }
+.dd-send:hover { opacity: 0.85; }
+.dd-composer input::placeholder { color: #8F8F8F; }

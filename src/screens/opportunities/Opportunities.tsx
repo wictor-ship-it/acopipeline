@@ -215,7 +215,7 @@ export function Opportunities() {
                           {cx.cards.map((c) => (
                             <div key={c.name} onClick={() => openCard({ ...c, stage: cx.stage })} className="op-dealcard" style={{ borderRadius: 12, padding: "15px 15px 13px", cursor: "pointer", transition: "background 150ms" }}>
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                                <span onClick={(e) => { e.stopPropagation(); navigate("/opportunities"); }} title="Open deal record" className="op-dealname" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", cursor: "pointer" }}>{c.name}</span>
+                                <span onClick={(e) => { e.stopPropagation(); navigate(`/deal/${encodeURIComponent(c.name)}`, { state: { deal: { name: c.name, stage: cx.stage, status: c.status, budget: c.budget, prob: c.prob, opp: c.opp } } }); }} title="Open deal record" className="op-dealname" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", cursor: "pointer" }}>{c.name}</span>
                                 <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", flex: "none" }}>{c.budget}</span>
                               </div>
                               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 4 }}>{c.opp}</div>
@@ -421,7 +421,7 @@ export function Opportunities() {
               </div>
             </div>
             <div style={{ display: "flex", gap: 10, padding: "16px 28px", borderTop: "1px solid #E3E3E3", background: "rgba(255,255,255,0.62)" }}>
-              <button onClick={() => { setPeek(null); navigate("/opportunities"); }} className="op-btn-solid" style={{ flex: 1, background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "11px 0", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Open full record</button>
+              <button onClick={() => { const nm = peek!.name; setPeek(null); navigate(`/deal/${encodeURIComponent(nm)}`, { state: { deal: { name: nm, stage: peek!.stage, status: peek!.status, budget: peek!.budget, prob: peek!.prob, opp: peek!.opp } } }); }} className="op-btn-solid" style={{ flex: 1, background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "11px 0", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Open full record</button>
               <button onClick={() => { setPeek(null); navigate("/activities"); }} className="op-btn-outline" style={{ flex: 1, background: "transparent", border: "1px solid #E3E3E3", padding: "11px 0", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Log activity</button>
             </div>
           </div>

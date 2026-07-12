@@ -14,6 +14,7 @@ import { Intelligence } from "../screens/intelligence/Intelligence";
 import { Reports } from "../screens/reports/Reports";
 import { Marketing } from "../screens/marketing/Marketing";
 import { Settings } from "../screens/settings/Settings";
+import { DealDetail } from "../screens/deal/DealDetail";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -37,6 +38,7 @@ export function App() {
         <Route path="/contacts" element={<Contacts />} />
         <Route path="/contacts/:id" element={<ContactDetail />} />
         <Route path="/opportunities" element={<Opportunities />} />
+        <Route path="/deal/:id" element={<DealDetail />} />
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/marketing" element={<Marketing />} />
         <Route path="/reports" element={<Reports />} />
