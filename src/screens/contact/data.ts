@@ -112,6 +112,30 @@ export const MLS_MATCHES: MlsMatch[] = [
   { id: "m4", addr: "720 Aqua Ave · Miami Beach", price: "$16.2M", specs: "5 bd · 7 ba · 7,900 sqft · New construction", tagline: "Sea view · elevator · wine cellar · private garden", match: "84%", isNew: false, plate: "#3D3645" },
 ];
 
+/* Relationship timeline — Future ("The plan ahead") + Memory (Past + Agent
+   learned). Literal from logic-and-data.js: futBase ~2838, tlLearn ~2870. */
+export interface PlanItem { d: string; what: string; why: string; st: string; c: string; goDeal?: boolean }
+export const PLAN_AHEAD: Record<string, PlanItem[]> = {
+  marcelo: [
+    { d: "Jul 09", what: "Value touch — corridor market brief", why: "cadence · draft staged the night before", st: "Scheduled", c: "#0D0D0D" },
+    { d: "Jul 18", what: "Re-qualify goals against the mandate", why: "relationship check · agent prepares the brief", st: "Planned", c: "#B45309" },
+    { d: "Aug 12", what: "Beatriz birthday — gesture armed", why: "important date · shortlist ready for approval", st: "Armed", c: "#8F8F8F" },
+    { d: "Deal →", what: "Search milestones — via Rivage search", why: "2nd visit · contract target · deposits live on the opportunity", st: "Mirror", c: "#5D5D5D", goDeal: true },
+  ],
+};
+export const DEFAULT_PLAN: PlanItem[] = [
+  { d: "Jul 10", what: "Value touch — tailored market intel", why: "cadence · agent drafts in the contact language", st: "Scheduled", c: "#0D0D0D" },
+  { d: "Jul 18", what: "Re-qualify goals against the mandate", why: "quarterly check · agent prepares the brief", st: "Planned", c: "#B45309" },
+  { d: "Aug 01", what: "Key date — gesture armed", why: "important date from the profile", st: "Armed", c: "#8F8F8F" },
+];
+
+/* Agent-learned card (Memory band) — shown until saved or dismissed. Only
+   contacts with a real logged conversation carry one (marcelo · Jul 04 call). */
+export interface Learned { text: string; fields: Partial<{ birthday: string; spouse: string }> }
+export const LEARNED: Record<string, Learned> = {
+  marcelo: { text: "From the Jul 04 call — birthday Mar 12 · spouse Beatriz (co-decision maker). Save to the profile?", fields: { birthday: "Mar 12", spouse: "Beatriz" } },
+};
+
 /* Pre-meeting brief (briefMap ~2480) — agent-generated 30 min before. */
 export interface Brief { objections: string[]; family: string[]; comps: string[]; objective: string }
 export const BRIEF: Record<string, Brief> = {

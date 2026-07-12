@@ -47,6 +47,8 @@
 .cd-schead:hover { background: rgba(255, 255, 255, 0.55); }
 .cd-pf:focus { border-color: #0D0D0D; }
 .cd-mlsbtn:hover { opacity: 0.85; }
+.cd-planrow:hover { background: rgba(255, 255, 255, 0.45); }
+.cd-nudge:hover { border-color: #0D0D0D; color: #0D0D0D; }
 
 .cd-brief {
   position: fixed;

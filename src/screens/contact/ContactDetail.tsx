@@ -1,13 +1,14 @@
 import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCollection } from "../../data/hooks";
-import { getById, save } from "../../data/repository";
+import { getById, recordAction, save } from "../../data/repository";
 import type { Contact, Mandate, Opportunity } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
-  enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, JOURNEY_IDX, JOURNEY_SEQ,
-  MLS_LANG, MLS_MATCHES, PINNED, PROFILE_OPTS, RELATED, SINCE_LINE, toCanonStatus,
+  DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, JOURNEY_IDX,
+  JOURNEY_SEQ, LEARNED, MLS_LANG, MLS_MATCHES, PINNED, PLAN_AHEAD, type PlanItem,
+  PROFILE_OPTS, RELATED, SINCE_LINE, toCanonStatus,
 } from "./data";
 import "./ContactDetail.css";
 
@@ -37,6 +38,11 @@ export function ContactDetail() {
   const [mlsRun, setMlsRun] = useState(false);
   const [mlsSel, setMlsSel] = useState<Record<string, boolean>>({});
   const [mlsAck, setMlsAck] = useState("");
+  const [planOpen, setPlanOpen] = useState(true);
+  const [memOpen, setMemOpen] = useState(true);
+  const [tlShift, setTlShift] = useState<Record<number, string>>({});
+  const [tlHov, setTlHov] = useState<number | null>(null);
+  const [learnDone, setLearnDone] = useState(false);
 
   const ct = contacts.find((c) => c.id === id);
   const deals = useMemo(() => opportunities.filter((o) => o.contact_id === id), [opportunities, id]);
@@ -106,6 +112,23 @@ export function ContactDetail() {
   ];
   const startEnrich = () => { setEnrich("scanning"); window.setTimeout(() => setEnrich("review"), 900); };
   const applyEnrich = () => { setEnrich("applied"); void save<Contact>("contacts", { ...ct, company: enrichData[0].value, title: enrichData[1].value, linkedin: enrichData[3].value }, { actor: "agent", skill: "chief_of_staff", action: `Enriched profile — ${ct.name} · ${enrichData.length} fields from LinkedIn + public sources (sources logged)` }); };
+
+  /* Relationship timeline — Future (plan ahead) + Past (memory log). */
+  const plan: PlanItem[] = PLAN_AHEAD[id] ?? DEFAULT_PLAN;
+  const shiftDate = (label: string, days: number) => { const mm = /([A-Za-z]{3}) (\d+)/.exec(label); return mm ? `${mm[1]} ${parseInt(mm[2], 10) + days}` : label; };
+  const nudgePlan = (i: number, days: number) => {
+    const base = tlShift[i] ?? plan[i].d;
+    const next = shiftDate(base, days);
+    if (next === base) return;
+    setTlShift((s) => ({ ...s, [i]: next }));
+    void recordAction({ actor: "user", skill: "chief_of_staff", action: `Plan adjusted · ${ct.name} — "${plan[i].what}" → ${next} · agent re-plans around it` }, `contact/${id}/plan/${i}`, () => setTlShift((s) => { const n = { ...s }; delete n[i]; return n; }));
+  };
+  const learned = LEARNED[id];
+  const saveLearned = () => {
+    if (!learned) return;
+    setLearnDone(true);
+    void save<Contact>("contacts", { ...ct, ...(learned.fields.birthday ? { birthday: learned.fields.birthday } : {}), ...(learned.fields.spouse ? { spouse: learned.fields.spouse } : {}) }, { actor: "agent", skill: "chief_of_staff", action: `Profile enriched from conversation · ${ct.name} — birthday + spouse saved, source logged` });
+  };
 
   const currentMandate = mandateText ?? mandate?.text ?? "";
   const saveMandate = () => {
@@ -382,19 +405,71 @@ export function ContactDetail() {
             ))}
           </div>
 
-          {touches.length > 0 && (
-            <div style={{ marginTop: 30 }}>
-              <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", paddingBottom: 11, borderBottom: "1px solid #E3E3E3", marginBottom: 4 }}>Recent touches</div>
-              {touches.map((a, i) => (
-                <div key={i} style={{ display: "flex", gap: 16, padding: "11px 0", borderBottom: "1px solid #E3E3E3" }}>
-                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#8F8F8F", flex: "none", width: 56 }}>{a.date}</span>
-                  <div style={{ minWidth: 0 }}>
-                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", color: "#5D5D5D" }}>{a.type}</span>
-                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.5, color: "#303030", marginTop: 2 }}>{a.body}</div>
+          {/* FUTURE · The plan ahead */}
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, marginTop: 46 }}>
+            <div onClick={() => setPlanOpen((o) => !o)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
+              <span style={{ width: 10, flex: "none", fontFamily: SANS, fontWeight: 300, fontSize: 12, color: "#8F8F8F" }}>{planOpen ? "⌄" : "›"}</span>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#0D0D0D", flex: "none" }} />
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>The plan ahead</span>
+            </div>
+            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, color: "#B8B8B8" }}>relationship plan — search milestones live on the opportunity · hover to move</span>
+          </div>
+          {planOpen && (
+            <div style={{ borderTop: "1px solid #E3E3E3", marginTop: 14 }}>
+              {plan.map((f, i) => (
+                <div key={i} onClick={() => { if (f.goDeal && deals[0]) navigate(`/deal/${encodeURIComponent(deals[0].name ?? deals[0].id)}`); }} onMouseEnter={() => setTlHov(i)} onMouseLeave={() => setTlHov(null)} className="cd-planrow" style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 4px", borderBottom: "1px solid #ECECEC", cursor: f.goDeal ? "pointer" : "default", transition: "background 150ms" }}>
+                  <span style={{ width: 56, flex: "none", fontFamily: SANS, fontWeight: 300, fontSize: 12, letterSpacing: "0.02em", color: "#5D5D5D" }}>{tlShift[i] ?? f.d}</span>
+                  <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: f.c }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#0D0D0D" }}>{f.what}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#8F8F8F", marginTop: 2 }}>{f.why}</div>
                   </div>
+                  {tlHov === i && !f.goDeal && (
+                    <div style={{ display: "flex", gap: 6, flex: "none" }}>
+                      <button onClick={(e) => { e.stopPropagation(); nudgePlan(i, 1); }} className="cd-nudge" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 10px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>+1d</button>
+                      <button onClick={(e) => { e.stopPropagation(); nudgePlan(i, 7); }} className="cd-nudge" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 10px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>+1w</button>
+                    </div>
+                  )}
+                  <span style={{ flex: "none", fontFamily: SANS, fontWeight: 500, fontSize: 9.5, letterSpacing: "0.06em", textTransform: "uppercase", color: f.c }}>{f.st}</span>
                 </div>
               ))}
             </div>
+          )}
+
+          {/* PAST · Memory */}
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, marginTop: 46 }}>
+            <div onClick={() => setMemOpen((o) => !o)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
+              <span style={{ width: 10, flex: "none", fontFamily: SANS, fontWeight: 300, fontSize: 12, color: "#8F8F8F" }}>{memOpen ? "⌄" : "›"}</span>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#8F8F8F", flex: "none" }} />
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>Memory</span>
+            </div>
+            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, color: "#B8B8B8" }}>everything learned &amp; logged — profile fills itself</span>
+          </div>
+          {memOpen && (
+            <>
+              {learned && !learnDone && (
+                <div style={{ border: "1px solid #E3E3E3", borderLeft: "2px solid #10A37F", background: "rgba(255,255,255,0.62)", padding: "14px 18px", marginTop: 14 }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#10A37F" }}>Agent learned</span>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.55, color: "#303030", marginTop: 6 }}>{learned.text}</div>
+                  <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+                    <button onClick={saveLearned} className="cd-chip" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 14px", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer", transition: "opacity 150ms" }}>Save to profile</button>
+                    <button onClick={() => setLearnDone(true)} className="cd-chip" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 12px", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Dismiss</button>
+                  </div>
+                </div>
+              )}
+              {touches.length > 0 && (
+                <div style={{ borderTop: "1px solid #E3E3E3", marginTop: 14 }}>
+                  {touches.map((a, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 16, padding: "12px 4px", borderBottom: "1px solid #ECECEC" }}>
+                      <span style={{ width: 56, flex: "none", fontFamily: SANS, fontWeight: 300, fontSize: 11.5, color: "#8F8F8F" }}>{a.date}</span>
+                      <span style={{ width: 76, flex: "none", fontFamily: SANS, fontWeight: 600, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8F8F8F" }}>{a.type}</span>
+                      <span style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.55, color: "#303030" }}>{a.body}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#B8B8B8", marginTop: 14 }}>End of file — the agent keeps everything; ask the dock for anything older.</div>
+            </>
           )}
         </div>
       )}
