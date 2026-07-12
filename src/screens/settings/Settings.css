@@ -1,0 +1,3 @@
+/* Settings — nav + toggle hover states (fragment 16). */
+.st-navrow:hover { background: rgba(255, 255, 255, 0.5) !important; }
+.st-toggle:hover { background: rgba(255, 255, 255, 0.55); }
