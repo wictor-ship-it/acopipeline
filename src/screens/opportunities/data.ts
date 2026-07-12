@@ -23,6 +23,22 @@ const col = (stage: string, cards: Card[]): Column => ({ stage, cards });
 
 export const PIPE_NAMES: Record<string, string> = { purchases: "Purchases", listings: "Listings", rentals: "Rentals", investments: "Investments", offmarket: "Off-Market" };
 
+/* Next-deal loop (Deal Detail all-clear): every open deal across pipelines,
+   ranked by weighted GCI — the natural work queue. nextDealAfter wraps around. */
+export interface QueuedDeal { name: string; stage: string; status: "HOT" | "WARM"; budget: string; prob: string; opp: string; weightedNum: number }
+const CLOSED_STAGES = new Set(["Won", "Lost", "Placed"]);
+export function orderedDeals(): QueuedDeal[] {
+  return (["purchases", "listings", "rentals", "investments", "offmarket"] as const)
+    .flatMap((p) => PIPES[p].flatMap((c0) => (CLOSED_STAGES.has(c0.stage) ? [] : c0.cards.map((c) => ({ name: c.name, stage: c0.stage, status: c.status, budget: c.budget, prob: c.prob, opp: c.opp, weightedNum: c.weightedNum })))))
+    .sort((a, b) => b.weightedNum - a.weightedNum);
+}
+export function nextDealAfter(name: string): QueuedDeal | null {
+  const all = orderedDeals();
+  if (all.length === 0) return null;
+  const i = all.findIndex((d) => d.name === name);
+  return i < 0 ? all[0] : all[(i + 1) % all.length];
+}
+
 export const PIPES: Record<string, Column[]> = {
   purchases: [
     col("Prospecting", [mkCard("Continuum South 3902", "Buyer inquiry", "$6.8M", false, 20, "Qualify budget + timeline", "Jul 09", false), mkCard("Continuum North 1801", "Buyer", "$5.4M", false, 30, "Send parking + HOA docs", "Jul 09", false)]),
