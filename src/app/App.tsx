@@ -15,6 +15,10 @@ import { Reports } from "../screens/reports/Reports";
 import { Marketing } from "../screens/marketing/Marketing";
 import { Settings } from "../screens/settings/Settings";
 import { DealDetail } from "../screens/deal/DealDetail";
+import { PartnerDashboard } from "../screens/partner/PartnerDashboard";
+import { PartnerPortal } from "../screens/partner/PartnerPortal";
+import { PartnerNewReferral } from "../screens/partner/PartnerNewReferral";
+import { PartnerCollaterals } from "../screens/partner/PartnerCollaterals";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -45,10 +49,10 @@ export function App() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/activities" element={<Placeholder name="Activities" />} />
-        <Route path="/partner/dashboard" element={<Placeholder name="Partner Dashboard" />} />
-        <Route path="/partner/pipeline" element={<Placeholder name="Partner Pipeline" />} />
-        <Route path="/partner/new-referral" element={<Placeholder name="New Referral" />} />
-        <Route path="/partner/collaterals" element={<Placeholder name="Collaterals" />} />
+        <Route path="/partner/dashboard" element={<PartnerDashboard />} />
+        <Route path="/partner/pipeline" element={<PartnerPortal />} />
+        <Route path="/partner/new-referral" element={<PartnerNewReferral />} />
+        <Route path="/partner/collaterals" element={<PartnerCollaterals />} />
       </Route>
       <Route path="*" element={<Navigate to={home} replace />} />
     </Routes>

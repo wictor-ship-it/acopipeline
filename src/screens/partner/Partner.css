@@ -1,0 +1,12 @@
+/* Partner screens — glass cards + hover states (fragments 10–14). */
+.pt-card {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.06), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.pt-btn:hover { background: rgba(255, 255, 255, 0.55); }
+.pt-btn-solid:hover { opacity: 0.85; }
+.pt-kit:hover { border-color: #8F8F8F; color: #0D0D0D; }
+.pt-chip { cursor: pointer; user-select: none; transition: all 150ms; }
+.pt-input:focus { border-bottom-color: #0D0D0D; }
