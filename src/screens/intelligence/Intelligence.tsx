@@ -2,6 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getAuditLog, recordAction } from "../../data/repository";
 import type { AuditEntry } from "../../domain/types";
+import { useAgentItems } from "../../agent/useAgentItems";
+import { resolveAgentItem } from "../../agent/resolve";
+import { SKILL_LABELS } from "../../domain/agent";
 import { SANS } from "../contacts/data";
 import {
   AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE, HERO_SUB,
@@ -40,12 +43,23 @@ export function Intelligence() {
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   useEffect(() => { void getAuditLog().then(setAudit); }, []);
 
+  /* the mock agent's items routed to Needs Your Decision (§12) flow through
+     this same queue — the compliance block etc. appear alongside the seeds. */
+  const { items: agentItems } = useAgentItems();
+  const agentDecisions = agentItems.filter((i) => i.needsDecision && decided[i.id] !== "snoozed");
+
   const proposals = PROPOSALS.filter((p) => decided[p.id] !== "snoozed");
-  const openCount = proposals.filter((p) => !decided[p.id]).length;
+  const openCount = proposals.filter((p) => !decided[p.id]).length + agentDecisions.filter((i) => !decided[i.id]).length;
 
   const decide = (id: string, kind: "approved" | "dismissed" | "snoozed", label: string) => {
     setDecided((d) => ({ ...d, [id]: kind }));
     void recordAction({ actor: "user", skill: "senior_advisor", action: `Decision queue · ${kind} — ${label}` }, `decision/${id}`, () => setDecided((d) => { const n = { ...d }; delete n[id]; return n; }));
+    void getAuditLog().then(setAudit);
+  };
+  const decideAgent = (id: string, kind: "approved" | "dismissed" | "snoozed") => {
+    const item = agentItems.find((i) => i.id === id);
+    setDecided((d) => ({ ...d, [id]: kind }));
+    if (item) void resolveAgentItem(item, kind === "approved" ? "approved" : kind === "dismissed" ? "skipped" : "skipped", () => setDecided((d) => { const n = { ...d }; delete n[id]; return n; }));
     void getAuditLog().then(setAudit);
   };
   const approveAll = () => proposals.filter((p) => !decided[p.id]).forEach((p) => decide(p.id, "approved", p.label));
@@ -157,6 +171,29 @@ export function Intelligence() {
                   )}
                   {st === "approved" && <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0D0D0D" }} /><span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0D" }}>Approved · queued to clipboard</span></div>}
                   {st === "dismissed" && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.08em", color: "#8F8F8F", marginTop: 16 }}>Dismissed</div>}
+                </div>
+              );
+            })}
+            {/* live agent items routed to Needs Your Decision (from AgentService) */}
+            {agentDecisions.map((it) => {
+              const st = decided[it.id];
+              return (
+                <div key={it.id} style={{ display: "flex", flexDirection: "column", borderBottom: "1px solid #ECECEC", borderLeft: "2px solid #D0342C", background: "rgba(255,255,255,0.45)", padding: "16px 22px" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{SKILL_LABELS[it.skill]} · {it.title}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 8.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#10A37F", border: "1px solid #E3E3E3", borderRadius: 999, padding: "1px 7px" }}>agent · live</span>
+                  </div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.6, color: "#303030", marginTop: 10 }}>{it.context}</div>
+                  {it.block && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, lineHeight: 1.55, fontStyle: "italic", color: "#8F8F8F", marginTop: 8 }}>Compliance holds {SKILL_LABELS[it.block.blockedSkill]}'s "{it.block.action}" — {it.block.reason}.</div>}
+                  {!st && (
+                    <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
+                      <button onClick={() => decideAgent(it.id, "approved")} className="in-approve" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 16px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Override · release</button>
+                      <button onClick={() => decideAgent(it.id, "dismissed")} className="in-ghost" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 13px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Uphold hold</button>
+                      <button onClick={() => decideAgent(it.id, "snoozed")} className="in-ghost" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 13px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Snooze</button>
+                    </div>
+                  )}
+                  {st === "approved" && <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16 }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0D0D0D" }} /><span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.08em", color: "#0D0D0D" }}>Released · logged to the ledger</span></div>}
+                  {st === "dismissed" && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.08em", color: "#8F8F8F", marginTop: 16 }}>Hold upheld</div>}
                 </div>
               );
             })}
