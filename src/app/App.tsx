@@ -8,6 +8,7 @@ import { Contacts } from "../screens/contacts/Contacts";
 import { Command } from "../screens/command/Command";
 import { Opportunities } from "../screens/opportunities/Opportunities";
 import { Transactions } from "../screens/transactions/Transactions";
+import { ContactDetail } from "../screens/contact/ContactDetail";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -29,7 +30,7 @@ export function App() {
         <Route path="/welcome" element={<Command />} />
         <Route path="/intelligence" element={<Placeholder name="Intelligence" />} />
         <Route path="/contacts" element={<Contacts />} />
-        <Route path="/contacts/:id" element={<Placeholder name="Contact Detail" />} />
+        <Route path="/contacts/:id" element={<ContactDetail />} />
         <Route path="/opportunities" element={<Opportunities />} />
         <Route path="/inbox" element={<Placeholder name="Inbox" />} />
         <Route path="/marketing" element={<Placeholder name="Marketing" />} />
