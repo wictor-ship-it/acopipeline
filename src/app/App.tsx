@@ -10,6 +10,7 @@ import { Opportunities } from "../screens/opportunities/Opportunities";
 import { Transactions } from "../screens/transactions/Transactions";
 import { ContactDetail } from "../screens/contact/ContactDetail";
 import { Inbox } from "../screens/inbox/Inbox";
+import { Intelligence } from "../screens/intelligence/Intelligence";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -29,7 +30,7 @@ export function App() {
       <Route element={<Shell />}>
         {/* Screens are built one per step from their fragments. */}
         <Route path="/welcome" element={<Command />} />
-        <Route path="/intelligence" element={<Placeholder name="Intelligence" />} />
+        <Route path="/intelligence" element={<Intelligence />} />
         <Route path="/contacts" element={<Contacts />} />
         <Route path="/contacts/:id" element={<ContactDetail />} />
         <Route path="/opportunities" element={<Opportunities />} />
