@@ -8,6 +8,7 @@ import { fetchGmailThreads } from "../../data/adapters/gmail";
 import { fetchCalendarEvents } from "../../data/adapters/calendar";
 import { getAgentStatus, type AgentStatus } from "../../data/adapters/agent";
 import { SANS } from "../contacts/data";
+import { CANON_STATUS, STATUS_PLAY } from "../contact/data";
 import "./Settings.css";
 
 /* ================= SCREEN · SETTINGS (fragment 16) =================
@@ -154,6 +155,15 @@ export function Settings() {
     const next = { ...settings, cadences: { ...cadences, [key]: { ...cadences[key], days } } };
     persist(next, `Cadence · ${cadences[key].label} → every ${days} days`);
   };
+  /* Cadence + action plan per contact status — the loop Contact Detail reads. */
+  const statusCadence = settings?.status_cadence ?? {};
+  const cadenceFor = (s: string) => statusCadence[s] ?? STATUS_PLAY[s] ?? STATUS_PLAY["Not classified"];
+  const setStatusCadence = (s: string, field: "cadence" | "action", value: string) => {
+    if (!settings) return;
+    const base = cadenceFor(s);
+    const next = { ...settings, status_cadence: { ...statusCadence, [s]: { ...base, [field]: value } } };
+    persist(next, `Status cadence · ${s} · ${field} updated`);
+  };
 
   const navNumFor = (key: string) => String(NAV.findIndex(([k]) => k === key) + 1).padStart(2, "0");
 
@@ -220,6 +230,20 @@ export function Settings() {
                   );
                 })}
               </Rows>
+
+              {/* Cadence & action plan per contact status — read live by Contact Detail */}
+              <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", margin: "34px 0 4px", paddingBottom: 10, borderBottom: "1px solid #E3E3E3" }}>Cadence &amp; action plan by status</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", margin: "8px 0 14px" }}>What each status arms when you set it on a contact — the Contact file shows this live. Edit inline; auto-saved.</div>
+              {CANON_STATUS.map((s) => {
+                const c = cadenceFor(s);
+                return (
+                  <div key={s} style={{ display: "grid", gridTemplateColumns: "120px 150px 1fr", gap: 18, alignItems: "center", padding: "13px 4px", borderBottom: "1px solid #E3E3E3" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>{s}</span>
+                    <input value={c.cadence} onChange={(e) => setStatusCadence(s, "cadence", e.target.value)} placeholder="e.g. Every 3 days" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#0D0D0D", padding: "5px 0", outline: "none" }} />
+                    <input value={c.action} onChange={(e) => setStatusCadence(s, "action", e.target.value)} placeholder="Action plan the agent runs" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", padding: "5px 0", outline: "none" }} />
+                  </div>
+                );
+              })}
             </>
           )}
 

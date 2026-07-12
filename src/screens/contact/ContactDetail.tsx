@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCollection } from "../../data/hooks";
 import { getById, recordAction, save } from "../../data/repository";
-import type { Contact, Mandate, Opportunity } from "../../domain/types";
+import type { Contact, Mandate, Opportunity, Settings } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
@@ -26,6 +26,7 @@ export function ContactDetail() {
   const { items: contacts } = useCollection<Contact>("contacts");
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
   const { items: mandates } = useCollection<Mandate>("mandates");
+  const { items: settingsRows } = useCollection<Settings>("settings");
 
   const [seg, setSeg] = useState<"profile" | "now" | "agent">("now");
   const [mandateText, setMandateText] = useState<string | null>(null);
@@ -169,11 +170,13 @@ export function ContactDetail() {
 
   const statusVal = toCanonStatus(ct.status);
   const statusSel = statusLocal || statusVal;
-  const play = STATUS_PLAY[statusSel] ?? STATUS_PLAY["Not classified"];
+  const statusCadenceCfg = settingsRows[0]?.status_cadence;
+  const play = statusCadenceCfg?.[statusSel] ?? STATUS_PLAY[statusSel] ?? STATUS_PLAY["Not classified"];
   const onStatus = (v: string) => {
     setStatusLocal(v);
     if (v === statusVal) return;
-    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: v }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · cadence ${STATUS_PLAY[v]?.cadence ?? "armed"}` }); });
+    const cad = statusCadenceCfg?.[v]?.cadence ?? STATUS_PLAY[v]?.cadence ?? "armed";
+    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: v }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · cadence ${cad}` }); });
   };
 
   /* Contact information — merged view + editor. Top-level keys write to the
