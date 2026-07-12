@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { recordAction } from "../../data/repository";
 import { SANS } from "../contacts/data";
-import { PIPES, PIPE_NAMES, tagsFor, type Card } from "../opportunities/data";
+import { PIPES, PIPE_NAMES, tagsFor, type Card, orderedDeals } from "../opportunities/data";
 import {
   ACTV_DATA, ASSET_MIX, DIVISION_GCI, FORECAST, FUNNEL, GEOGRAPHY, INC_HIST, INC_KPIS,
   INC_PAID, INC_RECV, INC_TOTAL_LINE, LOSS_REASONS, MKT_ATTR, MKT_CHANNELS, MKT_KPIS,
@@ -24,6 +24,14 @@ export function Reports() {
   const [sec, setSec] = useState("01");
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const actv = ACTV_DATA[period];
+
+  /* Top weighted deals — from the live pipeline, ranked by weighted GCI. */
+  const topDeals = useMemo(() => {
+    const all = orderedDeals().filter((d) => !/\/mo/.test(d.budget));
+    const withW = all.map((d) => ({ ...d, wNum: d.weightedNum * 0.03 })).sort((a, b) => b.wNum - a.wNum).slice(0, 6);
+    const max = Math.max(...withW.map((d) => d.wNum), 1);
+    return withW.map((d) => ({ name: d.name, width: `${Math.max(Math.round((d.wNum / max) * 100), 4)}%`, wgci: d.wNum >= 1 ? `$${d.wNum.toFixed(1)}M` : `$${Math.round(d.wNum * 1000)}K` }));
+  }, []);
 
   /* Custom Report builder */
   const [crPipe, setCrPipe] = useState("all");
@@ -183,6 +191,20 @@ export function Reports() {
                     <div key={f.m} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "12px 0", borderBottom: "1px solid #E3E3E3" }}>
                       <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030" }}>{f.m}</span>
                       <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14.5, color: "#0D0D0D" }}>{f.value}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+              <section>
+                <H2>Top Weighted Deals</H2>
+                <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                  {topDeals.map((d) => (
+                    <div key={d.name} style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                      <span style={{ width: 200, flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</span>
+                      <div style={{ flex: 1, height: 16, background: "rgba(255,255,255,0.55)", position: "relative" }}>
+                        <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: d.width, background: "#0D0D0D" }} />
+                      </div>
+                      <span style={{ width: 56, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{d.wgci}</span>
                     </div>
                   ))}
                 </div>
