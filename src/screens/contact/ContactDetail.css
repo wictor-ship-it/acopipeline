@@ -44,3 +44,18 @@
 .cd-send:hover { opacity: 0.85; }
 .cd-mandate:focus { border-color: #0D0D0D; }
 .cd-composer input::placeholder { color: #8F8F8F; }
+
+.cd-brief {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 81;
+  width: 520px;
+  max-width: 92vw;
+  background: rgba(255, 255, 255, 0.62);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border-left: 1px solid #D9D9D9;
+  overflow-y: auto;
+}

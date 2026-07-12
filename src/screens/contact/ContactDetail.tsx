@@ -5,8 +5,8 @@ import { getById, save } from "../../data/repository";
 import type { Contact, Mandate, Opportunity } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import {
-  CANON_STATUS, CHAT_CHIPS, CRITERIA, ESSENCE, JOURNEY_IDX, JOURNEY_SEQ,
-  PINNED, RELATED, SINCE_LINE, toCanonStatus,
+  BRIEF, CANON_STATUS, CHAT_CHIPS, CRITERIA, enrichRows, ESSENCE, GENERIC_BRIEF,
+  JOURNEY_IDX, JOURNEY_SEQ, PINNED, RELATED, SINCE_LINE, toCanonStatus,
 } from "./data";
 import "./ContactDetail.css";
 
@@ -29,6 +29,8 @@ export function ContactDetail() {
   const [mandateText, setMandateText] = useState<string | null>(null);
   const [chat, setChat] = useState<ChatMsg[]>([]);
   const [chatInput, setChatInput] = useState("");
+  const [briefOpen, setBriefOpen] = useState(false);
+  const [enrich, setEnrich] = useState<"idle" | "scanning" | "review" | "applied">("idle");
 
   const ct = contacts.find((c) => c.id === id);
   const deals = useMemo(() => opportunities.filter((o) => o.contact_id === id), [opportunities, id]);
@@ -58,6 +60,17 @@ export function ContactDetail() {
   const criteria = CRITERIA[id] ?? (ct.preferences?.asset ? [["Budget", (ct.preferences.budget as string) ?? "—"], ["Areas", (ct.preferences.areas as string) ?? "—"], ["Type", (ct.preferences.asset as string) ?? "—"]] as Array<[string, string]> : []);
   const hasRef = !!ct.referral_of;
   const refBy = contacts.find((c) => c.id === ct.referral_of)?.name ?? "";
+  const brief = BRIEF[id] ?? GENERIC_BRIEF;
+  const enrichData = enrichRows(ct.name);
+  const briefSections: Array<[string, string[]]> = [
+    ["Who", [`${ct.relationship} · ${ct.location} · since ${ct.since}`, (ct.tags ?? []).join(" · ")]],
+    ["Last touches", touches.slice(0, 2).map((t) => `${t.date} · ${t.type} — ${t.body}`)],
+    ["Open objections", brief.objections],
+    ["Family & context", brief.family],
+    ["Comps in play", brief.comps],
+  ];
+  const startEnrich = () => { setEnrich("scanning"); window.setTimeout(() => setEnrich("review"), 900); };
+  const applyEnrich = () => { setEnrich("applied"); void save<Contact>("contacts", { ...ct, company: enrichData[0].value, title: enrichData[1].value, linkedin: enrichData[3].value }, { actor: "agent", skill: "chief_of_staff", action: `Enriched profile — ${ct.name} · ${enrichData.length} fields from LinkedIn + public sources (sources logged)` }); };
 
   const currentMandate = mandateText ?? mandate?.text ?? "";
   const saveMandate = () => {
@@ -146,7 +159,10 @@ export function ContactDetail() {
       {/* ===== NOW ===== */}
       {seg === "now" && (
         <div style={{ maxWidth: 960, margin: "0 auto", padding: "26px 48px 90px" }}>
-          <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.6, color: "#5D5D5D" }}>{SINCE_LINE[id] ?? "Since your last visit: no new activity — cadence clock running."}</div>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, marginBottom: 12 }}>
+            <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.6, color: "#5D5D5D", flex: 1 }}>{SINCE_LINE[id] ?? "Since your last visit: no new activity — cadence clock running."}</div>
+            <button onClick={() => setBriefOpen(true)} className="cd-chip" style={{ flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", background: "rgba(255,255,255,0.55)", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 14px", cursor: "pointer", transition: "all 150ms", whiteSpace: "nowrap" }}>Pre-meeting brief</button>
+          </div>
           <div style={{ display: "flex", alignItems: "baseline", gap: 0, flexWrap: "wrap", marginTop: 16 }}>
             {JOURNEY_SEQ.map((label, i) => (
               <span key={label} style={{ display: "flex", alignItems: "baseline" }}>
@@ -241,6 +257,26 @@ export function ContactDetail() {
               {ct.tags!.map((t) => <span key={t} style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#5D5D5D", border: "1px solid #D9D9D9", borderRadius: 999, padding: "5px 13px" }}>{t}</span>)}
             </div>
           )}
+
+          {/* ENRICH · the CRM fills itself */}
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "34px 0 4px", paddingBottom: 11, borderBottom: "1px solid #E3E3E3" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10A37F", flex: "none" }} />
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>Enrich from public sources</span>
+            </div>
+            {enrich === "idle" && <button onClick={startEnrich} className="cd-chip" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", background: "rgba(255,255,255,0.55)", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 14px", cursor: "pointer", transition: "all 150ms" }}>Enrich profile</button>}
+            {enrich === "scanning" && <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, fontStyle: "italic", color: "#8F8F8F" }}>Scanning LinkedIn + public sources…</span>}
+            {enrich === "review" && <button onClick={applyEnrich} className="cd-chip" style={{ fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 14px", cursor: "pointer", transition: "all 150ms" }}>Apply all · {enrichData.length}</button>}
+            {enrich === "applied" && <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#10A37F" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10A37F" }} />Filed · sources logged</span>}
+          </div>
+          {enrich === "idle" && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", padding: "12px 4px" }}>The agent scans LinkedIn and public sources to complete this profile — you arbitrate before anything is saved.</div>}
+          {(enrich === "review" || enrich === "applied") && enrichData.map((f) => (
+            <div key={f.field} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 4px", borderBottom: "1px solid #ECECEC" }}>
+              <span style={{ flex: "none", width: 110, fontFamily: SANS, fontWeight: 400, fontSize: 9, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8F8F8F" }}>{f.field}</span>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#0D0D0D" }}>{f.value}</div><div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 11, color: "#10A37F", marginTop: 2 }}>{f.source}</div></div>
+              {enrich === "applied" && <span style={{ flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, color: "#8F8F8F" }}>saved ✓</span>}
+            </div>
+          ))}
         </div>
       )}
 
@@ -274,6 +310,34 @@ export function ContactDetail() {
             <button onClick={() => sendChat(chatInput)} className="cd-send" style={{ width: 38, height: 38, borderRadius: "50%", background: "#E9E8E4", border: "1px solid #E0DFDA", color: "#0D0D0D", fontSize: 15, cursor: "pointer", flex: "none", display: "flex", alignItems: "center", justifyContent: "center", transition: "opacity 150ms" }}>↑</button>
           </div>
         </div>
+      )}
+
+      {/* PRE-MEETING BRIEF · overlay */}
+      {briefOpen && (
+        <>
+          <div onClick={() => setBriefOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(0,0,0,0.32)" }} />
+          <div className="cd-brief">
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "28px 32px 20px", borderBottom: "1px solid #E3E3E3" }}>
+              <div>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 15, color: "#0D0D0D" }}>Pre-Meeting Brief</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F", marginTop: 6 }}>{ct.name} · generated by agent · 30 min before</div>
+              </div>
+              <span onClick={() => setBriefOpen(false)} style={{ fontFamily: SANS, fontWeight: 200, fontSize: 20, color: "#8F8F8F", cursor: "pointer", lineHeight: 1 }}>×</span>
+            </div>
+            <div style={{ padding: "8px 32px 48px" }}>
+              {briefSections.map(([label, items]) => (
+                <div key={label} style={{ padding: "22px 0", borderBottom: "1px solid #E3E3E3" }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", marginBottom: 12 }}>{label}</div>
+                  {(items.length ? items : ["—"]).map((it, i) => <div key={i} style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, lineHeight: 1.65, color: "#303030", padding: "3px 0" }}>{it}</div>)}
+                </div>
+              ))}
+              <div className="cd-onething" style={{ marginTop: 24, borderRadius: 12, borderLeft: "2px solid #0D0D0D", padding: "22px 24px" }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Objective of this conversation</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14.5, lineHeight: 1.65, color: "#303030", marginTop: 12 }}>{brief.objective}</div>
+              </div>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

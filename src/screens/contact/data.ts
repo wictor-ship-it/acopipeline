@@ -43,6 +43,37 @@ export const CRITERIA: Record<string, Array<[string, string]>> = {
 
 export const CHAT_CHIPS = ["Read this relationship", "What should I do next?", "Draft outreach", "MLS matches for them", "Referral / expansion angle"];
 
+/* Pre-meeting brief (briefMap ~2480) — agent-generated 30 min before. */
+export interface Brief { objections: string[]; family: string[]; comps: string[]; objective: string }
+export const BRIEF: Record<string, Brief> = {
+  marcelo: {
+    objections: ["Spouse concerned re: construction timeline — developer schedule in hand, addressable.", "Comparing vs Estates at Acqualina — leaning Rivage on layout."],
+    family: ["Wife weighs heavily on the final call — include her in the 2nd visit.", "Two children · school calendar drives relocation timing (Jan)."],
+    comps: ["Rivage PH-A ask $18.5M · $2,980/sf.", "Estates PH $19.9M · move-in ready — his fallback.", "Last Rivage PH sale: $2,870/sf (May)."],
+    objective: "Confirm the second visit for Saturday 11:00 with his wife present, and neutralize the timeline concern using the developer schedule. Do not discuss price yet.",
+  },
+  keller: {
+    objections: ["Process requires principal sign-off — speed is not a lever, precision is.", "Counter pending since Thursday."],
+    family: ["Institution, not family — treat the analyst as the relationship."],
+    comps: ["Golden Beach compound ask $28M.", "Indian Creek comparable traded $31M (Apr)."],
+    objective: "Secure the principal call before Wednesday. Lead with the comparative valuation, not urgency.",
+  },
+};
+export const GENERIC_BRIEF: Brief = { objections: ["No open objections logged."], family: ["No family notes on record."], comps: ["No active comps attached."], objective: "Re-establish contact and surface the next natural step." };
+
+/* Enrich · agent scans LinkedIn + public sources (enrichRows ~2766). */
+export function enrichRows(name: string): Array<{ field: string; value: string; source: string }> {
+  const last = name.split(" ").slice(-1)[0];
+  const slug = name.toLowerCase().replace(/[^a-z]+/g, "-").replace(/^-+|-+$/g, "");
+  return [
+    { field: "Company", value: `${last} Capital Group`, source: "LinkedIn" },
+    { field: "Job Title", value: "Founder & CEO", source: "LinkedIn" },
+    { field: "Work Phone", value: "+1 305 892 ····", source: "Company site" },
+    { field: "LinkedIn", value: `linkedin.com/in/${slug || "profile"}`, source: "Public profile" },
+    { field: "Profile note", value: "Art collector · sailing — add to interests", source: "Press · maritime club roster" },
+  ];
+}
+
 /* Status select — canonical 6 (canonS6 ~2933) mapped from the seed's display status. */
 export const CANON_STATUS = ["Hot", "Warm", "Nurturing", "Won", "Lost", "Not classified"];
 export function toCanonStatus(status: string): string {
