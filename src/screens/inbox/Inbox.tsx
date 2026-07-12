@@ -200,18 +200,22 @@ export function Inbox() {
               <div onClick={() => navigate(`/contacts/${active.contact_id}`)} className="ib-hdrbtn" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 13px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>Contact</div>
             </div>
           </div>
-          <div style={{ flex: 1, overflowY: "auto", minHeight: 0, padding: "26px 28px", background: "rgba(255,255,255,0.62)", display: "flex", flexDirection: "column", gap: 16 }}>
-            {activeMsgs.map((m) => {
-              const out = m.dir === "out";
-              return (
-                <div key={m.id} style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start" }}>
-                  <div className={out ? "ib-bubble-out" : "ib-bubble-in"} style={{ maxWidth: "74%", padding: "12px 16px", borderRadius: out ? "20px 20px 6px 20px" : "20px 20px 20px 6px" }}>
-                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, lineHeight: 1.55, color: out ? "#FFFFFF" : "#303030" }}>{m.body}</div>
-                    <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 10, letterSpacing: "0.06em", color: out ? "rgba(255,255,255,0.6)" : "#8F8F8F", marginTop: 6, textAlign: "right" }}>{m.at}</div>
+          <div style={{ flex: 1, overflowY: "auto", minHeight: 0, background: "rgba(255,255,255,0.62)", display: "flex", flexDirection: "column" }}>
+            {/* margin-top:auto bottom-aligns short threads (chat convention) while
+                still scrolling from the top once the conversation overflows. */}
+            <div style={{ marginTop: "auto", display: "flex", flexDirection: "column", gap: 16, padding: "26px 28px" }}>
+              {activeMsgs.map((m) => {
+                const out = m.dir === "out";
+                return (
+                  <div key={m.id} style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start" }}>
+                    <div className={out ? "ib-bubble-out" : "ib-bubble-in"} style={{ maxWidth: "74%", padding: "12px 16px", borderRadius: out ? "20px 20px 6px 20px" : "20px 20px 20px 6px" }}>
+                      <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, lineHeight: 1.55, color: out ? "#FFFFFF" : "#303030" }}>{m.body}</div>
+                      <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 10, letterSpacing: "0.06em", color: out ? "rgba(255,255,255,0.6)" : "#8F8F8F", marginTop: 6, textAlign: "right" }}>{m.at}</div>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
           <div style={{ flex: "none", display: "flex", gap: 7, alignItems: "center", flexWrap: "wrap", padding: "0 22px 8px" }}>
             <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8F8F8F", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 9px" }}>Auto · {lang}</span>
