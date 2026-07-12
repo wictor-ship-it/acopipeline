@@ -91,3 +91,49 @@ export const PT_PROJECTS: Array<{ name: string; loc: string; from: string; del: 
   { name: "Estates at Acqualina", loc: "Sunny Isles Beach", from: "from $6.8M", del: "Move-in ready", st: "Developer units", stC: "#10A37F", upd: "updated Jul 07" },
 ];
 export const KITS = ["Brochure", "Fact sheet", "Floor plans", "Price list"];
+
+/* Real Estate Referral Agreement — modeled on Florida Realtors RA-4.
+   Literal from logic-and-data.js (agrMeta ~3822, agrSections ~3823). */
+export const AGR_META = [
+  "Effective · Mar 23, 2026",
+  "Referring — A. Bittencourt · Brazil (CRECI)",
+  "Receiving — Wictor Fernando Arraes, PA · SL3232361 · Xcellence Realty",
+  "Split · 25% of Gross Commission",
+  "Lead validity · 12 months from registration",
+  "Florida Statutes Ch. 475 · FREC",
+  "Licensed agents only — DBPR · CRECI",
+  "Wire costs — borne by partner",
+  "Venue — Miami-Dade · prevailing party recovers fees",
+  "Modeled on Florida Realtors RA-4",
+];
+
+/* The six essentials shown inline above the acceptance checkbox (fragment 13
+   ~65-70): [bold lead-in, remainder]. */
+export const AGR_ESSENTIALS: Array<[string, string]> = [
+  ["25% of Gross Commission", "on every transaction closed inside the validity window — §6.1"],
+  ["Licensed agents only", "— fees payable only to active licensed brokers/agents · DBPR · FREC · CRECI — §8"],
+  ["12-month lead validity", "from the registration date · your timestamp governs priority — §4.1, §3.3"],
+  ["Secondary referrals count", "— friends & family your client introduces, registered within 10 business days — §5"],
+  ["Pre-construction paid per installment", "— your share follows each developer disbursement — §6.5"],
+  ["USD wire within 15 business days", "of receipt — all transfer & conversion costs deducted from the fee · statement in 5 — §7"],
+];
+
+export interface AgrSection { h: string; b: string }
+export const AGR_SECTIONS: AgrSection[] = [
+  { h: "1 · Definitions", b: "Referred Client — formally registered and not previously in the brokerage's book. Qualified Lead — full name, e-mail + phone, genuine interest, budget range, timeline, property profile. Gross Commission — the commission actually received by the receiving brokerage on the transaction, before deductions. Licensed Referring Agent — a real estate broker or agent holding an active license with their jurisdiction's authority (DBPR in Florida; CRECI in Brazil). Secondary Referral — a third party introduced by the Referred Client during the client's validity period." },
+  { h: "2 · Scope & exclusions", b: "Covers Florida transactions: pre-construction and new development, resale, long-term rental, short-term/vacation rental. Excluded: mortgage, title, insurance and settlement services (RESPA — no fee is paid on these), lease renewals beyond the first term, and any transaction closing after the validity window (except §4 grace). Earlier introductions only by mutual written agreement." },
+  { h: "3 · Lead registration", b: "Register through the portal before, or simultaneously with, any introduction. Required: full legal name, e-mail, WhatsApp, nationality and residence, transaction type, property profile, budget range in USD, timeline, purpose. Acknowledgment within 2 business days; decline only within 5 business days (already an active client, incomplete after a 3-day cure, or the client declined contact). No timely rejection — deemed accepted. Your registration timestamp governs priority in any dispute." },
+  { h: "4 · Lead validity — 12 months", b: "Each accepted lead is protected for 12 months from the registration date. Fees are due on transactions that go under contract and close within the period — plus a 60-day closing grace when the contract was signed before expiry. Extensions: written request at least 15 days before expiry, up to +6 months per extension, by mutual written agreement. Quarterly status updates on request; the portal shows the live validity clock for every lead." },
+  { h: "5 · Secondary referrals — friends & family", b: "Introductions made by your client during their validity period count as your leads: register them within 10 business days of learning of the introduction, same 25% split, their own independent 12-month clock. Introductions after the original lead expires do not qualify." },
+  { h: "6 · Referral fee — 25% of Gross Commission", b: "The standard fee is 25% of the Gross Commission actually received by the receiving brokerage — the Florida Realtors RA-4 “% of full commission” option. Co-broke transactions: the base is only the share allocated to the receiving brokerage. Pre-construction: paid pro-rata as each developer installment is received; if a deal cancels mid-schedule you keep installments already paid and have no claim to future ones. No commission received — no fee due (including default, non-payment by developer, or commission dispute with a third party). A different fee for a specific lead is valid only as a written addendum signed before registration." },
+  { h: "7 · Payment mechanics — wire costs borne by partner", b: "Fee due at closing; paid within 15 business days of the brokerage actually receiving the commission, in USD. International wire to your designated account: all transfer, currency-conversion, intermediary and receiving-bank costs are deducted from the referral fee. Banking details are provided in writing and changes require 5 business days' notice. No payment is released while required tax documentation (§16) is missing — the fee is held, not forfeited. A written closing statement is issued within 5 business days of each closing." },
+  { h: "8 · Licensing requirement — DBPR / FREC", b: "Referral fees are payable only to a Licensed Referring Agent — an actively licensed real estate broker or agent — in accordance with Florida Statutes Ch. 475, DBPR and FREC rules (F.S. 475.25(1)(h) prohibits paying unlicensed persons). The partner warrants the license is active at registration and at closing, and provides proof (CRECI registration or DBPR license number) before first payment. If the license lapses mid-transaction, payment is suspended until cured; if it cannot be cured by closing, no fee is due. Payments to Brazilian brokers are made broker-to-broker in compliance with both jurisdictions." },
+  { h: "9 · Duplicates & conflicts", b: "First valid registration timestamp wins — across all partners. Leads already active with the brokerage (contact within the prior 12 months, existing contract, or an open file) are declined with notice inside 5 business days — never silently. If two partners register the same lead, the earlier timestamp controls and the later registrant is notified. The portal accept/decline record is the operative evidence." },
+  { h: "10 · Non-circumvention", b: "The brokerage will not bypass the partner to avoid the fee — any transaction with a validly registered lead inside the window pays, even if the client returns through another door. The partner will not shop a registered lead to competing brokerages during the validity period, and will not interfere in negotiations. The client always remains free to choose: if the client independently engages another brokerage with no involvement of the receiving brokerage, no fee is due." },
+  { h: "11 · Confidentiality & data protection", b: "Client data is used only to serve the referral, is held confidentially by both parties, and is processed consistent with applicable data-protection law — including LGPD for Brazil-sourced leads and Florida law. No marketing use of the client's data without written consent. Each party remains responsible for its own compliance." },
+  { h: "12 · Marketing & conduct rules", b: "The partner may not: advertise the brokerage's listings or use its marks without prior written approval; publish pricing, availability or projected returns; make promises on behalf of the brokerage; or perform licensed Florida real estate activity (showing property, negotiating terms, drafting offers). A violation that causes a regulatory or legal problem voids the fee for that transaction and may terminate the agreement for cause." },
+  { h: "13 · Compliance — AML / OFAC", b: "Both parties comply with anti-money-laundering rules and OFAC sanctions screening. The brokerage may decline or unwind any referral where source-of-funds, sanctions or KYC concerns cannot be resolved — with notice to the partner; no fee is due on a declined or unwound transaction. No cash payments, ever." },
+  { h: "14 · Disputes — escalation ladder", b: "Step 1: direct good-faith discussion within 15 days of written notice. Step 2: mediation in Miami-Dade County, Florida. Step 3: exclusive venue in the state courts of Miami-Dade County under Florida law; the prevailing party recovers reasonable attorneys' fees and costs (mirroring Florida Realtors RA-4). The English version of this agreement controls; a Portuguese courtesy translation is provided." },
+  { h: "15 · Term & termination", b: "Runs until terminated by either party with 30 days' written notice. Termination is not retroactive: leads validly registered before the notice keep their full validity window, and fees already earned (including future pre-construction installments on closed contracts) survive termination." },
+  { h: "16 · Tax, invoicing & general", b: "Each party bears its own taxes. International partners provide a W-8BEN (entities: W-8BEN-E) before first payout; US persons a W-9. An invoice or receipt accompanies each payment on request. The parties are independent contractors — no agency, employment or partnership. Amendments only in writing signed by both parties; the portal record (timestamps, milestones, statements, accept/decline log) is the operative log of the relationship." },
+];
