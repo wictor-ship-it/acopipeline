@@ -141,6 +141,27 @@ export function Contacts() {
     setSent(ns); setTouched(nt); setWaSel({});
     void recordAction({ actor: "user", skill: "senior_advisor", action: `Queue · WhatsApp batch approved (${how}) — ${list.length} draft(s) sent 1:1, each in the contact language` }, "queue", () => { setSent(prevSent); setTouched(prevTouched); });
   };
+  /* Log every active touch in a channel (Call/Field) in one move. */
+  const bulkLog = (list: QueueItem[], label: string) => {
+    if (!list.length) return;
+    const prev = { ...touched };
+    const nt = { ...touched };
+    list.forEach((q) => { nt[q.id] = true; });
+    setTouched(nt);
+    void recordAction({ actor: "user", action: `Queue · ${label} logged in batch — ${list.length} touch(es)` }, "queue", () => setTouched(prev));
+  };
+  /* One-tap day: send every sendable WhatsApp draft + log the rest. */
+  const approveDay = () => {
+    const wa = TOUCH_QUEUE.filter((q) => q.channel === "WhatsApp" && isActive(q) && !sent[q.id]);
+    const rest = TOUCH_QUEUE.filter((q) => q.channel !== "WhatsApp" && isActive(q));
+    if (!wa.length && !rest.length) return;
+    const prevSent = { ...sent }, prevTouched = { ...touched };
+    const ns = { ...sent }, nt = { ...touched };
+    wa.forEach((q) => { ns[q.id] = "Sent · WhatsApp · queued to clipboard"; nt[q.id] = true; });
+    rest.forEach((q) => { nt[q.id] = true; });
+    setSent(ns); setTouched(nt); setWaSel({});
+    void recordAction({ actor: "user", skill: "senior_advisor", action: `Touch Today · approved the day — ${wa.length} draft(s) sent, ${rest.length} touch(es) logged` }, "queue", () => { setSent(prevSent); setTouched(prevTouched); });
+  };
 
   const gcCategorize = () => { setGcHidden(true); void recordAction({ actor: "user", skill: "compliance", action: `Google sync · categorized — ${GC_BANNER.name}` }, "contact/isabela", () => setGcHidden(false)); };
 
@@ -210,7 +231,7 @@ export function Contacts() {
           allDone={allDone} touched={touched} snoozed={snoozed} sent={sent} waSel={waSel} briefOpen={briefOpen}
           isActive={isActive} waSelectable={waSelectable}
           onBrief={(id) => setBriefOpen((o) => (o === id ? null : id))}
-          onLog={logTouch} onSend={send} onBulk={bulkApprove}
+          onLog={logTouch} onSend={send} onBulk={bulkApprove} onBulkLog={bulkLog} onApproveDay={approveDay}
           onSnooze={(q, day) => setSnoozed((p) => ({ ...p, [q.id]: p[q.id] ? undefined : day }))}
           onWaSel={(id) => setWaSel((p) => ({ ...p, [id]: !p[id] }))}
         />
@@ -407,7 +428,7 @@ interface QueueViewProps {
   touched: Record<string, boolean>; snoozed: Record<string, string | undefined>; sent: Record<string, string>; waSel: Record<string, boolean>; briefOpen: string | null;
   isActive: (q: QueueItem) => boolean; waSelectable: (q: QueueItem) => boolean;
   onBrief: (id: string) => void; onLog: (q: QueueItem) => void; onSend: (q: QueueItem, how: "WhatsApp" | "Email") => void;
-  onBulk: (list: QueueItem[], how: string) => void; onSnooze: (q: QueueItem, day: string) => void; onWaSel: (id: string) => void;
+  onBulk: (list: QueueItem[], how: string) => void; onBulkLog: (list: QueueItem[], label: string) => void; onApproveDay: () => void; onSnooze: (q: QueueItem, day: string) => void; onWaSel: (id: string) => void;
 }
 function QueueView(p: QueueViewProps) {
   return (
@@ -417,7 +438,10 @@ function QueueView(p: QueueViewProps) {
           <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 16, color: "#0D0D0D" }}>Touch Today</span>
           <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, fontStyle: "italic", color: "#5D5D5D" }}>ranked by return per minute</span>
         </div>
-        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{p.openCount} open · {p.doneCount} touched</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{p.openCount} open · {p.doneCount} touched</span>
+          {p.openCount > 0 && <button onClick={p.onApproveDay} className="ct-btn-solid" style={{ background: "#0D0D0D", border: "1px solid #0D0D0D", borderRadius: 999, padding: "8px 16px", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#FFFFFF", cursor: "pointer" }}>Approve the day · {p.openCount}</button>}
+        </div>
       </div>
       <div className="ct-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 20, padding: "12px 18px", marginBottom: 16 }}>
         <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.04em", color: "#5D5D5D" }}>{p.budgetLine}</span>
@@ -432,6 +456,7 @@ function QueueView(p: QueueViewProps) {
       <div style={{ borderTop: "1px solid #E3E3E3" }}>
         {p.groups.map((g) => {
           let rank = 0;
+          const logRows = g.rows.filter((r) => p.isActive(r));
           return (
             <div key={g.ch}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "9px 10px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)" }}>
@@ -439,6 +464,7 @@ function QueueView(p: QueueViewProps) {
                 <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                   {g.selRows.length > 0 && <button onClick={() => p.onBulk(g.selRows, "selected")} className="ct-btn-solid" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "6px 13px", fontFamily: SANS, fontWeight: 500, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Approve selected · {g.selRows.length}</button>}
                   {g.isWa && <button onClick={() => p.onBulk(g.waRows, "all remaining")} className="ct-btn-outline-dark" style={{ background: "transparent", border: "1px solid #0D0D0D", borderRadius: 999, padding: "6px 12px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Approve all</button>}
+                  {!g.isWa && logRows.length > 0 && <button onClick={() => p.onBulkLog(logRows, g.label)} className="ct-btn-outline-dark" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "6px 12px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Log all · {logRows.length}</button>}
                   <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>{g.mins}</span>
                 </div>
               </div>
