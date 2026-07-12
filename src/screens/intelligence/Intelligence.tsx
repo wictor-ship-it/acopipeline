@@ -6,9 +6,11 @@ import { useAgentItems } from "../../agent/useAgentItems";
 import { resolveAgentItem } from "../../agent/resolve";
 import { SKILL_LABELS } from "../../domain/agent";
 import { SANS } from "../contacts/data";
+import { useNavigate } from "react-router-dom";
 import {
   AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE, HERO_SUB,
-  MONEY_STRIP, MORNING_BRIEF, PLAYS, PROPOSALS, RISK_ROWS, WEEKLY_MOVEMENT,
+  LEARNED, MONEY_STRIP, MORNING_BRIEF, NA_PROPOSALS, NA_SEQUENCES, PLAYS, PROPOSALS,
+  RISK_ROWS, TOUCH_TODAY, WEEKLY_MOVEMENT,
 } from "./data";
 import "./Intelligence.css";
 
@@ -33,9 +35,17 @@ function Block({ dot, title, badge, hint, open, onToggle, children }: { dot?: st
 }
 
 export function Intelligence() {
+  const navigate = useNavigate();
   const [metricsOpen, setMetricsOpen] = useState(false);
-  const [sec, setSec] = useState({ act: true, risk: true, plays: false, perf: false, agent: false });
+  const [sec, setSec] = useState({ act: true, touch: true, next: true, learned: true, risk: true, plays: false, perf: false, agent: false });
   const toggle = (k: keyof typeof sec) => setSec((s) => ({ ...s, [k]: !s[k] }));
+  const [naDone, setNaDone] = useState<Record<string, "accepted" | "dismissed">>({});
+  const [lnDone, setLnDone] = useState<Record<string, boolean>>({});
+  const naOpen = NA_PROPOSALS.filter((p) => !naDone[p.id]);
+  const lnOpen = LEARNED.filter((l) => !lnDone[l.id]);
+  const acceptNa = (id: string, label: string) => { setNaDone((d) => ({ ...d, [id]: "accepted" })); void recordAction({ actor: "user", skill: "chief_of_staff", action: `Follow-up accepted — ${label}` }, `na/${id}`, () => setNaDone((d) => { const n = { ...d }; delete n[id]; return n; })); void getAuditLog().then(setAudit); };
+  const dismissNa = (id: string) => setNaDone((d) => ({ ...d, [id]: "dismissed" }));
+  const saveLn = (id: string, audit: string) => { setLnDone((d) => ({ ...d, [id]: true })); void recordAction({ actor: "user", skill: "transaction_coordinator", action: audit }, `learned/${id}`, () => setLnDone((d) => { const n = { ...d }; delete n[id]; return n; })); void getAuditLog().then(setAudit); };
 
   const [decided, setDecided] = useState<Record<string, "approved" | "dismissed" | "snoozed">>({});
   const [selMonth, setSelMonth] = useState("SEP");
@@ -198,6 +208,60 @@ export function Intelligence() {
               );
             })}
           </div>
+        </div>
+      </Block>
+
+      {/* TOUCH TODAY · COMMUNICATIONS */}
+      <Block dot="#D0342C" title="Touch Today · Communications" badge={String(TOUCH_TODAY.length)} hint="agent read the context, planned and drafted — review → approve → it sends" open={sec.touch} onToggle={() => toggle("touch")}>
+        <div style={{ padding: "8px 22px 20px" }}>
+          {TOUCH_TODAY.map((t) => (
+            <div key={t.name} onClick={() => navigate("/contacts?view=queue")} className="in-touchrow" style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 4px", borderBottom: "1px solid #ECECEC", cursor: "pointer", transition: "background 150ms" }}>
+              <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: t.dot }} />
+              <span style={{ flex: "none", width: 48, fontFamily: SANS, fontWeight: 500, fontSize: 9.5, letterSpacing: "0.1em", color: "#8F8F8F" }}>{t.tag}</span>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{t.name}</div><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#5D5D5D", marginTop: 2 }}>{t.ctx}</div></div>
+              <span style={{ flex: "none", width: 60, textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#0D0D0D" }}>{t.wgci}</span>
+              <span style={{ flex: "none", width: 84, textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.04em", color: t.dueColor }}>{t.due}</span>
+            </div>
+          ))}
+          <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#8F8F8F", marginTop: 12 }}>Open the full ranked queue in Contacts · Touch Today — bulk approve by channel, each send in the contact's language.</div>
+        </div>
+      </Block>
+
+      {/* NEXT ACTIONS */}
+      <Block dot="#0D0D0D" title="Next Actions" badge={naOpen.length > 0 ? String(naOpen.length) : undefined} hint="the agent proposes the follow-ups — you accept, it schedules & chases" open={sec.next} onToggle={() => toggle("next")}>
+        <div style={{ padding: "8px 22px 20px" }}>
+          <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", margin: "8px 0 6px" }}>Proposed follow-ups</div>
+          {naOpen.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, fontStyle: "italic", color: "#8F8F8F", padding: "8px 0" }}>All proposals handled — the agent surfaces the next as it forms.</div>}
+          {naOpen.map((p) => (
+            <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 2px", borderBottom: "1px solid #ECECEC" }}>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.5, color: "#303030" }}>{p.text}</div><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", marginTop: 3 }}>{p.type} · {p.name} · due {p.due}</div></div>
+              <button onClick={() => acceptNa(p.id, `${p.name} — ${p.type} due ${p.due}`)} className="in-approve" style={{ flex: "none", background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 14px", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Accept</button>
+              <button onClick={() => dismissNa(p.id)} className="in-ghost" style={{ flex: "none", background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 12px", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Dismiss</button>
+            </div>
+          ))}
+          <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", margin: "20px 0 8px" }}>Agent-run sequences</div>
+          {NA_SEQUENCES.map((q) => (
+            <div key={q.id} style={{ padding: "10px 2px", borderBottom: "1px solid #ECECEC" }}>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}><span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 13, color: "#0D0D0D" }}>{q.name}</span><span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, color: "#8F8F8F" }}>{q.rule}</span></div>
+              <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+                {q.steps.map((s) => <span key={s.label} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: SANS, fontWeight: 400, fontSize: 11, color: s.st === "future" ? "#8F8F8F" : "#303030" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: s.st === "done" ? "#0D0D0D" : s.st === "current" ? "#B45309" : "#D9D9D9" }} />{s.label}</span>)}
+              </div>
+            </div>
+          ))}
+        </div>
+      </Block>
+
+      {/* AGENT LEARNED */}
+      <Block dot="#10A37F" title="Agent Learned" badge={lnOpen.length > 0 ? String(lnOpen.length) : undefined} hint="extractions from your conversations — you arbitrate, the CRM fills itself" open={sec.learned} onToggle={() => toggle("learned")}>
+        <div style={{ padding: "8px 22px 18px" }}>
+          {lnOpen.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, fontStyle: "italic", color: "#8F8F8F", padding: "14px 2px 2px" }}>Nothing waiting — new learnings land here after every call, message and showing.</div>}
+          {lnOpen.map((l) => (
+            <div key={l.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 2px", borderBottom: "1px solid #ECECEC" }}>
+              <div style={{ flex: 1, minWidth: 0 }}><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>{l.src}</div><div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.5, color: "#303030", marginTop: 3 }}>{l.text}</div></div>
+              <button onClick={() => saveLn(l.id, l.audit)} className="in-approve" style={{ flex: "none", background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 14px", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>{l.saveLabel}</button>
+              <button onClick={() => setLnDone((d) => ({ ...d, [l.id]: true }))} className="in-ghost" style={{ flex: "none", background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 12px", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Dismiss</button>
+            </div>
+          ))}
         </div>
       </Block>
 

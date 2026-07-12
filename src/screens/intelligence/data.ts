@@ -69,6 +69,34 @@ export const DELTAS: Array<{ label: string; value: string; color: string }> = [
   { label: "Weighted GCI Δ", value: "+$310K", color: "#0D0D0D" },
 ];
 
+/* Touch Today · Communications (touchToday ~509) */
+export const TOUCH_TODAY: Array<{ dot: string; tag: string; name: string; ctx: string; wgci: string; due: string; dueColor: string }> = [
+  { dot: "#0D0D0D", tag: "HOT", name: "Marcelo Carvalho", ctx: "2nd visit + developer schedule", wgci: "$412K", due: "Overdue 1d", dueColor: "#D0342C" },
+  { dot: "#0D0D0D", tag: "HOT", name: "Family Office · Zurich", ctx: "Push principal call", wgci: "$288K", due: "Today", dueColor: "#303030" },
+  { dot: "#0D0D0D", tag: "HOT", name: "R. Sterling", ctx: "Schedule decisive tour", wgci: "$196K", due: "Today", dueColor: "#303030" },
+  { dot: "#5D5D5D", tag: "WARM", name: "Coral Gables buyer", ctx: "Re-engage · 11d silent", wgci: "$96K", due: "Cadence", dueColor: "#8F8F8F" },
+  { dot: "#8F8F8F", tag: "PAST", name: "A. Bittencourt", ctx: "Referral ask · closed 94d", wgci: "—", due: "Cadence", dueColor: "#8F8F8F" },
+];
+
+/* Next Actions · proposals (naPropDefs ~3152) + sequences (~3166) */
+export const NA_PROPOSALS: Array<{ id: string; text: string; name: string; action: string; type: string; due: string }> = [
+  { id: "p1", text: "Marcelo went quiet after the showing — propose a check-in call Thursday.", name: "Marcelo C. · Rivage PH", action: "Check-in call — post-showing temperature", type: "Call", due: "Jul 09" },
+  { id: "p2", text: "Nakamura offer has no response in 5 days — nudge the listing agent.", name: "Nakamura · Bal Harbour 1503", action: "Nudge listing agent on open offer", type: "Message", due: "Jul 07" },
+  { id: "p3", text: "Bittencourt referral window — 94 days since close, ask lands well now.", name: "A. Bittencourt", action: "Referral ask — soft, with market note attached", type: "Message", due: "Jul 08" },
+];
+export const NA_SEQUENCES: Array<{ id: string; name: string; rule: string; steps: Array<{ label: string; st: string }> }> = [
+  { id: "sq1", name: "Coral Gables buyer · re-engagement", rule: "Stops at first reply", steps: [{ label: "WhatsApp soft · Jul 03", st: "done" }, { label: "Call · Jul 07", st: "current" }, { label: "Downgrade proposal · Jul 10 · if silent", st: "future" }] },
+  { id: "sq2", name: "Nakamura · offer chase", rule: "Stops on counter", steps: [{ label: "Nudge listing agent · Jul 07", st: "current" }, { label: "Escalate to broker · Jul 09", st: "future" }, { label: "Reset client expectation · Jul 11", st: "future" }] },
+];
+
+/* Agent Learned (lnRows ~4701) */
+export const LEARNED: Array<{ id: string; src: string; text: string; saveLabel: string; audit: string }> = [
+  { id: "l1", src: "Call · Marcelo — Jul 05", text: "Budget ceiling confirmed at $18.5M, cash. Update the deal record?", saveLabel: "Update deal", audit: "Learned → filed · Rivage PH-A ceiling $18.5M cash (source: call Jul 05)" },
+  { id: "l2", src: "WhatsApp · Keller — Jul 04", text: "Mentions selling the Zurich apartment in Q1 27 — capital incoming. Create an opportunity signal?", saveLabel: "Create signal", audit: "Learned → signal created · Keller liquidity event Q1 27 — agent watches" },
+  { id: "l3", src: "Email · Bittencourt — Jul 03", text: "“Meu sócio Rafael procura casa em Key Biscayne.” Create the lead with an intro draft?", saveLabel: "Create lead", audit: "Learned → lead created · Rafael (via Bittencourt) — Key Biscayne · intro draft staged" },
+  { id: "l4", src: "Showing feedback — Jul 02", text: "Marcelo prefers high floors and west light. Save to preferences?", saveLabel: "Save to profile", audit: "Learned → preference saved · Marcelo — high floors · west light (source logged)" },
+];
+
 export const AGENT_LEDGER: Array<{ time: string; tag: string; text: string }> = [
   { time: "02:14", tag: "Captured", text: "Structured 3 WhatsApp threads into logs — Sterling, Ravel, Alvarez." },
   { time: "03:40", tag: "Sourced", text: "MLS sweep · 4 new matches for the Golden Beach buyer profile." },

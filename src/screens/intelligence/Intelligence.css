@@ -17,3 +17,4 @@
 .in-approveall:hover,
 .in-approve:hover { opacity: 0.82; }
 .in-ghost:hover { background: rgba(255, 255, 255, 0.62); }
+.in-touchrow:hover { background: rgba(255, 255, 255, 0.55); }
