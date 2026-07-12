@@ -199,9 +199,11 @@ export interface Settings {
   contact_types: string[];
   autonomy_rules: Record<string, unknown>;
   team: Record<string, unknown>[];
-  /* Cadence + action plan per contact status — read at runtime by Contact
-     Detail; absent ⇒ defaults from STATUS_PLAY. */
-  status_cadence?: Record<string, { cadence: string; action: string }>;
+  /* Cadence + action plan per status — the single cadence store. Canonical
+     statuses are keyed by their name (read at runtime by Contact Detail; absent
+     ⇒ defaults from STATUS_PLAY). Custom cadences use a synthetic key and carry
+     their own display `name`. */
+  status_cadence?: Record<string, { name?: string; cadence: string; action: string }>;
 }
 
 export interface VaultEntry { id: string; contact_id: string; fields: Record<string, unknown>; }

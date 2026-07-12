@@ -25,8 +25,6 @@ const NAV: Array<[string, string]> = [
 ];
 
 const AUTONOMY_ORDER = ["capture", "hygiene", "drafts", "send", "status", "chase"];
-const CADENCE_ORDER = ["hot", "warm", "active", "past", "network"];
-const CADENCE_DOT: Record<string, string> = { hot: "#0D0D0D", warm: "#5D5D5D", active: "#0D0D0D", past: "#8F8F8F", network: "#8F8F8F" };
 
 const ECON = [
   { label: "Standard commission", value: "5.0%" }, { label: "Co-broke default split", value: "50 / 50" },
@@ -375,7 +373,6 @@ export function Settings() {
   const settings = settingsRows[0];
 
   const autonomy = (settings?.autonomy_rules ?? {}) as Record<string, { label: string; desc: string; autonomous: boolean }>;
-  const cadences = (settings?.cadences ?? {}) as Record<string, { label: string; desc: string; days: number }>;
   const profile = (settings?.profile ?? {}) as Record<string, string>;
   const contactTypes = (settings?.contact_types ?? []) as string[];
   const partners = useMemo(() => contacts.filter((c) => c.category === "partner"), [contacts]);
@@ -388,19 +385,31 @@ export function Settings() {
     const next = { ...settings, autonomy_rules: { ...autonomy, [key]: { ...cur, autonomous: !cur.autonomous } } };
     persist(next, `Autonomy · ${cur.label} → ${cur.autonomous ? "Ask first" : "Autonomous"}`);
   };
-  const setCadenceDays = (key: string, days: number) => {
-    if (!settings) return;
-    const next = { ...settings, cadences: { ...cadences, [key]: { ...cadences[key], days } } };
-    persist(next, `Cadence · ${cadences[key].label} → every ${days} days`);
-  };
-  /* Cadence + action plan per contact status — the loop Contact Detail reads. */
+  /* Single cadence store. Canonical statuses (keyed by name) are read live by
+     Contact Detail; custom cadences use synthetic keys and carry their own name. */
   const statusCadence = settings?.status_cadence ?? {};
   const cadenceFor = (s: string) => statusCadence[s] ?? STATUS_PLAY[s] ?? STATUS_PLAY["Not classified"];
-  const setStatusCadence = (s: string, field: "cadence" | "action", value: string) => {
+  const customKeys = Object.keys(statusCadence).filter((k) => !CANON_STATUS.includes(k));
+  const cadenceRows = [
+    ...CANON_STATUS.map((s) => { const c = cadenceFor(s); return { key: s, name: s, custom: false, cadence: c.cadence, action: c.action }; }),
+    ...customKeys.map((k) => ({ key: k, name: statusCadence[k].name ?? k, custom: true, cadence: statusCadence[k].cadence, action: statusCadence[k].action })),
+  ];
+  const setCadenceField = (key: string, field: "name" | "cadence" | "action", value: string) => {
     if (!settings) return;
-    const base = cadenceFor(s);
-    const next = { ...settings, status_cadence: { ...statusCadence, [s]: { ...base, [field]: value } } };
-    persist(next, `Status cadence · ${s} · ${field} updated`);
+    const base = statusCadence[key] ?? (CANON_STATUS.includes(key) ? cadenceFor(key) : { cadence: "", action: "" });
+    const next = { ...settings, status_cadence: { ...statusCadence, [key]: { ...base, [field]: value } } };
+    persist(next, `Cadence · ${CANON_STATUS.includes(key) ? key : ((base as { name?: string }).name ?? key)} · ${field} updated`);
+  };
+  const addCadence = () => {
+    if (!settings) return;
+    let i = 1, key = `custom_${i}`;
+    while (statusCadence[key]) key = `custom_${++i}`;
+    persist({ ...settings, status_cadence: { ...statusCadence, [key]: { name: "New cadence", cadence: "", action: "" } } }, "Cadence · added custom cadence");
+  };
+  const removeCadence = (key: string) => {
+    if (!settings) return;
+    const rest = { ...statusCadence }; const gone = rest[key]?.name ?? key; delete rest[key];
+    persist({ ...settings, status_cadence: rest }, `Cadence · removed ${gone}`);
   };
 
   const navNumFor = (key: string) => String(NAV.findIndex(([k]) => k === key) + 1).padStart(2, "0");
@@ -482,41 +491,35 @@ export function Settings() {
             </>
           )}
 
-          {/* 02 CADENCE */}
+          {/* 02 CADENCE — single unified, extensible editor */}
           {sec === "02" && (
             <>
-              <SecHead num={navNumFor("02")} title="Cadence Rules" desc="The clocks that drive Touch Today. An inbound touch resets the clock." />
-              <Rows>
-                {CADENCE_ORDER.filter((k) => cadences[k]).map((k) => {
-                  const c = cadences[k];
-                  return (
-                    <div key={k} style={{ display: "flex", alignItems: "center", gap: 24, padding: "15px 4px", borderBottom: "1px solid #E3E3E3" }}>
-                      <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: CADENCE_DOT[k] ?? "#8F8F8F" }} />
-                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0D0D0D", width: 90, flex: "none" }}>{c.label}</span>
-                      <span style={{ flex: 1, fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#5D5D5D" }}>{c.desc}</span>
-                      <div style={{ display: "flex", alignItems: "baseline", gap: 8, flex: "none" }}>
-                        <span style={{ fontFamily: SANS, fontSize: 12, color: "#8F8F8F" }}>every</span>
-                        <input type="number" min={1} value={c.days} onChange={(e) => setCadenceDays(k, parseInt(e.target.value, 10) || 1)} style={{ width: 44, background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 200, fontSize: 18, color: "#0D0D0D", padding: "0 0 2px", outline: "none", textAlign: "center" }} />
-                        <span style={{ fontFamily: SANS, fontSize: 12, color: "#8F8F8F" }}>days</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </Rows>
-
-              {/* Cadence & action plan per contact status — read live by Contact Detail */}
-              <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", margin: "34px 0 4px", paddingBottom: 10, borderBottom: "1px solid #E3E3E3" }}>Cadence &amp; action plan by status</div>
-              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", margin: "8px 0 14px" }}>What each status arms when you set it on a contact — the Contact file shows this live. Edit inline; auto-saved.</div>
-              {CANON_STATUS.map((s) => {
-                const c = cadenceFor(s);
-                return (
-                  <div key={s} style={{ display: "grid", gridTemplateColumns: "120px 150px 1fr", gap: 18, alignItems: "center", padding: "13px 4px", borderBottom: "1px solid #E3E3E3" }}>
-                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>{s}</span>
-                    <input value={c.cadence} onChange={(e) => setStatusCadence(s, "cadence", e.target.value)} placeholder="e.g. Every 3 days" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#0D0D0D", padding: "5px 0", outline: "none" }} />
-                    <input value={c.action} onChange={(e) => setStatusCadence(s, "action", e.target.value)} placeholder="Action plan the agent runs" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", padding: "5px 0", outline: "none" }} />
-                  </div>
-                );
-              })}
+              <SecHead num={navNumFor("02")} title="Cadence Rules" desc="One cadence per status — the clock and the action plan the agent runs. Drives Touch Today and each contact's next touch; an inbound touch resets the clock. Edit inline, auto-saved." />
+              {/* column header */}
+              <div style={{ display: "grid", gridTemplateColumns: "150px 170px 1fr 26px", gap: 18, alignItems: "center", padding: "0 4px 10px", borderBottom: "1px solid #E3E3E3" }}>
+                {["Status", "Cadence", "Action plan"].map((h) => (
+                  <span key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</span>
+                ))}
+                <span />
+              </div>
+              {cadenceRows.map((r) => (
+                <div key={r.key} style={{ display: "grid", gridTemplateColumns: "150px 170px 1fr 26px", gap: 18, alignItems: "center", padding: "13px 4px", borderBottom: "1px solid #E3E3E3" }}>
+                  {r.custom ? (
+                    <input value={r.name} onChange={(e) => setCadenceField(r.key, "name", e.target.value)} placeholder="Name" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", padding: "5px 0", outline: "none" }} />
+                  ) : (
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>{r.name}</span>
+                  )}
+                  <input value={r.cadence} onChange={(e) => setCadenceField(r.key, "cadence", e.target.value)} placeholder="e.g. Every 3 days" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#0D0D0D", padding: "5px 0", outline: "none" }} />
+                  <input value={r.action} onChange={(e) => setCadenceField(r.key, "action", e.target.value)} placeholder="Action plan the agent runs" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", padding: "5px 0", outline: "none" }} />
+                  {r.custom ? (
+                    <span onClick={() => removeCadence(r.key)} title="Remove cadence" className="st-cadremove" style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", fontFamily: SANS, fontSize: 12, color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>×</span>
+                  ) : (
+                    <span />
+                  )}
+                </div>
+              ))}
+              <div onClick={addCadence} className="st-addcad" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 4px", borderBottom: "1px solid #E3E3E3", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>+ Add cadence</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, lineHeight: 1.6, color: "#B8B8B8", marginTop: 14 }}>The six base statuses drive a contact's live cadence when you set its status on the Contact file. Add your own for segments the agent should chase on a different clock (e.g. Vendors, Network). Every change is logged.</div>
             </>
           )}
 
