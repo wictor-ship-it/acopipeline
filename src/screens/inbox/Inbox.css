@@ -1,13 +1,21 @@
 /* Inbox message center — glass surfaces + hover states (fragment 15). */
 
+.ib-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 96px);
+  padding: 18px 48px;
+  box-sizing: border-box;
+}
 .ib-shell {
   display: flex;
-  border-radius: 0;
+  border-radius: 14px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.62);
-  height: calc(100vh - 96px);
-  min-height: 560px;
-  margin: -22px -48px 0;
+  border: 1px solid #E3E3E3;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  flex: 1;
+  min-height: 0;
 }
 .ib-left {
   width: 344px;

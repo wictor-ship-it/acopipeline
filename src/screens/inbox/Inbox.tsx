@@ -139,7 +139,7 @@ export function Inbox() {
   const qrs = quickReplies(lang, first);
 
   return (
-    <div style={{ padding: "22px 48px 44px" }}>
+    <div className="ib-page">
       <GmailLiveStrip />
       <div className="ib-shell">
         {/* LEFT · threads */}
