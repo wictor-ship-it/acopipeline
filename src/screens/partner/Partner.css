@@ -10,3 +10,6 @@
 .pt-kit:hover { border-color: #8F8F8F; color: #0D0D0D; }
 .pt-chip { cursor: pointer; user-select: none; transition: all 150ms; }
 .pt-input:focus { border-bottom-color: #0D0D0D; }
+.pt-back:hover { color: #0D0D0D; }
+.pt-card-click { cursor: pointer; transition: box-shadow 150ms; }
+.pt-card-click:hover { box-shadow: 0 12px 34px rgba(0, 0, 0, 0.10), inset 0 1px 0 rgba(255, 255, 255, 0.7); }

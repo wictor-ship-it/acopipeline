@@ -18,6 +18,7 @@ import { PartnerDashboard } from "../screens/partner/PartnerDashboard";
 import { PartnerPortal } from "../screens/partner/PartnerPortal";
 import { PartnerNewReferral } from "../screens/partner/PartnerNewReferral";
 import { PartnerCollaterals } from "../screens/partner/PartnerCollaterals";
+import { PartnerReferralRecord } from "../screens/partner/PartnerReferralRecord";
 import { Activities } from "../screens/activities/Activities";
 
 export function App() {
@@ -51,6 +52,7 @@ export function App() {
         <Route path="/activities" element={<Activities />} />
         <Route path="/partner/dashboard" element={<PartnerDashboard />} />
         <Route path="/partner/pipeline" element={<PartnerPortal />} />
+        <Route path="/partner/referral/:id" element={<PartnerReferralRecord />} />
         <Route path="/partner/new-referral" element={<PartnerNewReferral />} />
         <Route path="/partner/collaterals" element={<PartnerCollaterals />} />
       </Route>

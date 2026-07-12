@@ -48,6 +48,39 @@ export const PT_CARDS: PtCard[] = [
 ];
 export const PT_COLS = [{ title: "In progress", ids: [0] }, { title: "Closing", ids: [1] }, { title: "Paid", ids: [2] }];
 
+/* Referral record (14) — per-card track, milestones, history, notes (cardDefs ~3642) */
+const T_BUY = ["Qualified", "Toured", "Offer strategy", "Negotiation", "Contract", "Escrow", "Closing"];
+const T_LIST = ["Consult", "Valuation", "Agreement", "Prep & staging", "Marketing", "Offers", "Contract", "Closing"];
+export interface PtRecord {
+  track: string[]; idx: number; prot: string; protColor: string;
+  nums: Array<{ label: string; value: string; note: string }>;
+  hl: Array<[string, string]>; miles: Array<[string, string, string]>;
+  tcMiles?: Array<[string, string, string]>; comments: Array<[string, string, string]>;
+}
+export const PT_RECORD: Record<string, PtRecord> = {
+  rivage: { track: T_BUY, idx: 2, prot: "Protected to Jun 2027 · 346 days", protColor: "#0D0D0D",
+    nums: [{ label: "Referred value", value: "$18.5M", note: "Rivage PH-A · acquisition" }, { label: "Your share", value: "$138.8K", note: "projected · at closing Sep 2026" }, { label: "Base GCI", value: "$555K", note: "3% of value" }],
+    hl: [["Jul 05", "Toured PH-A + PH-B with spouse — strong response"], ["Jul 03", "Offer strategy approved · ceiling set"], ["Jun 28", "Proof of funds filed — cash acquisition"], ["Jun 21", "Your referral registered · protection active"]],
+    miles: [["Jul 08", "Construction schedule to client", "done"], ["Jul 12", "Second visit — Sat 11:00", "next"], ["Jul 20", "Contract target — developer paper", "future"]],
+    comments: [["A. Bittencourt", "Jul 04", "Marcelo values discretion — avoid e-mail, WhatsApp only."], ["Wictor", "Jul 04", "Noted — the whole thread runs on WhatsApp. Good instinct."]] },
+  golden: { track: T_LIST, idx: 3, prot: "Protected to May 2027 · 324 days", protColor: "#0D0D0D",
+    nums: [{ label: "Referred value", value: "$19M", note: "Golden Beach Villa · listing" }, { label: "Your share", value: "$142.5K", note: "projected · at closing Q4 2026" }, { label: "Base GCI", value: "$570K", note: "3% of value" }],
+    hl: [["Jul 08", "Stager confirmed Thursday · photos Monday"], ["Jul 03", "Exclusive signed — launch week set"], ["Jun 26", "Walkthrough — positioning aligned"]],
+    miles: [["Jul 10", "Staging complete", "next"], ["Jul 14", "Photography + floor plans", "future"], ["Jul 17", "MLS live + broker open invites", "future"]],
+    comments: [] },
+  continuum: { track: T_BUY, idx: 6, prot: "Contract signed — fee locked (§4.3)", protColor: "#10A37F",
+    nums: [{ label: "Referred value", value: "$7.2M", note: "Continuum 2904 · acquisition" }, { label: "Your share", value: "$54.0K", note: "payable · disburses at closing Jul 18" }, { label: "Base GCI", value: "$216K", note: "3% of value" }],
+    hl: [["Jul 06", "Walk-through scheduled · wire verified"], ["Jul 02", "Financing cleared — all contingencies met"]],
+    miles: [["Jul 16", "Final walk-through", "next"], ["Jul 18", "Closing · your fee disburses", "future"]],
+    tcMiles: [["Contract signed", "Jul 02", "done"], ["Inspection cleared", "Jul 06", "done"], ["HOA approval", "Jul 10", "done"], ["Final walk-through", "Jul 16", "current"], ["Closing", "Jul 18", "future"], ["Your fee disburses", "Jul 18", "future"]],
+    comments: [["Wictor", "Jul 06", "Clean file — no financing contingency left. Expect the wire same day."]] },
+  setai: { track: T_BUY, idx: 7, prot: "Closed within validity ✓", protColor: "#10A37F",
+    nums: [{ label: "Referred value", value: "$6.4M", note: "Setai 1201 · closed Dec 2025" }, { label: "Your share", value: "$48.0K", note: "paid · wired Dec 12, 2025" }, { label: "Base GCI", value: "$192K", note: "3% of value" }],
+    hl: [["Dec 12", "Referral fee wired — $48.0K"], ["Nov 30", "Closed · 94 days referral-to-close"]],
+    miles: [["Dec 12", "Fee wired ✓", "done"]],
+    comments: [] },
+};
+
 /* Collaterals (ptProjects ~3768) */
 export const PT_PROJECTS: Array<{ name: string; loc: string; from: string; del: string; st: string; stC: string; upd: string }> = [
   { name: "Rivage", loc: "Bal Harbour — oceanfront", from: "from $8.5M", del: "Delivery Q4 2026", st: "Selling", stC: "#0D0D0D", upd: "updated Jul 08" },

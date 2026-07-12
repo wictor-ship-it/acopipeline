@@ -1,9 +1,11 @@
+import { useNavigate } from "react-router-dom";
 import { SANS } from "../contacts/data";
 import { PT_CARDS, PT_COLS } from "./data";
 import "./Partner.css";
 
 /* SCREEN · PARTNER PORTAL / PIPELINE (fragment 12) — the referral pipeline. */
 export function PartnerPortal() {
+  const navigate = useNavigate();
   return (
     <div style={{ padding: "22px 48px 120px" }}>
       <div style={{ borderBottom: "1px solid #E3E3E3", paddingBottom: 16 }}>
@@ -21,7 +23,7 @@ export function PartnerPortal() {
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                 {cards.map((c) => (
-                  <div key={c.id} className="pt-card" style={{ padding: "16px 18px" }}>
+                  <div key={c.id} onClick={() => navigate(`/partner/referral/${c.id}`)} className="pt-card pt-card-click" style={{ padding: "16px 18px" }}>
                     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
                       <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 14, color: "#0D0D0D" }}>{c.title}</span>
                       <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: c.feeColor, whiteSpace: "nowrap" }}>{c.feeSt}</span>
