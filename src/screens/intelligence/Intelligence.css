@@ -18,3 +18,19 @@
 .in-approve:hover { opacity: 0.82; }
 .in-ghost:hover { background: rgba(255, 255, 255, 0.62); }
 .in-touchrow:hover { background: rgba(255, 255, 255, 0.55); }
+.in-kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  margin: 0 5px 0 9px;
+  border: 1px solid #D9D9D9;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.7);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 9px;
+  color: #5D5D5D;
+}
+.in-kbd:first-child { margin-left: 0; }

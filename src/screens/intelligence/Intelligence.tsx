@@ -74,6 +74,32 @@ export function Intelligence() {
   };
   const approveAll = () => proposals.filter((p) => !decided[p.id]).forEach((p) => decide(p.id, "approved", p.label));
 
+  /* Keyboard-driven queue processing (§02 "one-tap day"): ↑↓/jk navigate ·
+     ⏎ approve · S skip. A focused item is highlighted; keys ignore text inputs. */
+  const queue = useMemo(() => [
+    ...proposals.filter((p) => !decided[p.id]).map((p) => ({ kind: "prop" as const, id: p.id, label: p.label })),
+    ...agentDecisions.filter((i) => !decided[i.id]).map((i) => ({ kind: "agent" as const, id: i.id, label: `${SKILL_LABELS[i.skill]} · ${i.title}` })),
+  ], [proposals, agentDecisions, decided]);
+  const [focusIdx, setFocusIdx] = useState(0);
+  useEffect(() => { setFocusIdx((f) => Math.min(f, Math.max(0, queue.length - 1))); }, [queue.length]);
+  const focusedId = queue[focusIdx]?.id;
+  const approveFocused = () => { const q = queue[focusIdx]; if (!q) return; q.kind === "prop" ? decide(q.id, "approved", q.label) : decideAgent(q.id, "approved"); };
+  const skipFocused = () => { const q = queue[focusIdx]; if (!q) return; q.kind === "prop" ? decide(q.id, "dismissed", q.label) : decideAgent(q.id, "dismissed"); };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!sec.act || queue.length === 0) return;
+      const el = e.target as HTMLElement | null;
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); setFocusIdx((f) => Math.min(f + 1, queue.length - 1)); }
+      else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); setFocusIdx((f) => Math.max(f - 1, 0)); }
+      else if (e.key === "Enter") { e.preventDefault(); approveFocused(); }
+      else if (e.key === "s" || e.key === "S") { e.preventDefault(); skipFocused(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [sec.act, queue, focusIdx]);
+  const qIndexOf = (id: string) => queue.findIndex((q) => q.id === id);
+
   /* forecast — what-if moves the Rivage slip from SEP to OCT */
   const months = useMemo(() => {
     const m = FORECAST.map((f) => ({ ...f, deals: [...f.deals] }));
@@ -153,8 +179,15 @@ export function Intelligence() {
       {/* ACT NOW */}
       <Block dot="#D0342C" title="Act Now" badge={openCount > 0 ? String(openCount) : undefined} hint="the only queue that needs you" open={sec.act} onToggle={() => toggle("act")}>
         <div style={{ padding: "20px 22px 26px" }}>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
-            <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13.5, color: "#0D0D0D" }}>Needs Your Decision</span>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, marginBottom: 14, flexWrap: "wrap" }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13.5, color: "#0D0D0D" }}>Needs Your Decision</span>
+              {openCount > 0 && (
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 8, fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.03em", color: "#B8B8B8" }}>
+                  <span className="in-kbd">↑↓</span> navigate<span className="in-kbd">⏎</span> approve<span className="in-kbd">S</span> skip
+                </span>
+              )}
+            </div>
             {openCount > 1 && <button onClick={approveAll} className="in-approveall" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "6px 14px", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Approve all · {openCount}</button>}
           </div>
           {openCount === 0 && (
@@ -167,8 +200,8 @@ export function Intelligence() {
             {proposals.map((p) => {
               const st = decided[p.id];
               return (
-                <div key={p.id} style={{ display: "flex", flexDirection: "column", borderBottom: "1px solid #ECECEC", borderLeft: "2px solid #D0342C", background: "rgba(255,255,255,0.45)", padding: "16px 22px" }}>
-                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{p.label}</div>
+                <div key={p.id} onClick={() => { const qi = qIndexOf(p.id); if (qi >= 0) setFocusIdx(qi); }} style={{ display: "flex", flexDirection: "column", borderBottom: "1px solid #ECECEC", borderLeft: `${p.id === focusedId ? 3 : 2}px solid ${p.id === focusedId ? "#0D0D0D" : "#D0342C"}`, background: p.id === focusedId ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.45)", padding: "16px 22px", cursor: "pointer", transition: "background 120ms" }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{p.id === focusedId && <span style={{ color: "#0D0D0D", marginRight: 6 }}>▸</span>}{p.label}</div>
                   <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.6, color: "#303030", marginTop: 10 }}>{p.body}</div>
                   <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, lineHeight: 1.55, fontStyle: "italic", color: "#8F8F8F", marginTop: 8 }}>{p.why}</div>
                   {!st && (
@@ -188,9 +221,9 @@ export function Intelligence() {
             {agentDecisions.map((it) => {
               const st = decided[it.id];
               return (
-                <div key={it.id} style={{ display: "flex", flexDirection: "column", borderBottom: "1px solid #ECECEC", borderLeft: "2px solid #D0342C", background: "rgba(255,255,255,0.45)", padding: "16px 22px" }}>
+                <div key={it.id} onClick={() => { const qi = qIndexOf(it.id); if (qi >= 0) setFocusIdx(qi); }} style={{ display: "flex", flexDirection: "column", borderBottom: "1px solid #ECECEC", borderLeft: `${it.id === focusedId ? 3 : 2}px solid ${it.id === focusedId ? "#0D0D0D" : "#D0342C"}`, background: it.id === focusedId ? "rgba(255,255,255,0.8)" : "rgba(255,255,255,0.45)", padding: "16px 22px", cursor: "pointer", transition: "background 120ms" }}>
                   <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{SKILL_LABELS[it.skill]} · {it.title}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{it.id === focusedId && <span style={{ color: "#0D0D0D", marginRight: 6 }}>▸</span>}{SKILL_LABELS[it.skill]} · {it.title}</span>
                     <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 8.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#10A37F", border: "1px solid #E3E3E3", borderRadius: 999, padding: "1px 7px" }}>agent · live</span>
                   </div>
                   <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.6, color: "#303030", marginTop: 10 }}>{it.context}</div>
