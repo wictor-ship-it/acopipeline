@@ -6,6 +6,7 @@ import type { AuditEntry, Contact, Settings as SettingsRec } from "../../domain/
 import { useAppState } from "../../app/state";
 import { fetchGmailThreads } from "../../data/adapters/gmail";
 import { fetchCalendarEvents } from "../../data/adapters/calendar";
+import { getAgentStatus, type AgentStatus } from "../../data/adapters/agent";
 import { SANS } from "../contacts/data";
 import "./Settings.css";
 
@@ -82,6 +83,28 @@ function GoogleLiveCard() {
         </div>
       </div>
       {test && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#5D5D5D", marginTop: 10 }}>{test}</div>}
+    </div>
+  );
+}
+
+/* Agent brain status (Phase 2) — Claude API via the BFF, else mock fallback. */
+function AgentBrainCard() {
+  const [status, setStatus] = useState<AgentStatus | null | undefined>(undefined);
+  useEffect(() => { let alive = true; void getAgentStatus().then((s) => { if (alive) setStatus(s); }); return () => { alive = false; }; }, []);
+  const { dot, label, tone } = status === undefined
+    ? { dot: "#D9D9D9", label: "Checking…", tone: "#8F8F8F" }
+    : status === null
+    ? { dot: "#B45309", label: "Backend offline — running the mock agent", tone: "#B45309" }
+    : status.configured
+    ? { dot: "#10A37F", label: `Live · Claude API · ${status.model}`, tone: "#10A37F" }
+    : { dot: "#8F8F8F", label: "Not provisioned — mock agent (add ANTHROPIC_API_KEY)", tone: "#8F8F8F" };
+  return (
+    <div style={{ padding: "15px 4px", borderBottom: "1px solid #E3E3E3" }}>
+      <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 14, color: "#0D0D0D" }}>Agent brain <span style={{ fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#10A37F" }}>· live</span></div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot }} />
+        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: tone }}>{label}</span>
+      </div>
     </div>
   );
 }
@@ -290,6 +313,7 @@ export function Settings() {
               <SecHead num={navNumFor("05")} title="Integrations" desc="Connectors the agent works through. Google is live via the BFF; the rest are mocked behind adapters." />
               <Rows>
                 <GoogleLiveCard />
+                <AgentBrainCard />
                 {CONNECTORS.filter((c) => c.name !== "Google Workspace").map((c) => (
                   <div key={c.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "15px 4px", borderBottom: "1px solid #E3E3E3" }}>
                     <div>

@@ -4,24 +4,11 @@
    item's autonomy from Settings §03 at call time (never hard-coded). The real
    Claude-API service replaces this class in Phase 2 behind the same interface.
    ========================================================================= */
-import type { AgentItem, AgentService, AgentSkill, AutonomyMode, ResolvedAgentItem } from "../domain/agent";
+import type { AgentItem, AgentService, AgentSkill, ResolvedAgentItem } from "../domain/agent";
 import type { Contact, Draft, Settings, Transaction } from "../domain/types";
 import { getAll, getById } from "../data/repository";
+import { resolveAutonomy } from "./autonomy";
 import { violatesVoice } from "./voice";
-
-/* Which Settings §03 toggle governs each item type. Approval is required for
-   anything that sends to a client or changes a record the client sees. */
-function resolveAutonomy(item: AgentItem, autonomy: Record<string, { autonomous?: boolean }>): AutonomyMode {
-  const on = (key: string) => !!autonomy[key]?.autonomous;
-  switch (item.type) {
-    case "draft_pair":      return on("send") ? "autonomous" : "ask_first";   // any client send needs approval by default
-    case "learned_field":   return on("hygiene") ? "autonomous" : "ask_first";
-    case "milestone_alert": return on("chase") ? "autonomous" : "ask_first";  // vendor chase can be autonomous
-    case "compliance_block": return "ask_first";                              // Compliance blocks — never auto-resolved
-    case "brief":           return on("capture") ? "autonomous" : "ask_first";
-    default:                return "ask_first";
-  }
-}
 
 export class MockAgentService implements AgentService {
   async listItems(): Promise<ResolvedAgentItem[]> {

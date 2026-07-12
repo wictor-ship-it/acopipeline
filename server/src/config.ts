@@ -13,7 +13,14 @@ export const config = {
   tokenKey: process.env.TOKEN_ENCRYPTION_KEY ?? "",
   port: Number(process.env.PORT ?? 8787),
   allowedOrigin: process.env.ALLOWED_ORIGIN ?? "http://localhost:5173",
+  /* Agent brain (independent of Google auth). */
+  anthropicKey: process.env.ANTHROPIC_API_KEY ?? "",
+  anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
 } as const;
+
+/** The agent brain is live only when an Anthropic key is present. Independent
+    of Google auth — either can be configured without the other. */
+export const agentConfigured = () => !!config.anthropicKey;
 
 /** Returns the list of required env vars that are still blank. Empty ⇒ ready. */
 export function missingConfig(): string[] {
