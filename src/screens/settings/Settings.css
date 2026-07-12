@@ -11,3 +11,7 @@
 .st-stagebtn:hover { border-color: #8F8F8F !important; }
 .st-stagedel:hover { border-color: #D0342C !important; color: #D0342C !important; }
 .st-addstage:hover { background: rgba(255, 255, 255, 0.55); color: #0D0D0D !important; }
+
+/* Playbook cards + deal-playbook step cells. */
+.st-pbchip:hover { color: #0D0D0D !important; border-color: #8F8F8F !important; }
+.st-pbcell:focus { border-bottom-color: #D9D9D9 !important; }

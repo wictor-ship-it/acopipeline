@@ -18,8 +18,9 @@ import "./Settings.css";
 
 const NAV: Array<[string, string]> = [
   ["01", "Profile"], ["16", "Team & Access"], ["03", "Agent Autonomy"], ["02", "Cadence Rules"],
-  ["18", "Contact Types"], ["04", "Economics"], ["17", "Referral Partners"], ["05", "Integrations"],
-  ["11", "Pipeline & Stages"], ["12", "MLS & Matching"], ["08", "Voice & Templates"], ["07", "Scoring & Forecast"],
+  ["18", "Contact Types"], ["14", "Nurturing Playbooks"], ["15", "Deal Playbooks"], ["11", "Pipeline & Stages"],
+  ["04", "Economics"], ["17", "Referral Partners"], ["12", "MLS & Matching"], ["08", "Voice & Templates"],
+  ["06", "Notifications & Rhythm"], ["10", "Day Rhythm"], ["07", "Scoring & Forecast"], ["05", "Integrations"],
   ["13", "Display & Locale"], ["09", "Data & Privacy"],
 ];
 
@@ -146,6 +147,117 @@ function FieldGrid({ fields, vals, onVal }: { fields: Field[]; vals: Record<stri
   );
 }
 
+/* Toggle-list sections — Notifications & Rhythm §06, Day Rhythm §10. */
+const NOTIF_DEFS: Array<[string, string, string]> = [
+  ["brief", "Morning brief · 6:00 AM", "Daily command brief via WhatsApp before the day starts"],
+  ["digest", "Midday digest · 1:00 PM", "What moved, what stalled, what arrived — one message"],
+  ["t3", "T-3 milestone alerts", "Any transaction milestone entering the 3-day window"],
+  ["escalate", "Critical escalation", "Deal at risk or SLA broken — immediate ping, bypasses quiet hours"],
+  ["weekly", "Sunday review · 6:00 PM", "Weekly movement narrative + next week forecast"],
+  ["quiet", "Quiet hours · 22:00–07:00", "Everything non-critical holds until morning"],
+];
+const NOTIF_ON: Record<string, boolean> = { brief: true, digest: true, quiet: true, escalate: true, weekly: true, t3: true };
+const RHYTHM_DEFS: Array<[string, string, string]> = [
+  ["focus", "Focus block · 9:00–11:00", "No pings, no queue additions — calls and tours only"],
+  ["cap", "Daily queue cap · 7 touches", "Agent trims the queue to what a day actually holds; the rest rolls over ranked"],
+  ["defer", "Smart deferral", "Non-urgent items auto-reschedule around showings and closings"],
+  ["weekend", "Weekend mode", "Saturday/Sunday queue reduced to HOT + transaction-critical only"],
+  ["vacation", "Away mode", "Agent holds drafts, extends cadences, escalates only deal-critical items"],
+];
+const RHYTHM_ON: Record<string, boolean> = { focus: true, cap: true, defer: true, weekend: false, vacation: false };
+const FIELD_MODES: Array<{ key: string; label: string; desc: string }> = [
+  { key: "travel", label: "Travel mode", desc: "Agent assumes cadences, chases and coordination. One 5-min digest per day; interruption only for critical items. Return report on arrival." },
+  { key: "car", label: "Car mode", desc: "Between tours: next-appointment briefing read aloud, logging by voice memo, yes/no approvals. Zero screen while driving." },
+];
+
+/* Nurturing Playbooks §14 — the action set that follows a contact's status. */
+const GC_PLAYBOOKS: Array<{ status: string; name: string; cadence: string; steps: string[] }> = [
+  { status: "NEW", name: "First 10 Days", cadence: "Onboarding", steps: ["D0 · Intro WhatsApp in your voice — queued for approval", "D2 · Market note on the corridor of interest", "D5 · Discovery call — agent preps the dossier", "D10 · First curated set — 3 properties"] },
+  { status: "WARM", name: "Stay Close", cadence: "Every 7 days", steps: ["Bi-weekly touch, alternating channel", "Monthly market report on the saved corridor", "Monthly MLS sweep against the profile", "Re-qualify signal check every 30 days"] },
+  { status: "HOT", name: "Decision Window", cadence: "Every 3 days", steps: ["Touch every 3 days at the best window", "Tour push with curated options", "Developer and inventory updates as they land", "Decision-maker map + objection tracking"] },
+  { status: "SPHERE", name: "Permanence", cadence: "Quarterly", steps: ["Quarterly personal touch", "Anniversary and key-date gestures", "Referral ask inside the 90-day warm window", "Event and preview invitations"] },
+];
+
+/* Deal Playbooks §15 — closing procedures per deal type; the contract wins. */
+type PbStep = { n: string; d: string; o: string; a: string };
+const PB_DEFAULTS: Record<string, PbStep[]> = {
+  "Purchase · Cash": [
+    { n: "Executed contract distributed", d: "Effective +0d", o: "TC", a: "Auto — agent distributes to all parties" },
+    { n: "Escrow deposit confirmed", d: "Effective +3d", o: "Client", a: "Reminder D-1 · receipt filed to Drive" },
+    { n: "Inspection period ends", d: "Effective +14d", o: "Inspector", a: "Schedule on day 2 · chase report at T-2" },
+    { n: "HOA / condo approval package", d: "Effective +17d", o: "TC", a: "Draft to association auto-prepared" },
+    { n: "Title commitment received", d: "Effective +28d", o: "Title Co.", a: "Chase at T-3 · escalate at T-1" },
+    { n: "Walk-through", d: "Closing −2d", o: "You", a: "Calendar event + client dossier" },
+    { n: "Closing statement review", d: "Closing −1d", o: "You", a: "Agent flags deviations vs contract" },
+    { n: "CDA / commission disbursement", d: "Closing", o: "TC", a: "Auto-prepared from split settings" },
+  ],
+  "Purchase · Financed": [
+    { n: "Executed contract distributed", d: "Effective +0d", o: "TC", a: "Auto — agent distributes" },
+    { n: "Escrow deposit confirmed", d: "Effective +3d", o: "Client", a: "Reminder D-1" },
+    { n: "Loan application completed", d: "Effective +5d", o: "Client · Lender", a: "Chase lender confirmation" },
+    { n: "Inspection period ends", d: "Effective +14d", o: "Inspector", a: "Schedule day 2 · chase report" },
+    { n: "Appraisal ordered / completed", d: "Effective +21d", o: "Lender", a: "Track · alert if below contract price" },
+    { n: "Loan approval · clear to close", d: "Closing −7d", o: "Lender", a: "Escalation chain at T-3" },
+    { n: "Walk-through", d: "Closing −2d", o: "You", a: "Calendar + dossier" },
+    { n: "Closing statement review", d: "Closing −1d", o: "You", a: "Agent flags deviations" },
+    { n: "CDA / commission disbursement", d: "Closing", o: "TC", a: "Auto-prepared" },
+  ],
+  Listing: [
+    { n: "Listing agreement executed", d: "Signed +0d", o: "You", a: "Auto-filed · folder created" },
+    { n: "Photography · staging scheduled", d: "Signed +5d", o: "Vendor", a: "Agent books preferred vendor" },
+    { n: "MLS live + syndication check", d: "Signed +7d", o: "TC", a: "Listing QA checklist auto-run" },
+    { n: "Private preview · broker open", d: "Signed +14d", o: "You", a: "Invite list from buyer-match sweep" },
+    { n: "Seller report · showings + feedback", d: "Weekly", o: "Agent", a: "Auto-drafted · approve to send" },
+    { n: "Price review checkpoint", d: "Signed +30d", o: "You", a: "Comp refresh + recommendation prepared" },
+  ],
+  Rental: [
+    { n: "Application + background check", d: "Application +2d", o: "TC", a: "Auto-ordered on receipt" },
+    { n: "Lease draft circulated", d: "Application +4d", o: "Attorney", a: "Template pre-filled from terms" },
+    { n: "Association approval", d: "Application +10d", o: "HOA", a: "Package auto-prepared · chase at T-3" },
+    { n: "Move-in funds confirmed", d: "Lease −3d", o: "Tenant", a: "Reminder + receipt filed" },
+    { n: "Move-in walk-through", d: "Lease start", o: "You", a: "Checklist + photos to Drive" },
+  ],
+  Capital: [
+    { n: "PSA executed · escrow opened", d: "PSA +0d", o: "Attorney", a: "Auto-distributed · critical dates extracted" },
+    { n: "Due diligence begins", d: "PSA +1d", o: "You · Buyer", a: "DD checklist instantiated per asset class" },
+    { n: "Third-party reports ordered", d: "PSA +5d", o: "Vendors", a: "Environmental · survey · PCA tracked" },
+    { n: "DD period expires · go/no-go", d: "PSA +30d", o: "Buyer", a: "T-5 decision brief auto-prepared" },
+    { n: "Financing contingency", d: "PSA +45d", o: "Lender", a: "Track · 1031 clocks if applicable" },
+    { n: "Closing · proration review", d: "Per PSA", o: "Attorney", a: "Statement vs PSA deviation check" },
+  ],
+};
+const DEALPB_KEY = "aco-settings-dealpb";
+function loadDealPb(): Record<string, PbStep[]> {
+  try {
+    const raw = localStorage.getItem(DEALPB_KEY);
+    if (raw) { const p = JSON.parse(raw) as Record<string, PbStep[]>; if (p && Object.keys(p).length) return p; }
+  } catch { /* fall through */ }
+  return PB_DEFAULTS;
+}
+
+/* Shared toggle-list — Notifications & Rhythm §06, Day Rhythm §10. */
+function ToggleList({ defs, state, onToggle }: { defs: Array<[string, string, string]>; state: Record<string, boolean>; onToggle: (k: string) => void }) {
+  return (
+    <div style={{ borderTop: "1px solid #E3E3E3" }}>
+      {defs.map(([key, label, desc]) => {
+        const on = !!state[key];
+        return (
+          <div key={key} onClick={() => onToggle(key)} className="st-toggle" style={{ display: "flex", alignItems: "center", gap: 24, padding: "15px 4px", borderBottom: "1px solid #E3E3E3", cursor: "pointer", transition: "background 150ms" }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#0D0D0D" }}>{label}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 3 }}>{desc}</div>
+            </div>
+            <div style={{ width: 30, height: 14, flex: "none", borderRadius: 999, border: `0.5px solid ${on ? "#10A37F" : "#B4B4B4"}`, background: on ? "#10A37F" : "transparent", display: "flex", alignItems: "center", justifyContent: on ? "flex-end" : "flex-start", padding: 1, transition: "all 150ms" }}>
+              <div style={{ width: 10, height: 10, borderRadius: "50%", background: on ? "#FFFFFF" : "#8F8F8F", transition: "all 150ms" }} />
+            </div>
+            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: on ? "#0D0D0D" : "#8F8F8F", width: 40, textAlign: "right", flex: "none" }}>{on ? "On" : "Off"}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 /* Live Google Workspace connector (Phase 2) — real state from the BFF. */
 function GoogleLiveCard() {
   const { google, connectGoogle, disconnectGoogle } = useAppState();
@@ -245,6 +357,15 @@ export function Settings() {
     setPipes(next); setPipeSel(sel);
     try { localStorage.setItem(PIPES_KEY, JSON.stringify(next)); } catch { /* storage may be unavailable */ }
   };
+  const [notif, setNotif] = useState<Record<string, boolean>>(NOTIF_ON);
+  const [rhythm, setRhythm] = useState<Record<string, boolean>>(RHYTHM_ON);
+  const [fieldMode, setFieldMode] = useState<Record<string, boolean>>({ travel: false, car: false });
+  const [dealPb, setDealPb] = useState<Record<string, PbStep[]>>(loadDealPb);
+  const [dealSel, setDealSel] = useState<string>(() => Object.keys(loadDealPb())[0]);
+  const commitDealPb = (next: Record<string, PbStep[]>, sel: string) => {
+    setDealPb(next); setDealSel(sel);
+    try { localStorage.setItem(DEALPB_KEY, JSON.stringify(next)); } catch { /* storage may be unavailable */ }
+  };
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   useEffect(() => {
     const load = () => void getAuditLog().then(setAudit);
@@ -307,6 +428,17 @@ export function Settings() {
     commitPipes({ order, data }, nv);
   };
   const addStage = () => setStageArr([...pStages, { n: "New Stage", p: 50 }]);
+
+  /* Deal Playbooks editor (§15) — milestone steps per deal type, persisted. */
+  const dSel = dealPb[dealSel] ? dealSel : Object.keys(dealPb)[0];
+  const dSteps = dealPb[dSel] ?? [];
+  const setDSteps = (arr: PbStep[]) => commitDealPb({ ...dealPb, [dSel]: arr }, dSel);
+  const addDealType = () => {
+    let name = "New Playbook", i = 2;
+    while (dealPb[name]) name = `New Playbook ${i++}`;
+    commitDealPb({ ...dealPb, [name]: [{ n: "New action", d: "Effective +0d", o: "You", a: "—" }] }, name);
+  };
+  const addDStep = () => setDSteps([...dSteps, { n: "New action", d: "Effective +0d", o: "You", a: "—" }]);
 
   return (
     <div style={{ display: "flex", gap: 52, padding: "8px 48px 80px", alignItems: "flex-start" }}>
@@ -607,6 +739,124 @@ export function Settings() {
               <FieldGrid fields={SET_DISPLAY} vals={vals} onVal={onVal} />
             </>
           )}
+
+          {/* 06 NOTIFICATIONS & RHYTHM */}
+          {sec === "06" && (
+            <>
+              <SecHead num={navNumFor("06")} title="Notifications & Rhythm" desc="When the system speaks — and when it holds its tongue." />
+              <ToggleList defs={NOTIF_DEFS} state={notif} onToggle={(k) => setNotif((s) => ({ ...s, [k]: !s[k] }))} />
+            </>
+          )}
+
+          {/* 10 DAY RHYTHM + FIELD MODES */}
+          {sec === "10" && (
+            <>
+              <SecHead num={navNumFor("10")} title="Day Rhythm" desc="The system adapts to your day — not the other way around." />
+              <ToggleList defs={RHYTHM_DEFS} state={rhythm} onToggle={(k) => setRhythm((s) => ({ ...s, [k]: !s[k] }))} />
+              <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", margin: "34px 0 4px", paddingBottom: 10, borderBottom: "1px solid #E3E3E3" }}>Field Modes</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", margin: "8px 0 6px" }}>For the days you are not at the desk — the system adapts, not you.</div>
+              <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 60px" }}>
+                {FIELD_MODES.map((m) => {
+                  const on = !!fieldMode[m.key];
+                  return (
+                    <div key={m.key} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 20, padding: "16px 4px", borderBottom: "1px solid #E3E3E3" }}>
+                      <div style={{ minWidth: 0 }}>
+                        <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>{m.label}</div>
+                        <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, lineHeight: 1.6, color: "#5D5D5D", marginTop: 5 }}>{m.desc}</div>
+                      </div>
+                      <div onClick={() => setFieldMode((s) => ({ ...s, [m.key]: !s[m.key] }))} style={{ flex: "none", cursor: "pointer", fontFamily: SANS, fontWeight: on ? 600 : 400, fontSize: 11, letterSpacing: "0.08em", padding: "6px 16px", border: `0.5px solid ${on ? "#C9C7C1" : "#E3E3E3"}`, background: on ? "#E9E8E4" : "transparent", color: on ? "#0D0D0D" : "#8F8F8F", transition: "all 150ms" }}>{on ? "ON" : "OFF"}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* 14 NURTURING PLAYBOOKS */}
+          {sec === "14" && (
+            <>
+              <SecHead num={navNumFor("14")} title="Nurturing Playbooks" desc="Pre-defined action sets attached automatically when a contact is qualified — the playbook follows the status. Every outbound step still requires approval." />
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+                {GC_PLAYBOOKS.map((p) => (
+                  <div key={p.status} style={{ borderRadius: 12, background: "rgba(255,255,255,0.42)", backdropFilter: "blur(22px) saturate(1.7)", WebkitBackdropFilter: "blur(22px) saturate(1.7)", border: "1px solid rgba(255,255,255,0.65)", boxShadow: "0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7)", padding: "18px 20px" }}>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                        <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>{p.status}</span>
+                        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>“{p.name}”</span>
+                      </div>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8F8F8F", whiteSpace: "nowrap" }}>{p.cadence}</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 5, marginTop: 12, paddingTop: 12, borderTop: "1px solid #E3E3E3" }}>
+                      {p.steps.map((s) => (
+                        <div key={s} style={{ display: "flex", alignItems: "baseline", gap: 9 }}>
+                          <span style={{ width: 5, height: 5, flex: "none", borderRadius: "50%", background: "#8F8F8F", alignSelf: "center" }} />
+                          <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, lineHeight: 1.5, color: "#303030" }}>{s}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                      <span className="st-pbchip" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", border: "1px solid #E3E3E3", padding: "5px 11px", cursor: "pointer", transition: "all 150ms" }}>Edit steps</span>
+                      <span className="st-pbchip" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", border: "1px solid #E3E3E3", padding: "5px 11px", cursor: "pointer", transition: "all 150ms" }}>Pause playbook</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* 15 DEAL PLAYBOOKS */}
+          {sec === "15" && (
+            <>
+              <SecHead num={navNumFor("15")} title="Deal Playbooks" desc="Closing procedures per deal type. A signed contract instantiates the playbook with real dates — the contract always wins." />
+              {/* contract-read demo */}
+              <div style={{ border: "1px solid rgba(255,255,255,0.7)", borderLeft: "2px solid #D0342C", background: "rgba(255,255,255,0.45)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.8)", padding: "18px 22px", marginBottom: 22 }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D" }}>Agent · contract read</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, lineHeight: 1.65, color: "#303030", marginTop: 8 }}>Sterling — Acqualina 4802: executed contract read. Cash, no financing contingency → <span style={{ fontWeight: 600 }}>Purchase · Cash</span> playbook instantiated with real dates: inspection 14d (§7), HOA 17d (§9), closing Aug 15 (§4). <span style={{ color: "#D0342C" }}>2 deviations from standard</span> — inspection shortened to 10d and single deposit — dates adjusted per the contract.</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", marginTop: 8 }}>New contract signed → the agent extracts the terms and creates the milestones on its own. The playbook below is the default; the contract always wins.</div>
+              </div>
+              {/* type tabs */}
+              <div style={{ display: "flex", alignItems: "baseline", gap: 26, borderBottom: "1px solid #E3E3E3", flexWrap: "wrap" }}>
+                {Object.keys(dealPb).map((name) => {
+                  const active = name === dSel;
+                  return (
+                    <div key={name} onClick={() => setDealSel(name)} style={{ fontFamily: SANS, fontWeight: active ? 500 : 400, fontSize: 13, letterSpacing: "0.02em", color: active ? "#0D0D0D" : "#8F8F8F", paddingBottom: 7, borderBottom: `2px solid ${active ? "#0D0D0D" : "transparent"}`, marginBottom: -1, cursor: "pointer", transition: "color 150ms" }}>{name}</div>
+                  );
+                })}
+                <div onClick={addDealType} className="st-pipeadd" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.02em", color: "#8F8F8F", paddingBottom: 7, cursor: "pointer", whiteSpace: "nowrap", transition: "color 150ms" }}>+ New playbook</div>
+              </div>
+              {/* header row */}
+              <div style={{ display: "grid", gridTemplateColumns: "34px 2fr 1fr 0.9fr 1.8fr 104px", gap: 14, padding: "12px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)", marginTop: 18 }}>
+                <div />
+                {["Action", "Due rule", "Owner", "Agent automation"].map((h) => (
+                  <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>
+                ))}
+                <div />
+              </div>
+              {/* step rows */}
+              {dSteps.map((s, i) => {
+                const cell = (val: string, field: keyof PbStep, extra: CSSProperties) => (
+                  <input value={val} onChange={(e) => { const a = [...dSteps]; a[i] = { ...a[i], [field]: e.target.value }; setDSteps(a); }} className="st-pbcell" style={{ background: "transparent", border: "none", borderBottom: "0.5px solid transparent", padding: "4px 0", fontFamily: SANS, outline: "none", transition: "border-color 150ms", ...extra }} />
+                );
+                return (
+                  <div key={i} className="st-stagerow" style={{ display: "grid", gridTemplateColumns: "34px 2fr 1fr 0.9fr 1.8fr 104px", gap: 14, padding: "10px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center", transition: "background 150ms" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 12, letterSpacing: "0.05em", color: "#8F8F8F" }}>{String(i + 1).padStart(2, "0")}</span>
+                    {cell(s.n, "n", { fontWeight: 500, fontSize: 13.5, color: "#0D0D0D" })}
+                    {cell(s.d, "d", { fontWeight: 400, fontSize: 13, color: "#303030" })}
+                    {cell(s.o, "o", { fontWeight: 400, fontSize: 13, color: "#5D5D5D" })}
+                    {cell(s.a, "a", { fontWeight: 400, fontSize: 12.5, color: "#8F8F8F" })}
+                    <div style={{ display: "flex", gap: 4, justifyContent: "flex-end" }}>
+                      <span onClick={() => { if (i === 0) return; const a = [...dSteps]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; setDSteps(a); }} title="Move up" className="st-stagebtn" style={{ width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", borderRadius: 8, fontFamily: SANS, fontSize: 11, color: i === 0 ? "#E3E3E3" : "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>↑</span>
+                      <span onClick={() => { if (i === dSteps.length - 1) return; const a = [...dSteps]; [a[i], a[i + 1]] = [a[i + 1], a[i]]; setDSteps(a); }} title="Move down" className="st-stagebtn" style={{ width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", borderRadius: 8, fontFamily: SANS, fontSize: 11, color: i === dSteps.length - 1 ? "#E3E3E3" : "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>↓</span>
+                      <span onClick={() => setDSteps(dSteps.filter((_, x) => x !== i))} title="Delete action" className="st-stagedel" style={{ width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", borderRadius: 8, fontFamily: SANS, fontSize: 12, color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>×</span>
+                    </div>
+                  </div>
+                );
+              })}
+              <div onClick={addDStep} className="st-addstage" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 4px", borderBottom: "1px solid #E3E3E3", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>+ Add action</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, lineHeight: 1.6, color: "#8F8F8F", marginTop: 14 }}>Due rules are relative — Effective, Signed, PSA, Closing, Lease — and become real dates when the agent reads the contract. Edit any cell; changes apply to future deals of this type.</div>
+            </>
+          )}
+
           {sec === "09" && (
             <>
               <SecHead num={navNumFor("09")} title="Data & Privacy" desc="Retention, the private vault, and export rights." />
