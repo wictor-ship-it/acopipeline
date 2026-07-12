@@ -9,10 +9,12 @@ import { SANS } from "../contacts/data";
 import { useNavigate } from "react-router-dom";
 import {
   AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE, HERO_SUB,
-  LEARNED, MONEY_STRIP, MORNING_BRIEF, NA_PROPOSALS, NA_SEQUENCES, NET_CADENCE,
-  NET_KPIS, NET_SUMMARY, PLAYS, PROPOSALS, RECIP_HEAD, RECIP_ROWS, RISK_ROWS,
+  LEARNED, MONEY_STRIP, MORNING_BRIEF, NA_ACTIONS, NA_BUCKET_DOT, NA_BUCKET_META,
+  NA_FILTERS, NA_PROPOSALS, NA_SEQUENCES, NET_CADENCE, NET_KPIS, NET_SUMMARY,
+  PLAYS, PROPOSALS, RECIP_HEAD, RECIP_ROWS, RISK_ROWS,
   TOUCH_TODAY, VENDOR_HEAD, VENDOR_ROWS, WEEKLY_MOVEMENT,
 } from "./data";
+import type { NaTask } from "./data";
 import "./Intelligence.css";
 
 /* ================= SCREEN 5 · INTELLIGENCE (fragment 05) =================
@@ -50,7 +52,11 @@ export function Intelligence() {
 
   /* Natural-language quick add — the agent parses contact, type and date. */
   const [naQuick, setNaQuick] = useState("");
-  const [userTasks, setUserTasks] = useState<Array<{ id: string; name: string; action: string; type: string; due: string; bucket: string }>>([]);
+  const [userTasks, setUserTasks] = useState<NaTask[]>([]);
+  const [taskDone, setTaskDone] = useState<Record<string, boolean>>({});
+  const [naFilter, setNaFilter] = useState("all");
+  const [resched, setResched] = useState<Record<string, { due: string; bucket: string; tag: string }>>({});
+  const [naCollapsed, setNaCollapsed] = useState<Record<string, boolean>>({});
   const parseTask = (raw: string) => {
     const lo = raw.toLowerCase();
     const nameMap: Array<[string, string]> = [["marcelo", "Marcelo C. · Rivage PH"], ["keller", "Family Office · Zurich"], ["zurich", "Family Office · Zurich"], ["sterling", "Sterling · Acqualina 4802"], ["bittencourt", "A. Bittencourt"], ["ana ", "A. Bittencourt"], ["nakamura", "Nakamura · Bal Harbour 1503"], ["ravel", "Faena 8C · Ravel"], ["alvarez", "Alvarez · Continuum 2904"]];
@@ -61,7 +67,7 @@ export function Intelligence() {
     else if (/tomorrow|amanh/.test(lo)) { due = "Jul 07"; bucket = "week"; }
     else if (/friday|sexta/.test(lo)) { due = "Jul 10"; bucket = "week"; }
     else if (/monday|segunda|next week|semana que vem/.test(lo)) { due = "Jul 13"; bucket = "later"; }
-    return { id: `u${Date.now()}`, name: hit ? hit[1] : "General", action: raw, type, due, bucket };
+    return { id: `u${Date.now()}`, name: hit ? hit[1] : "General", action: raw, type, wgci: "", due, bucket };
   };
   const addTask = () => {
     const raw = naQuick.trim();
@@ -72,13 +78,6 @@ export function Intelligence() {
     void recordAction({ actor: "user", skill: "chief_of_staff", action: `Task created · ${task.name} — ${task.type} due ${task.due} (agent-parsed)` }, `task/${task.id}`, () => setUserTasks((u) => u.filter((x) => x.id !== task.id)));
     void getAuditLog().then(setAudit);
   };
-  const naSummary: Array<[string, number]> = [
-    ["Overdue", userTasks.filter((t) => t.bucket === "overdue").length],
-    ["Today", userTasks.filter((t) => t.bucket === "today").length],
-    ["This Week", userTasks.filter((t) => t.bucket === "week").length],
-    ["Open", naOpen.length + userTasks.length],
-  ];
-
   const [decided, setDecided] = useState<Record<string, "approved" | "dismissed" | "snoozed">>({});
   const [selMonth, setSelMonth] = useState("SEP");
   const [whatIf, setWhatIf] = useState(false);
@@ -87,6 +86,33 @@ export function Intelligence() {
   /* Task Log · Today — today's audit_log entries (Law 2), reactive to actions. */
   const todayISO = new Date().toISOString().slice(0, 10);
   const taskLog = audit.filter((e) => e.created_at.slice(0, 10) === todayISO).slice(0, 20);
+
+  /* Ranked task list — user-added + seed, with reschedule overrides applied. */
+  const naAll: NaTask[] = [...userTasks, ...NA_ACTIONS].map((a) => {
+    const r = resched[a.id];
+    return r ? { ...a, due: r.due, bucket: r.bucket } : a;
+  });
+  const naOpenTasks = naAll.filter((a) => !taskDone[a.id]);
+  const naSummary: Array<[string, number]> = [
+    ["Overdue", naOpenTasks.filter((t) => t.bucket === "overdue").length],
+    ["Today", naOpenTasks.filter((t) => t.bucket === "today").length],
+    ["This Week", naOpenTasks.filter((t) => t.bucket === "week").length],
+    ["Open", naOpenTasks.length],
+  ];
+  const naFiltered = naAll.filter((a) => naFilter === "all" || a.type === naFilter);
+  const naGroups = NA_BUCKET_META.map(([b, label]) => ({ bucket: b, label, items: naFiltered.filter((a) => a.bucket === b) })).filter((g) => g.items.length);
+  const toggleTask = (t: NaTask) => {
+    const nowDone = !taskDone[t.id];
+    setTaskDone((d) => ({ ...d, [t.id]: nowDone }));
+    if (nowDone) void recordAction({ actor: "user", skill: "chief_of_staff", action: `Task done · ${t.name} — ${t.action}` }, `taskdone/${t.id}`, () => setTaskDone((d) => ({ ...d, [t.id]: false })));
+    void getAuditLog().then(setAudit);
+  };
+  const reschedTask = (t: NaTask, due: string, bucket: string, tag: string) => {
+    const prev = resched[t.id];
+    setResched((r) => ({ ...r, [t.id]: { due, bucket, tag } }));
+    void recordAction({ actor: "user", skill: "chief_of_staff", action: `Task rescheduled ${tag} · ${t.name} → ${due}` }, `resched/${t.id}/${tag}`, () => setResched((r) => { const n = { ...r }; if (prev) n[t.id] = prev; else delete n[t.id]; return n; }));
+    void getAuditLog().then(setAudit);
+  };
 
   /* the mock agent's items routed to Needs Your Decision (§12) flow through
      this same queue — the compliance block etc. appear alongside the seeds. */
@@ -315,26 +341,6 @@ export function Intelligence() {
             <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 10, letterSpacing: "0.08em", color: "#8F8F8F", flex: "none" }}>↵ create</span>
           </div>
 
-          {/* tasks added by you (agent-parsed) */}
-          {userTasks.length > 0 && (
-            <div style={{ marginTop: 14 }}>
-              {userTasks.map((t) => (
-                <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 2px", borderBottom: "1px solid #ECECEC" }}>
-                  <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#0D0D0D" }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
-                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{t.name}</span>
-                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "#8F8F8F", fontStyle: "italic" }}>agent-parsed</span>
-                    </div>
-                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#303030", marginTop: 2 }}>{t.action}</div>
-                  </div>
-                  <span style={{ width: 84, flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{t.type}</span>
-                  <span style={{ width: 56, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F" }}>{t.due}</span>
-                </div>
-              ))}
-            </div>
-          )}
-
           <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", margin: "22px 0 6px" }}>Proposed follow-ups</div>
           {naOpen.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, fontStyle: "italic", color: "#8F8F8F", padding: "8px 0" }}>All proposals handled — the agent surfaces the next as it forms.</div>}
           {naOpen.map((p) => (
@@ -353,6 +359,64 @@ export function Intelligence() {
               </div>
             </div>
           ))}
+
+          {/* filters + ranked task groups */}
+          <div style={{ display: "flex", gap: 22, padding: "22px 2px 2px", flexWrap: "wrap" }}>
+            {NA_FILTERS.map(([label, id]) => {
+              const active = naFilter === id;
+              const count = id === "all" ? naAll.length : naAll.filter((a) => a.type === id).length;
+              return (
+                <div key={id} onClick={() => setNaFilter(id)} style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: active ? "#0D0D0D" : "#8F8F8F", paddingBottom: 5, borderBottom: `1px solid ${active ? "#0D0D0D" : "transparent"}`, cursor: "pointer", transition: "color 150ms" }}>
+                  {label} <span style={{ fontSize: 10, color: "#8F8F8F", letterSpacing: "0.04em" }}>{count}</span>
+                </div>
+              );
+            })}
+          </div>
+          {naGroups.length === 0 && (
+            <div style={{ border: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)", padding: "24px 28px", marginTop: 22 }}>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 15, color: "#0D0D0D" }}>Day clear.</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 5 }}>Nothing due, nothing overdue. The agent keeps watch — next scheduled action lands tomorrow.</div>
+            </div>
+          )}
+          {naGroups.map((g) => {
+            const collapsed = !!naCollapsed[g.bucket];
+            return (
+              <div key={g.bucket} style={{ marginTop: 26 }}>
+                <div onClick={() => setNaCollapsed((c) => ({ ...c, [g.bucket]: !c[g.bucket] }))} style={{ display: "flex", alignItems: "baseline", gap: 12, borderBottom: "1px solid #E3E3E3", paddingBottom: 10, cursor: "pointer" }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 15, lineHeight: 1, color: "#8F8F8F", width: 12, flex: "none" }}>{collapsed ? "›" : "⌄"}</span>
+                  <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 14, color: "#0D0D0D" }}>{g.label}</span>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{g.items.length}</span>
+                </div>
+                {!collapsed && g.items.map((a) => {
+                  const done = !!taskDone[a.id];
+                  const tag = resched[a.id]?.tag;
+                  const parsed = a.id.startsWith("u");
+                  return (
+                    <div key={a.id} className="in-touchrow" style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 4px 14px 10px", borderBottom: "1px solid #E3E3E3", transition: "background 150ms" }}>
+                      <div onClick={() => toggleTask(a)} style={{ width: 15, height: 15, flex: "none", border: `0.5px solid ${done ? "#0D0D0D" : "#8F8F8F"}`, background: done ? "#0D0D0D" : "transparent", cursor: "pointer", transition: "background 150ms" }} />
+                      <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: NA_BUCKET_DOT[a.bucket] }} />
+                      <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 3 }}>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+                          <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: done ? "#8F8F8F" : "#0D0D0D", textDecoration: done ? "line-through" : "none" }}>{a.name}</span>
+                          {parsed && <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "#8F8F8F", fontStyle: "italic" }}>agent-parsed</span>}
+                          {tag && <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "#5D5D5D" }}>rescheduled {tag}</span>}
+                        </div>
+                        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: done ? "#8F8F8F" : "#303030", textDecoration: done ? "line-through" : "none" }}>{a.action}</span>
+                      </div>
+                      <div style={{ display: "flex", gap: 4, flex: "none" }}>
+                        {([["+1d", "Jul 07", "week"], ["+3d", "Jul 09", "week"], ["+1w", "Jul 13", "later"]] as const).map(([lbl, due, bk]) => (
+                          <span key={lbl} onClick={() => reschedTask(a, due, bk, lbl)} title={`Push ${lbl}`} className="in-resched" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "#8F8F8F", border: "1px solid #E3E3E3", borderRadius: 6, padding: "4px 7px", cursor: "pointer", transition: "all 150ms" }}>{lbl}</span>
+                        ))}
+                      </div>
+                      <span style={{ width: 96, flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{a.type}</span>
+                      <span style={{ width: 60, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: done ? "#8F8F8F" : "#0D0D0D" }}>{a.wgci}</span>
+                      <span style={{ width: 64, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: done ? "#8F8F8F" : a.bucket === "overdue" ? "#D0342C" : "#5D5D5D" }}>{a.due}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
 
           {/* task log · audit trail — every change is an activity on the record (Law 2) */}
           <div style={{ marginTop: 34 }}>

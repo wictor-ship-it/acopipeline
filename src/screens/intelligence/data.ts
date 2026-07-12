@@ -89,6 +89,27 @@ export const NA_SEQUENCES: Array<{ id: string; name: string; rule: string; steps
   { id: "sq2", name: "Nakamura · offer chase", rule: "Stops on counter", steps: [{ label: "Nudge listing agent · Jul 07", st: "current" }, { label: "Escalate to broker · Jul 09", st: "future" }, { label: "Reset client expectation · Jul 11", st: "future" }] },
 ];
 
+/* Next Actions · ranked task list (naRaw ~3053) — grouped by bucket. */
+export type NaTask = { id: string; name: string; action: string; type: string; wgci: string; due: string; bucket: string };
+export const NA_ACTIONS: NaTask[] = [
+  { id: "a1", name: "Bal Harbour Listing", action: "Re-engage seller — 19 days without contact", type: "Task", wgci: "", due: "Jun 24", bucket: "overdue" },
+  { id: "a2", name: "Sunny Isles 3801", action: "Re-forecast — expected close slipped", type: "Task", wgci: "", due: "Jun 30", bucket: "overdue" },
+  { id: "a3", name: "Estates at Acqualina 5601", action: "Confirm Saturday 11am tour", type: "Call", wgci: "", due: "Jul 06", bucket: "today" },
+  { id: "a4", name: "Marcelo C. · Rivage PH", action: "Confirm second visit", type: "Call", wgci: "$412K", due: "Jul 06", bucket: "today" },
+  { id: "a5", name: "Family Office · Zurich", action: "Push principal call before Wednesday", type: "Call", wgci: "$288K", due: "Jul 07", bucket: "week" },
+  { id: "a6", name: "Faena Penthouse", action: "Prompt seller counter", type: "Message", wgci: "", due: "Jul 07", bucket: "week" },
+  { id: "a7", name: "Marcelo C. · Rivage PH", action: "Send developer construction schedule", type: "Document", wgci: "$412K", due: "Jul 08", bucket: "week" },
+  { id: "a8", name: "Sterling · Acqualina 4802", action: "Confirm inspection report receipt", type: "Task", wgci: "$196K", due: "Jul 08", bucket: "week" },
+  { id: "a9", name: "Faena 8C · Ravel", action: "Submit HOA approval package", type: "Document", wgci: "", due: "Jul 11", bucket: "week" },
+  { id: "a10", name: "Indian Creek Estate", action: "Prepare valuation package", type: "Document", wgci: "", due: "Jul 12", bucket: "later" },
+  { id: "a11", name: "Nakamura · Bal Harbour 1503", action: "Follow up on open offer", type: "Message", wgci: "", due: "Jul 12", bucket: "later" },
+  { id: "a12", name: "Estates at Acqualina 5601", action: "Conduct Saturday 11am showing", type: "Showing", wgci: "", due: "Jul 06", bucket: "today" },
+  { id: "a13", name: "Elena Ravel · Faena 8C", action: "Third viewing walk-through", type: "Showing", wgci: "", due: "Jul 09", bucket: "week" },
+];
+export const NA_FILTERS: Array<[string, string]> = [["All", "all"], ["Calls", "Call"], ["Messages", "Message"], ["Documents", "Document"], ["Showings", "Showing"], ["Tasks", "Task"]];
+export const NA_BUCKET_DOT: Record<string, string> = { overdue: "#D0342C", today: "#303030", week: "#8F8F8F", later: "#8F8F8F" };
+export const NA_BUCKET_META: Array<[string, string]> = [["overdue", "Overdue"], ["today", "Today · Jul 06"], ["week", "This Week"], ["later", "Later"]];
+
 /* Agent Learned (lnRows ~4701) */
 export const LEARNED: Array<{ id: string; src: string; text: string; saveLabel: string; audit: string }> = [
   { id: "l1", src: "Call · Marcelo — Jul 05", text: "Budget ceiling confirmed at $18.5M, cash. Update the deal record?", saveLabel: "Update deal", audit: "Learned → filed · Rivage PH-A ceiling $18.5M cash (source: call Jul 05)" },
