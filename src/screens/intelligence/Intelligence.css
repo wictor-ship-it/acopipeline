@@ -16,6 +16,7 @@
 .in-blockhdr:hover { background: rgba(247, 247, 247, 0.60); }
 .in-approveall:hover,
 .in-approve:hover { opacity: 0.82; }
+.in-quick::placeholder { color: #8F8F8F; }
 .in-ghost:hover { background: rgba(255, 255, 255, 0.62); }
 .in-touchrow:hover { background: rgba(255, 255, 255, 0.55); }
 .in-kbd {

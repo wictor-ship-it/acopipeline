@@ -48,11 +48,45 @@ export function Intelligence() {
   const dismissNa = (id: string) => setNaDone((d) => ({ ...d, [id]: "dismissed" }));
   const saveLn = (id: string, audit: string) => { setLnDone((d) => ({ ...d, [id]: true })); void recordAction({ actor: "user", skill: "transaction_coordinator", action: audit }, `learned/${id}`, () => setLnDone((d) => { const n = { ...d }; delete n[id]; return n; })); void getAuditLog().then(setAudit); };
 
+  /* Natural-language quick add — the agent parses contact, type and date. */
+  const [naQuick, setNaQuick] = useState("");
+  const [userTasks, setUserTasks] = useState<Array<{ id: string; name: string; action: string; type: string; due: string; bucket: string }>>([]);
+  const parseTask = (raw: string) => {
+    const lo = raw.toLowerCase();
+    const nameMap: Array<[string, string]> = [["marcelo", "Marcelo C. · Rivage PH"], ["keller", "Family Office · Zurich"], ["zurich", "Family Office · Zurich"], ["sterling", "Sterling · Acqualina 4802"], ["bittencourt", "A. Bittencourt"], ["ana ", "A. Bittencourt"], ["nakamura", "Nakamura · Bal Harbour 1503"], ["ravel", "Faena 8C · Ravel"], ["alvarez", "Alvarez · Continuum 2904"]];
+    const hit = nameMap.find(([k]) => lo.includes(k));
+    const type = /call|ligar|ligação/.test(lo) ? "Call" : /whats|message|msg|mensagem|follow/.test(lo) ? "Message" : /tour|showing|visita/.test(lo) ? "Showing" : /send|enviar|doc|contract|package/.test(lo) ? "Document" : "Task";
+    let due = "Jul 08", bucket = "week";
+    if (/today|hoje/.test(lo)) { due = "Jul 06"; bucket = "today"; }
+    else if (/tomorrow|amanh/.test(lo)) { due = "Jul 07"; bucket = "week"; }
+    else if (/friday|sexta/.test(lo)) { due = "Jul 10"; bucket = "week"; }
+    else if (/monday|segunda|next week|semana que vem/.test(lo)) { due = "Jul 13"; bucket = "later"; }
+    return { id: `u${Date.now()}`, name: hit ? hit[1] : "General", action: raw, type, due, bucket };
+  };
+  const addTask = () => {
+    const raw = naQuick.trim();
+    if (!raw) return;
+    const task = parseTask(raw);
+    setUserTasks((u) => [task, ...u]);
+    setNaQuick("");
+    void recordAction({ actor: "user", skill: "chief_of_staff", action: `Task created · ${task.name} — ${task.type} due ${task.due} (agent-parsed)` }, `task/${task.id}`, () => setUserTasks((u) => u.filter((x) => x.id !== task.id)));
+    void getAuditLog().then(setAudit);
+  };
+  const naSummary: Array<[string, number]> = [
+    ["Overdue", userTasks.filter((t) => t.bucket === "overdue").length],
+    ["Today", userTasks.filter((t) => t.bucket === "today").length],
+    ["This Week", userTasks.filter((t) => t.bucket === "week").length],
+    ["Open", naOpen.length + userTasks.length],
+  ];
+
   const [decided, setDecided] = useState<Record<string, "approved" | "dismissed" | "snoozed">>({});
   const [selMonth, setSelMonth] = useState("SEP");
   const [whatIf, setWhatIf] = useState(false);
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   useEffect(() => { void getAuditLog().then(setAudit); }, []);
+  /* Task Log · Today — today's audit_log entries (Law 2), reactive to actions. */
+  const todayISO = new Date().toISOString().slice(0, 10);
+  const taskLog = audit.filter((e) => e.created_at.slice(0, 10) === todayISO).slice(0, 20);
 
   /* the mock agent's items routed to Needs Your Decision (§12) flow through
      this same queue — the compliance block etc. appear alongside the seeds. */
@@ -264,7 +298,44 @@ export function Intelligence() {
       {/* NEXT ACTIONS */}
       <Block dot="#0D0D0D" title="Next Actions" badge={naOpen.length > 0 ? String(naOpen.length) : undefined} hint="the agent proposes the follow-ups — you accept, it schedules & chases" open={sec.next} onToggle={() => toggle("next")}>
         <div style={{ padding: "8px 22px 20px" }}>
-          <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", margin: "8px 0 6px" }}>Proposed follow-ups</div>
+          {/* summary band */}
+          <div style={{ display: "grid", overflowX: "auto", gridTemplateColumns: "repeat(4,minmax(120px,1fr))", borderRadius: 12, background: "rgba(255,255,255,0.42)", border: "1px solid rgba(255,255,255,0.65)", boxShadow: "0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7)", marginTop: 8 }}>
+            {naSummary.map(([label, value], i) => (
+              <div key={label} style={{ padding: "20px 22px", borderRight: i < 3 ? "1px solid #E3E3E3" : "none" }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{label}</div>
+                <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 34, lineHeight: 1, marginTop: 14, color: "#0D0D0D" }}>{value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* quick add · natural language */}
+          <div style={{ display: "flex", alignItems: "center", gap: 14, border: "1px solid #D9D9D9", padding: "14px 18px", marginTop: 22 }}>
+            <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 16, color: "#8F8F8F" }}>+</span>
+            <input value={naQuick} onChange={(e) => setNaQuick(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") addTask(); }} placeholder="Type it as you'd say it — “call Marcelo Friday about the schedule” · the agent parses contact, type and date" className="in-quick" style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }} />
+            <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 10, letterSpacing: "0.08em", color: "#8F8F8F", flex: "none" }}>↵ create</span>
+          </div>
+
+          {/* tasks added by you (agent-parsed) */}
+          {userTasks.length > 0 && (
+            <div style={{ marginTop: 14 }}>
+              {userTasks.map((t) => (
+                <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 2px", borderBottom: "1px solid #ECECEC" }}>
+                  <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#0D0D0D" }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{t.name}</span>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "#8F8F8F", fontStyle: "italic" }}>agent-parsed</span>
+                    </div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#303030", marginTop: 2 }}>{t.action}</div>
+                  </div>
+                  <span style={{ width: 84, flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{t.type}</span>
+                  <span style={{ width: 56, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F" }}>{t.due}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", margin: "22px 0 6px" }}>Proposed follow-ups</div>
           {naOpen.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, fontStyle: "italic", color: "#8F8F8F", padding: "8px 0" }}>All proposals handled — the agent surfaces the next as it forms.</div>}
           {naOpen.map((p) => (
             <div key={p.id} style={{ display: "flex", alignItems: "center", gap: 16, padding: "13px 2px", borderBottom: "1px solid #ECECEC" }}>
@@ -282,6 +353,24 @@ export function Intelligence() {
               </div>
             </div>
           ))}
+
+          {/* task log · audit trail — every change is an activity on the record (Law 2) */}
+          <div style={{ marginTop: 34 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", borderBottom: "1px solid #E3E3E3", paddingBottom: 10 }}>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 14, color: "#0D0D0D" }}>Task Log · Today</span>
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, fontStyle: "italic", color: "#5D5D5D" }}>every change is an activity on the record</span>
+              </div>
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Auditable · reversible</span>
+            </div>
+            {taskLog.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, fontStyle: "italic", color: "#8F8F8F", padding: "12px 4px" }}>Nothing logged yet today — accept a follow-up or add a task above and it lands here.</div>}
+            {taskLog.map((e) => (
+              <div key={e.id} style={{ display: "flex", alignItems: "baseline", gap: 18, padding: "11px 4px", borderBottom: "1px solid #E3E3E3" }}>
+                <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 11, letterSpacing: "0.08em", color: "#8F8F8F", width: 40, flex: "none" }}>{e.created_at.slice(11, 16)}</span>
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030" }}>{e.action}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </Block>
 
