@@ -11,6 +11,7 @@ import { Transactions } from "../screens/transactions/Transactions";
 import { ContactDetail } from "../screens/contact/ContactDetail";
 import { Inbox } from "../screens/inbox/Inbox";
 import { Intelligence } from "../screens/intelligence/Intelligence";
+import { Reports } from "../screens/reports/Reports";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -36,7 +37,7 @@ export function App() {
         <Route path="/opportunities" element={<Opportunities />} />
         <Route path="/inbox" element={<Inbox />} />
         <Route path="/marketing" element={<Placeholder name="Marketing" />} />
-        <Route path="/reports" element={<Placeholder name="Reports" />} />
+        <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Placeholder name="Settings" />} />
         <Route path="/transactions" element={<Transactions />} />
         <Route path="/activities" element={<Placeholder name="Activities" />} />
