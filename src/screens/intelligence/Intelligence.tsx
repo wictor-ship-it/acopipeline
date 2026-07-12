@@ -11,10 +11,10 @@ import {
   AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE, HERO_SUB,
   LEARNED, MONEY_STRIP, MORNING_BRIEF, NA_ACTIONS, NA_BUCKET_DOT, NA_BUCKET_META,
   NA_FILTERS, NA_PROPOSALS, NA_SEQUENCES, NET_CADENCE, NET_KPIS, NET_SUMMARY,
-  PLAYS, PROPOSALS, RECIP_HEAD, RECIP_ROWS, RISK_ROWS,
+  PLAYS, PROPOSALS, RECIP_HEAD, RECIP_ROWS, RISK_DEFS,
   TOUCH_TODAY, VENDOR_HEAD, VENDOR_ROWS, WEEKLY_MOVEMENT,
 } from "./data";
-import type { NaTask } from "./data";
+import type { NaTask, RiskItem } from "./data";
 import "./Intelligence.css";
 
 /* ================= SCREEN 5 · INTELLIGENCE (fragment 05) =================
@@ -57,6 +57,8 @@ export function Intelligence() {
   const [naFilter, setNaFilter] = useState("all");
   const [resched, setResched] = useState<Record<string, { due: string; bucket: string; tag: string }>>({});
   const [naCollapsed, setNaCollapsed] = useState<Record<string, boolean>>({});
+  const [riskDone, setRiskDone] = useState<Record<string, boolean>>({});
+  const [riskSnooze, setRiskSnooze] = useState<Record<string, boolean>>({});
   const parseTask = (raw: string) => {
     const lo = raw.toLowerCase();
     const nameMap: Array<[string, string]> = [["marcelo", "Marcelo C. · Rivage PH"], ["keller", "Family Office · Zurich"], ["zurich", "Family Office · Zurich"], ["sterling", "Sterling · Acqualina 4802"], ["bittencourt", "A. Bittencourt"], ["ana ", "A. Bittencourt"], ["nakamura", "Nakamura · Bal Harbour 1503"], ["ravel", "Faena 8C · Ravel"], ["alvarez", "Alvarez · Continuum 2904"]];
@@ -111,6 +113,22 @@ export function Intelligence() {
     const prev = resched[t.id];
     setResched((r) => ({ ...r, [t.id]: { due, bucket, tag } }));
     void recordAction({ actor: "user", skill: "chief_of_staff", action: `Task rescheduled ${tag} · ${t.name} → ${due}` }, `resched/${t.id}/${tag}`, () => setResched((r) => { const n = { ...r }; if (prev) n[t.id] = prev; else delete n[t.id]; return n; }));
+    void getAuditLog().then(setAudit);
+  };
+
+  /* Risk Radar — live (un-snoozed) items, total GCI exposed, approve/snooze. */
+  const riskLive = RISK_DEFS.filter((d) => !riskSnooze[d.id]);
+  const riskExposureK = riskLive.reduce((n, d) => n + d.gciK, 0);
+  const riskExposure = riskExposureK >= 1000 ? `$${(riskExposureK / 1000).toFixed(1)}M` : `$${riskExposureK}K`;
+  const approveRisk = (d: RiskItem) => {
+    if (riskDone[d.id]) return;
+    setRiskDone((s) => ({ ...s, [d.id]: true }));
+    void recordAction({ actor: "user", skill: "senior_advisor", action: `Risk Radar · remedy approved — ${d.lead} · ${d.remedy}` }, `risk-approve/${d.id}`, () => setRiskDone((s) => ({ ...s, [d.id]: false })));
+    void getAuditLog().then(setAudit);
+  };
+  const snoozeRisk = (d: RiskItem) => {
+    setRiskSnooze((s) => ({ ...s, [d.id]: true }));
+    void recordAction({ actor: "user", skill: "senior_advisor", action: `Risk Radar · snoozed 7 days — ${d.lead} · resurfaces Jul 16` }, `risk-snooze/${d.id}`, () => setRiskSnooze((s) => ({ ...s, [d.id]: false })));
     void getAuditLog().then(setAudit);
   };
 
@@ -453,17 +471,43 @@ export function Intelligence() {
       </Block>
 
       {/* RISK RADAR */}
-      <Block dot="#D0342C" title="Risk Radar" badge={String(RISK_ROWS.length)} hint="what the agent is watching" open={sec.risk} onToggle={() => toggle("risk")}>
-        <div style={{ padding: "20px 22px 24px" }}>
-          {RISK_ROWS.map((r) => (
-            <div key={r.lead} style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "13px 0", borderBottom: "1px solid #ECECEC" }}>
-              <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#E0655C", position: "relative", top: 4 }} />
-              <div>
-                <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 14, color: "#0D0D0D" }}>{r.lead}</div>
-                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 3 }}>{r.note}</div>
+      <Block dot="#B45309" title="Risk Radar" badge={riskLive.length > 0 ? String(riskLive.length) : undefined} hint={riskLive.length > 0 ? `${riskExposure} GCI exposed across ${riskLive.length}` : "all clear"} open={sec.risk} onToggle={() => toggle("risk")}>
+        <div style={{ padding: "2px 22px 22px" }}>
+          {riskLive.map((r) => {
+            const done = !!riskDone[r.id];
+            return (
+              <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 2px", borderBottom: "1px solid #ECECEC", flexWrap: "wrap" }}>
+                <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: r.sev }} />
+                <div style={{ flex: 1, minWidth: 260 }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 13.5, color: "#0D0D0D" }}>{r.lead}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 8, letterSpacing: "0.14em", color: r.sev }}>{r.tag}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F" }}>{r.clock} · ${r.gciK}K GCI exposed</span>
+                  </div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, lineHeight: 1.55, color: "#5D5D5D", marginTop: 3 }}>{r.note}</div>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 7, marginTop: 5 }}>
+                    <span style={{ width: 5, height: 5, flex: "none", borderRadius: "50%", background: "#10A37F", position: "relative", top: -2 }} />
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#303030" }}>{r.remedy}</span>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 6, flex: "none", alignItems: "center" }}>
+                  {done ? (
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#10A37F" }}>Sent ✓ · agent watches</span>
+                  ) : (
+                    <button onClick={() => approveRisk(r)} className="in-approve" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 14px", fontFamily: SANS, fontWeight: 500, fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>{r.act}</button>
+                  )}
+                  <button onClick={() => snoozeRisk(r)} className="in-snooze" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 13px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>Snooze 7d</button>
+                </div>
               </div>
+            );
+          })}
+          {riskLive.length === 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "18px 2px" }}>
+              <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#10A37F" }} />
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#5D5D5D" }}>All clear — nothing aging past threshold. The agent keeps watching and resurfaces snoozed items automatically.</span>
             </div>
-          ))}
+          )}
+          <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", marginTop: 12 }}>Thresholds — HOT 14d · WARM 30d · Listing 21d · tune in Settings › Scoring &amp; Forecast</div>
         </div>
       </Block>
 

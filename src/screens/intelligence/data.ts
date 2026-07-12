@@ -36,10 +36,13 @@ export const PROPOSALS: Proposal[] = [
   { id: "merge", label: "Duplicate Merge", body: 'Two records for "R. Sterling / Robert Sterling" — Acqualina 4802. Merge into a single contact?', why: "Recommended: merge — histories are complementary, no field conflicts." },
 ];
 
-export const RISK_ROWS: Array<{ lead: string; note: string }> = [
-  { lead: "Bal Harbour Listing", note: "19 days since last touch — HOT threshold is 14." },
-  { lead: "Brickell Commercial", note: "Probability 60% → 40% this week." },
-  { lead: "Sunny Isles 3801", note: "Expected close was Jun 30, still in Negotiation → re-forecast." },
+/* Risk Radar (riskDefs ~519) — severity, GCI at risk, remedy, agent action. */
+export type RiskItem = { id: string; lead: string; sev: string; tag: string; clock: string; gciK: number; note: string; remedy: string; act: string };
+export const RISK_DEFS: RiskItem[] = [
+  { id: "bal", lead: "Bal Harbour Listing", sev: "#D0342C", tag: "SLA BREACH", clock: "19d stale", gciK: 294, note: "19 days since last touch — HOT threshold is 14. Sellers aligned on price; silence reads as drift.", remedy: "Re-touch draft ready — new angle: buyer-match update from your book", act: "Send re-touch" },
+  { id: "faena8c", lead: "Faena 8C · Ravel", sev: "#B45309", tag: "DEADLINE", clock: "T-2 days", gciK: 186, note: "HOA approval package due Jul 11 — incomplete without the estoppel letter.", remedy: "Chase to association drafted · attorney in CC", act: "Send chase" },
+  { id: "brickell", lead: "Brickell Commercial", sev: "#B45309", tag: "MOMENTUM", clock: "−20 pts", gciK: 420, note: "Probability 60% → 40% this week — anchor tenant renegotiated, buyer cooling.", remedy: "Re-qualify call scripted — keep, or park for the Q4 capital cycle", act: "Queue call" },
+  { id: "nakamura", lead: "Sunny Isles 3801", sev: "#D0342C", tag: "RE-FORECAST", clock: "+30d slip", gciK: 246, note: "Close slipped Jun 30 → Jul 30 on buyer financing. Every silent day weakens leverage.", remedy: "Backup buyer warm-up drafted — creates real pressure", act: "Warm backup" },
 ];
 
 export const PLAYS: Array<{ idx: string; title: string; body: string }> = [
