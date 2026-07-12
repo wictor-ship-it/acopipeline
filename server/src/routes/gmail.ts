@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { accessTokenFor, googleGet, googlePost, GoogleApiError } from "../google.js";
 import { readSession } from "../session.js";
+import { getProfile } from "../tokenStore.js";
 
 /* Read-only Gmail surface (Stage 2a). Normalizes Google's message shape into the
    minimal thread summary the SPA Inbox needs. Sending stays OUT until the
@@ -10,11 +11,21 @@ export const gmailRouter = Router();
 
 interface GApiThreadList { threads?: Array<{ id: string }> }
 interface GApiHeader { name: string; value: string }
-interface GApiMessage { id: string; snippet?: string; internalDate?: string; payload?: { headers?: GApiHeader[] } }
+interface GApiPart { mimeType?: string; body?: { data?: string }; parts?: GApiPart[] }
+interface GApiMessage { id: string; snippet?: string; internalDate?: string; payload?: GApiPart & { headers?: GApiHeader[] } }
 interface GApiThread { id: string; messages?: GApiMessage[] }
 
 const header = (m: GApiMessage | undefined, name: string): string =>
   m?.payload?.headers?.find((h) => h.name.toLowerCase() === name.toLowerCase())?.value ?? "";
+
+/* Walk the MIME tree for the first text/plain body (base64url). */
+function decodeBody(part?: GApiPart): string {
+  if (!part) return "";
+  if (part.mimeType === "text/plain" && part.body?.data) return Buffer.from(part.body.data, "base64url").toString("utf8");
+  for (const p of part.parts ?? []) { const b = decodeBody(p); if (b) return b; }
+  if (part.body?.data && !part.parts) return Buffer.from(part.body.data, "base64url").toString("utf8");
+  return "";
+}
 
 /* GET /api/gmail/threads?limit=20 — recent Inbox threads, summarized. */
 gmailRouter.get("/threads", async (req, res) => {
@@ -51,6 +62,37 @@ gmailRouter.get("/threads", async (req, res) => {
     res.json({ threads });
   } catch (err) {
     console.error("[gmail] threads failed:", err);
+    res.status(502).json({ error: "gmail_upstream" });
+  }
+});
+
+/* GET /api/gmail/threads/:id — one thread's messages, decoded (read-only). */
+gmailRouter.get("/threads/:id", async (req, res) => {
+  const sid = readSession(req);
+  if (!sid) return res.status(401).json({ error: "unauthenticated" });
+  try {
+    const accessToken = await accessTokenFor(sid);
+    if (!accessToken) return res.status(401).json({ error: "unauthenticated" });
+    const me = (getProfile(sid)?.email ?? "").toLowerCase();
+    const t = await googleGet<GApiThread>(
+      accessToken,
+      `https://gmail.googleapis.com/gmail/v1/users/me/threads/${encodeURIComponent(req.params.id)}?format=full`,
+    );
+    const messages = (t.messages ?? []).map((m) => {
+      const from = header(m, "From");
+      return {
+        id: m.id,
+        from,
+        to: header(m, "To"),
+        date: header(m, "Date"),
+        subject: header(m, "Subject"),
+        body: (decodeBody(m.payload) || m.snippet || "").trim(),
+        dir: me && from.toLowerCase().includes(me) ? "out" : "in",
+      };
+    });
+    res.json({ id: t.id, messages });
+  } catch (err) {
+    console.error("[gmail] thread failed:", err);
     res.status(502).json({ error: "gmail_upstream" });
   }
 });

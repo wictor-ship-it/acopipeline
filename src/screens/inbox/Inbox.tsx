@@ -4,7 +4,7 @@ import { useCollection } from "../../data/hooks";
 import { newId, save } from "../../data/repository";
 import type { Message, Thread } from "../../domain/types";
 import { useAppState } from "../../app/state";
-import { fetchGmailThreads, type GmailThread } from "../../data/adapters/gmail";
+import { fetchGmailThreads, fetchGmailThread, type GmailThread, type GmailThreadDetail } from "../../data/adapters/gmail";
 import { SANS } from "../contacts/data";
 import "./Inbox.css";
 
@@ -22,23 +22,66 @@ function GmailLiveStrip() {
     void fetchGmailThreads(5).then((t) => { if (alive) { setThreads(t); setLoading(false); } });
     return () => { alive = false; };
   }, [google.connected]);
+  const [open, setOpen] = useState<GmailThreadDetail | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
+  const [loadingThread, setLoadingThread] = useState(false);
+  const openThread = async (id: string) => {
+    setOpenId(id); setLoadingThread(true); setOpen(null);
+    const d = await fetchGmailThread(id);
+    setLoadingThread(false); setOpen(d);
+  };
   if (!google.connected) return null;
   return (
     <div style={{ border: "1px solid #E3E3E3", borderLeft: "2px solid #10A37F", borderRadius: 12, background: "rgba(255,255,255,0.55)", padding: "12px 16px", marginBottom: 14 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10A37F" }} />
         <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#10A37F" }}>Gmail · live</span>
-        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{loading ? "reading your inbox…" : threads === null ? "read failed — reconnect in Settings" : `${threads.length} recent thread${threads.length === 1 ? "" : "s"} · read-only`}</span>
+        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{loading ? "reading your inbox…" : threads === null ? "read failed — reconnect in Settings" : `${threads.length} recent thread${threads.length === 1 ? "" : "s"} · read-only · click to open`}</span>
       </div>
       {threads && threads.length > 0 && (
         <div style={{ marginTop: 8 }}>
           {threads.map((t) => (
-            <div key={t.id} style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "6px 0", borderTop: "1px solid #ECECEC" }}>
+            <div key={t.id} onClick={() => void openThread(t.id)} className="ib-liverow" style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "6px 4px", borderTop: "1px solid #ECECEC", cursor: "pointer", borderRadius: 6 }}>
               <span style={{ flex: "none", width: 180, fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#0D0D0D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.from || "—"}</span>
               <span style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#303030", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.subject || t.snippet || "(no subject)"}</span>
             </div>
           ))}
         </div>
+      )}
+
+      {/* Read-only thread drawer */}
+      {openId && (
+        <>
+          <div onClick={() => { setOpenId(null); setOpen(null); }} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(0,0,0,0.32)" }} />
+          <div className="ib-livedrawer">
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "22px 26px 16px", borderBottom: "1px solid #E3E3E3" }}>
+              <div>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 14, color: "#0D0D0D" }}>{open?.messages[0]?.subject || "Gmail thread"}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 5 }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10A37F" }} />
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#10A37F" }}>Live · Gmail · read-only</span>
+                </div>
+              </div>
+              <span onClick={() => { setOpenId(null); setOpen(null); }} style={{ fontFamily: SANS, fontWeight: 200, fontSize: 20, color: "#8F8F8F", cursor: "pointer", lineHeight: 1 }}>×</span>
+            </div>
+            <div style={{ padding: "18px 26px 40px", display: "flex", flexDirection: "column", gap: 14 }}>
+              {loadingThread && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F" }}>Loading…</div>}
+              {open && open.messages.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F" }}>No readable content in this thread.</div>}
+              {open?.messages.map((m) => {
+                const out = m.dir === "out";
+                return (
+                  <div key={m.id} style={{ display: "flex", justifyContent: out ? "flex-end" : "flex-start" }}>
+                    <div className={out ? "ib-bubble-out" : "ib-bubble-in"} style={{ maxWidth: "88%", padding: "11px 15px", borderRadius: out ? "18px 18px 6px 18px" : "18px 18px 18px 6px" }}>
+                      <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 10.5, color: out ? "rgba(255,255,255,0.75)" : "#8F8F8F", marginBottom: 4 }}>{m.from}</div>
+                      <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.55, color: out ? "#FFFFFF" : "#303030", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>{m.body}</div>
+                      <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 10, color: out ? "rgba(255,255,255,0.6)" : "#8F8F8F", marginTop: 6, textAlign: "right" }}>{m.date}</div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

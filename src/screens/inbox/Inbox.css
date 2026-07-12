@@ -41,3 +41,18 @@
 .ib-send:hover { opacity: 0.82; }
 .ib-search::placeholder { color: #8F8F8F; }
 .ib-composer input::placeholder { color: #8F8F8F; }
+.ib-liverow:hover { background: rgba(255, 255, 255, 0.55); }
+.ib-livedrawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 81;
+  width: 560px;
+  max-width: 94vw;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(30px) saturate(1.8);
+  -webkit-backdrop-filter: blur(30px) saturate(1.8);
+  border-left: 1px solid #D9D9D9;
+  overflow-y: auto;
+}
