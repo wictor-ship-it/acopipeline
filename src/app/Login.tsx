@@ -16,9 +16,14 @@ function GoogleMark() {
 }
 
 export function Login() {
-  const { signIn } = useAppState();
+  const { signIn, google, connectGoogle } = useAppState();
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
+
+  /* Real Google when the BFF is up and configured; otherwise the mock sign-in
+     keeps the Phase 1 demo working with no backend. */
+  const googleReady = google.reachable && google.configured;
+  const onGoogle = () => (googleReady ? connectGoogle() : signIn());
 
   return (
     <div className="lg-bg">
@@ -27,7 +32,7 @@ export function Login() {
         <div className="lg-logo">A/CO</div>
         <div className="lg-subtitle">Pipeline Intelligence</div>
 
-        <button type="button" className="lg-google" onClick={signIn}>
+        <button type="button" className="lg-google" onClick={onGoogle} title={googleReady ? "Sign in with your arraes.com Google Workspace account" : "Demo mode — backend not connected"}>
           <GoogleMark />
           <span>Continue with Google Workspace</span>
         </button>

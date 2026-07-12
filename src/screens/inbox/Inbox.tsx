@@ -1,10 +1,48 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCollection } from "../../data/hooks";
 import { newId, save } from "../../data/repository";
 import type { Message, Thread } from "../../domain/types";
+import { useAppState } from "../../app/state";
+import { fetchGmailThreads, type GmailThread } from "../../data/adapters/gmail";
 import { SANS } from "../contacts/data";
 import "./Inbox.css";
+
+/* Live Gmail strip (Phase 2) — appears only when Google is connected via the
+   BFF. Read-only; the seeded two-pane below is untouched. Full Gmail threading
+   into the conversation view is the next step. */
+function GmailLiveStrip() {
+  const { google } = useAppState();
+  const [threads, setThreads] = useState<GmailThread[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!google.connected) return;
+    setLoading(true);
+    let alive = true;
+    void fetchGmailThreads(5).then((t) => { if (alive) { setThreads(t); setLoading(false); } });
+    return () => { alive = false; };
+  }, [google.connected]);
+  if (!google.connected) return null;
+  return (
+    <div style={{ border: "1px solid #E3E3E3", borderLeft: "2px solid #10A37F", borderRadius: 12, background: "rgba(255,255,255,0.55)", padding: "12px 16px", marginBottom: 14 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10A37F" }} />
+        <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#10A37F" }}>Gmail · live</span>
+        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{loading ? "reading your inbox…" : threads === null ? "read failed — reconnect in Settings" : `${threads.length} recent thread${threads.length === 1 ? "" : "s"} · read-only`}</span>
+      </div>
+      {threads && threads.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          {threads.map((t) => (
+            <div key={t.id} style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "6px 0", borderTop: "1px solid #ECECEC" }}>
+              <span style={{ flex: "none", width: 180, fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#0D0D0D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.from || "—"}</span>
+              <span style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#303030", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{t.subject || t.snippet || "(no subject)"}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ================= SCREEN · INBOX · MESSAGE CENTER (fragment 15) =================
    Left thread list + right conversation, over the seeded threads/messages.
@@ -59,6 +97,7 @@ export function Inbox() {
 
   return (
     <div style={{ padding: "22px 48px 44px" }}>
+      <GmailLiveStrip />
       <div className="ib-shell">
         {/* LEFT · threads */}
         <div className="ib-left">

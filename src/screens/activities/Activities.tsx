@@ -1,9 +1,51 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { newId, save } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
 import type { Activity } from "../../domain/types";
+import { useAppState } from "../../app/state";
+import { fetchCalendarEvents, type CalEvent } from "../../data/adapters/calendar";
 import { SANS, CONTACT_TASKS } from "../contacts/data";
 import "./Activities.css";
+
+/* Live Google Calendar strip (Phase 2) — appears only when Google is connected
+   via the BFF. Read-only; the seeded Schedule below is untouched. */
+function CalendarLiveStrip() {
+  const { google } = useAppState();
+  const [events, setEvents] = useState<CalEvent[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!google.connected) return;
+    setLoading(true);
+    let alive = true;
+    void fetchCalendarEvents(5).then((e) => { if (alive) { setEvents(e); setLoading(false); } });
+    return () => { alive = false; };
+  }, [google.connected]);
+  if (!google.connected) return null;
+  const when = (iso: string) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    return isNaN(d.getTime()) ? iso : d.toLocaleString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+  };
+  return (
+    <div style={{ border: "1px solid #E3E3E3", borderLeft: "2px solid #10A37F", borderRadius: 12, background: "rgba(255,255,255,0.55)", padding: "12px 16px", marginBottom: 22 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10A37F" }} />
+        <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#10A37F" }}>Google Calendar · live</span>
+        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{loading ? "reading your calendar…" : events === null ? "read failed — reconnect in Settings" : `${events.length} upcoming event${events.length === 1 ? "" : "s"} · read-only`}</span>
+      </div>
+      {events && events.length > 0 && (
+        <div style={{ marginTop: 8 }}>
+          {events.map((e) => (
+            <div key={e.id} style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "6px 0", borderTop: "1px solid #ECECEC" }}>
+              <span style={{ flex: "none", width: 120, fontFamily: SANS, fontWeight: 300, fontSize: 12, color: "#5D5D5D" }}>{when(e.start)}</span>
+              <span style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#303030", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 /* ================= SCREEN · ACTIVITIES · AGENDA (fragment 15) =================
    Every commitment and task — kept, confirmed and chased by the agent.
@@ -75,6 +117,8 @@ export function Activities() {
         </div>
         <button onClick={() => setLogOpen((o) => !o)} className="ag-btn" style={{ marginBottom: 6, background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "10px 18px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Log activity</button>
       </div>
+
+      <CalendarLiveStrip />
 
       {logOpen && (
         <div style={{ border: "1px solid #E3E3E3", borderRadius: 14, background: "rgba(249,249,249,0.55)", padding: 24, marginBottom: 24 }}>

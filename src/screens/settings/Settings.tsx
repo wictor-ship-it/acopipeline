@@ -3,6 +3,9 @@ import type { ReactNode } from "react";
 import { useCollection } from "../../data/hooks";
 import { getAuditLog, onDataChange, save } from "../../data/repository";
 import type { AuditEntry, Contact, Settings as SettingsRec } from "../../domain/types";
+import { useAppState } from "../../app/state";
+import { fetchGmailThreads } from "../../data/adapters/gmail";
+import { fetchCalendarEvents } from "../../data/adapters/calendar";
 import { SANS } from "../contacts/data";
 import "./Settings.css";
 
@@ -32,6 +35,56 @@ const CONNECTORS = [
   { name: "MLS", kind: "Matrix + broker feeds · nightly sync", on: true },
   { name: "DocuSign", kind: "Not connected — contracts stay manual", on: false },
 ];
+
+/* Live Google Workspace connector (Phase 2) — real state from the BFF. */
+function GoogleLiveCard() {
+  const { google, connectGoogle, disconnectGoogle } = useAppState();
+  const [test, setTest] = useState<string | null>(null);
+  const [testing, setTesting] = useState(false);
+
+  const runTest = async () => {
+    setTesting(true); setTest(null);
+    const [threads, events] = await Promise.all([fetchGmailThreads(5), fetchCalendarEvents(5)]);
+    setTesting(false);
+    if (threads === null && events === null) { setTest("No live read — reconnect or check the backend."); return; }
+    setTest(`Gmail: ${threads?.length ?? "—"} threads · Calendar: ${events?.length ?? "—"} events`);
+  };
+
+  const { dot, label, tone } = !google.checked
+    ? { dot: "#D9D9D9", label: "Checking connection…", tone: "#8F8F8F" }
+    : !google.reachable
+    ? { dot: "#B45309", label: "Backend offline — running in demo mode", tone: "#B45309" }
+    : !google.configured
+    ? { dot: "#B45309", label: "Backend up · Google not provisioned yet (phase2 guide §1–6)", tone: "#B45309" }
+    : google.connected
+    ? { dot: "#10A37F", label: `Connected · ${google.email ?? "signed in"}`, tone: "#10A37F" }
+    : { dot: "#8F8F8F", label: "Not connected", tone: "#8F8F8F" };
+
+  return (
+    <div style={{ padding: "15px 4px", borderBottom: "1px solid #E3E3E3" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+        <div>
+          <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 14, color: "#0D0D0D" }}>Google Workspace <span style={{ fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#10A37F" }}>· live</span></div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: dot }} />
+            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: tone }}>{label}</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "none" }}>
+          {google.connected ? (
+            <>
+              <button onClick={runTest} disabled={testing} className="st-chip" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 13px", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>{testing ? "Reading…" : "Test live read"}</button>
+              <button onClick={() => void disconnectGoogle()} className="st-chip" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 13px", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Disconnect</button>
+            </>
+          ) : (
+            <button onClick={connectGoogle} disabled={!(google.reachable && google.configured)} className="st-chip" style={{ background: google.reachable && google.configured ? "#E9E8E4" : "transparent", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 14px", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: google.reachable && google.configured ? "pointer" : "not-allowed", opacity: google.reachable && google.configured ? 1 : 0.5 }}>Connect Google</button>
+          )}
+        </div>
+      </div>
+      {test && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#5D5D5D", marginTop: 10 }}>{test}</div>}
+    </div>
+  );
+}
 
 function SecHead({ num, title, desc }: { num: string; title: string; desc: string }) {
   return (
@@ -234,9 +287,10 @@ export function Settings() {
           {/* 05 INTEGRATIONS */}
           {sec === "05" && (
             <>
-              <SecHead num={navNumFor("05")} title="Integrations" desc="Connectors the agent works through. Mocked in Phase 1 behind adapters." />
+              <SecHead num={navNumFor("05")} title="Integrations" desc="Connectors the agent works through. Google is live via the BFF; the rest are mocked behind adapters." />
               <Rows>
-                {CONNECTORS.map((c) => (
+                <GoogleLiveCard />
+                {CONNECTORS.filter((c) => c.name !== "Google Workspace").map((c) => (
                   <div key={c.name} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "15px 4px", borderBottom: "1px solid #E3E3E3" }}>
                     <div>
                       <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 14, color: "#0D0D0D" }}>{c.name}</div>
