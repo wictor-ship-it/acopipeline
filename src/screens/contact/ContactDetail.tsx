@@ -5,8 +5,9 @@ import { getById, save } from "../../data/repository";
 import type { Contact, Mandate, Opportunity } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import {
-  BRIEF, CANON_STATUS, CHAT_CHIPS, CRITERIA, enrichRows, ESSENCE, GENERIC_BRIEF,
-  JOURNEY_IDX, JOURNEY_SEQ, PINNED, RELATED, SINCE_LINE, toCanonStatus,
+  AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
+  enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, JOURNEY_IDX, JOURNEY_SEQ,
+  MLS_LANG, MLS_MATCHES, PINNED, PROFILE_OPTS, RELATED, SINCE_LINE, toCanonStatus,
 } from "./data";
 import "./ContactDetail.css";
 
@@ -31,6 +32,11 @@ export function ContactDetail() {
   const [chatInput, setChatInput] = useState("");
   const [briefOpen, setBriefOpen] = useState(false);
   const [enrich, setEnrich] = useState<"idle" | "scanning" | "review" | "applied">("idle");
+  const [scOpen, setScOpen] = useState(false);
+  const [profile, setProfile] = useState<BuyerProfile | null>(null);
+  const [mlsRun, setMlsRun] = useState(false);
+  const [mlsSel, setMlsSel] = useState<Record<string, boolean>>({});
+  const [mlsAck, setMlsAck] = useState("");
 
   const ct = contacts.find((c) => c.id === id);
   const deals = useMemo(() => opportunities.filter((o) => o.contact_id === id), [opportunities, id]);
@@ -57,7 +63,36 @@ export function ContactDetail() {
   const journeyIdx = JOURNEY_IDX[id] ?? 1;
   const pinned = PINNED[id] ?? [];
   const related = RELATED[id] ?? [{ name: "No related contacts yet", role: "", note: "Link family, attorneys, referral partners" }];
-  const criteria = CRITERIA[id] ?? (ct.preferences?.asset ? [["Budget", (ct.preferences.budget as string) ?? "—"], ["Areas", (ct.preferences.areas as string) ?? "—"], ["Type", (ct.preferences.asset as string) ?? "—"]] as Array<[string, string]> : []);
+  const saved = (ct.preferences?.buyer as Partial<BuyerProfile> | undefined) ?? undefined;
+  const prof = profile ?? buildProfile(id, saved);
+  const showProfile = hasProfile(id) || !!saved;
+  const mlsLang = MLS_LANG[id] ?? (ct.language?.[0] ?? "EN");
+  const mlsSelCount = MLS_MATCHES.filter((m) => mlsSel[m.id]).length;
+
+  const persistProfile = (next: BuyerProfile, field: string) => {
+    setProfile(next);
+    void getById<Contact>("contacts", id).then((cur) => {
+      if (!cur) return;
+      void save<Contact>("contacts", { ...cur, preferences: { ...(cur.preferences ?? {}), buyer: next } }, { actor: "user", skill: "senior_advisor", action: `Updated buyer profile — ${field} · ${ct.name} · auto-saved` });
+    });
+  };
+  const setField = (k: keyof BuyerProfile, label: string) => (v: string) => persistProfile({ ...prof, [k]: v }, label);
+  const toggleAmenity = (a: string) => {
+    const on = prof.amenities.includes(a);
+    persistProfile({ ...prof, amenities: on ? prof.amenities.filter((x) => x !== a) : [...prof.amenities, a] }, `Amenity ${on ? "removed" : "added"} · ${a}`);
+  };
+  const runMls = () => { setMlsRun(true); setScOpen(false); void save<Contact>("contacts", ct, { actor: "agent", skill: "senior_advisor", action: `MLS Match — sweep re-run against updated criteria · ${ct.name} · results refreshed` }); };
+  const suggestMls = () => {
+    if (!mlsSelCount) { setMlsAck("Select one or more listings first."); return; }
+    setMlsAck(`Curated draft prepared (${mlsSelCount} listing${mlsSelCount > 1 ? "s" : ""}) — message in your voice + private preview page. Queued in Needs Your Decision; on approval it sends via WhatsApp, logs the touch and resets the cadence clock.`);
+    void save<Contact>("contacts", ct, { actor: "agent", skill: "senior_advisor", action: `MLS Match — curated suggestion drafted for ${ct.name} · ${mlsSelCount} listing(s) · drafted in ${mlsLang} (profile language), queued for approval` });
+  };
+  const draftTour = () => {
+    if (!mlsSelCount) { setMlsAck("Select one or more listings first."); return; }
+    setMlsAck(`Tour drafted · ${mlsSelCount} stop${mlsSelCount > 1 ? "s" : ""} — access requests queued in Needs Your Decision.`);
+    void save<Contact>("contacts", ct, { actor: "agent", skill: "transaction_coordinator", action: `MLS Match — tour drafted for ${ct.name} · ${mlsSelCount} stop(s), access requests queued` });
+  };
+
   const hasRef = !!ct.referral_of;
   const refBy = contacts.find((c) => c.id === ct.referral_of)?.name ?? "";
   const brief = BRIEF[id] ?? GENERIC_BRIEF;
@@ -92,6 +127,31 @@ export function ContactDetail() {
     if (v === statusVal) return;
     void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: v }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · follow-up cadence armed` }); });
   };
+
+  /* Buyer Requirement Profile field renderers (literal styles from fragment 08). */
+  const pfLabel = { fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" as const, color: "#8F8F8F" };
+  const pfInput = { border: "none", borderBottom: "1px solid #D9D9D9", background: "transparent", padding: "8px 0", fontFamily: SANS, fontWeight: 400, fontSize: 15, color: "#303030", outline: "none", width: "100%", boxSizing: "border-box" as const };
+  const pfSectionHead = { fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase" as const, color: "#0D0D0D", paddingBottom: 12, borderBottom: "1px solid #E3E3E3", marginBottom: 26 };
+  const pfInputField = (label: string, key: keyof BuyerProfile, ph: string) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      <label style={pfLabel}>{label}</label>
+      <input key={`${id}-${key}-${String(prof[key])}`} defaultValue={prof[key] as string} placeholder={ph} onBlur={(e) => { if (e.target.value !== prof[key]) setField(key, label)(e.target.value); }} className="cd-pf" style={pfInput} />
+    </div>
+  );
+  const pfSelectField = (label: string, key: keyof BuyerProfile, opts: readonly string[]) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+      <label style={pfLabel}>{label}</label>
+      <select value={prof[key] as string} onChange={(e) => setField(key, label)(e.target.value)} className="cd-pf" style={pfInput}>
+        {opts.map((o) => <option key={o} value={o}>{o}</option>)}
+      </select>
+    </div>
+  );
+  const pfAreaField = (label: string, key: keyof BuyerProfile, ph: string, full?: boolean) => (
+    <div style={{ display: "flex", flexDirection: "column", gap: 9, gridColumn: full ? "1 / -1" : undefined }}>
+      <label style={pfLabel}>{label}</label>
+      <textarea key={`${id}-${key}-${String(prof[key])}`} rows={3} defaultValue={prof[key] as string} placeholder={ph} onBlur={(e) => { if (e.target.value !== prof[key]) setField(key, label)(e.target.value); }} className="cd-pf" style={{ border: "1px solid #D9D9D9", background: "transparent", padding: "12px 14px", fontFamily: SANS, fontWeight: 400, fontSize: 14.5, lineHeight: 1.6, color: "#303030", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+    </div>
+  );
 
   return (
     <div>
@@ -185,15 +245,127 @@ export function ContactDetail() {
             </div>
           )}
 
-          {criteria.length > 0 && (
-            <div style={{ marginTop: 30 }}>
-              <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", paddingBottom: 11, borderBottom: "1px solid #E3E3E3", marginBottom: 4 }}>Search criteria</div>
-              {criteria.map(([l, v]) => (
-                <div key={l} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "11px 0", borderBottom: "1px solid #E3E3E3" }}>
-                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "#8F8F8F" }}>{l}</span>
-                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#303030", textAlign: "right" }}>{v}</span>
+          {showProfile && (
+            <div style={{ marginTop: 30, border: "1px solid #E3E3E3", borderRadius: 12, background: "rgba(255,255,255,0.5)", overflow: "hidden" }}>
+              {/* Collapsible header */}
+              <div onClick={() => setScOpen((o) => !o)} className="cd-schead" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 14, padding: "14px 20px", cursor: "pointer", transition: "background 150ms" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 12, flexWrap: "wrap" }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D" }}>Search criteria</span>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>the profile that drives this sweep — expand to edit &amp; re-run</span>
                 </div>
-              ))}
+                <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 13, color: "#8F8F8F" }}>{scOpen ? "⌃" : "⌄"}</span>
+              </div>
+
+              {/* Collapsed summary — the compact criteria at a glance */}
+              {!scOpen && (
+                <div style={{ borderTop: "1px solid #E3E3E3", padding: "4px 20px 8px" }}>
+                  {([["Asset", prof.assetType || "—"], ["Areas", prof.areas || "—"], ["Budget", prof.budgetMax || "—"], ["Beds / Baths", `${prof.bedsMin || "—"} / ${prof.bathsMin || "—"}`], ["SqFt", prof.sqftMin || "—"], ["Must-haves", prof.nonNegotiables || "—"]] as Array<[string, string]>).map(([l, v]) => (
+                    <div key={l} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "10px 0", borderBottom: "1px solid #ECECEC" }}>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "#8F8F8F" }}>{l}</span>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#303030", textAlign: "right" }}>{v}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Expanded — full Buyer Requirement Profile */}
+              {scOpen && (
+                <div style={{ borderTop: "1px solid #E3E3E3", padding: "0 20px" }}>
+                  <div style={{ padding: "24px 0 34px", maxWidth: 880 }}>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 6 }}>
+                      <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 15, color: "#0D0D0D" }}>Buyer Requirement Profile</div>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>Auto-saved</span>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", gap: 40, marginBottom: 34 }}>
+                      <p style={{ margin: 0, fontFamily: SANS, fontWeight: 400, fontSize: 14, lineHeight: 1.6, color: "#8F8F8F", maxWidth: 560 }}>Capture everything known about the asset this contact is looking for. The richer the profile, the sharper the MLS match.</p>
+                      <div onClick={runMls} className="cd-mlsbtn" style={{ cursor: "pointer", flex: "none", display: "flex", alignItems: "center", gap: 9, background: "#E9E8E4", color: "#0D0D0D", padding: "11px 20px", fontFamily: SANS, fontWeight: 700, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: "#8F8F8F" }} />MLS Match</div>
+                    </div>
+
+                    <div style={pfSectionHead}>01 · Asset Profile</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                      {pfInputField("Asset Type", "assetType", "e.g. Penthouse")}
+                      {pfSelectField("Architectural Style", "style", PROFILE_OPTS.style)}
+                      {pfSelectField("Condition", "condition", PROFILE_OPTS.condition)}
+                      {pfSelectField("Purpose", "purpose", PROFILE_OPTS.purpose)}
+                      {pfSelectField("Ownership", "ownership", PROFILE_OPTS.ownership)}
+                      {pfSelectField("Occupancy Timeline", "timeline", PROFILE_OPTS.timeline)}
+                    </div>
+
+                    <div style={pfSectionHead}>02 · Location</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                      {pfInputField("Target Areas / Neighborhoods", "areas", "e.g. Brickell, Coconut Grove")}
+                      {pfInputField("Proximity Priorities", "proximity", "Schools, waterfront, business district…")}
+                    </div>
+
+                    <div style={pfSectionHead}>03 · Budget &amp; Financing</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                      {pfInputField("Budget — Min", "budgetMin", "$")}
+                      {pfInputField("Budget — Max", "budgetMax", "$")}
+                      {pfSelectField("Financing", "financing", PROFILE_OPTS.financing)}
+                    </div>
+
+                    <div style={pfSectionHead}>04 · Space Requirements</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                      {pfInputField("Bedrooms (min)", "bedsMin", "e.g. 3+")}
+                      {pfInputField("Bathrooms (min)", "bathsMin", "e.g. 2.5+")}
+                      {pfInputField("Interior SqFt (min)", "sqftMin", "e.g. 2,500")}
+                      {pfInputField("Lot Size", "lotSize", "acres / m²")}
+                      {pfInputField("Parking", "parking", "spaces")}
+                      {pfSelectField("Outdoor Space", "outdoor", PROFILE_OPTS.outdoor)}
+                    </div>
+
+                    <div style={{ ...pfSectionHead, marginBottom: 22 }}>05 · Amenities &amp; Features</div>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 44 }}>
+                      {AMENITIES.map((a) => {
+                        const on = prof.amenities.includes(a);
+                        return <div key={a} onClick={() => toggleAmenity(a)} style={{ cursor: "pointer", userSelect: "none", padding: "8px 15px", fontFamily: SANS, fontWeight: 400, fontSize: 13, letterSpacing: "0.04em", border: `0.5px solid ${on ? "#0D0D0D" : "#8F8F8F"}`, background: on ? "#0D0D0D" : "transparent", color: on ? "#FFFFFF" : "#5D5D5D", transition: "all 0.15s" }}>{a}</div>;
+                      })}
+                    </div>
+
+                    <div style={pfSectionHead}>06 · Must-haves, Dealbreakers &amp; Notes</div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "26px 40px" }}>
+                      {pfAreaField("Non-negotiables", "nonNegotiables", "Absolute must-haves…")}
+                      {pfAreaField("Dealbreakers", "dealbreakers", "Hard no's…")}
+                      {pfAreaField("Additional Notes", "notes", "", true)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* MLS Match results — the sweep against the profile */}
+              {mlsRun && (
+                <div style={{ borderTop: "1px solid #E3E3E3", padding: "18px 20px 22px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
+                    {MLS_MATCHES.map((m) => {
+                      const on = !!mlsSel[m.id];
+                      return (
+                        <div key={m.id} onClick={() => setMlsSel((s) => ({ ...s, [m.id]: !s[m.id] }))} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 20, padding: 16, border: `0.5px solid ${on ? "#0D0D0D" : "#E3E3E3"}`, background: on ? "#FCFCFC" : "transparent", borderRadius: 12, transition: "border-color 150ms" }}>
+                          <div style={{ width: 20, height: 20, flex: "none", border: `1px solid ${on ? "#0D0D0D" : "#8F8F8F"}`, background: on ? "#E9E8E4" : "transparent", color: "#0D0D0D", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, borderRadius: 6 }}>{on ? "✓" : ""}</div>
+                          <div style={{ flex: "none", width: 120, height: 80, background: m.plate, borderRadius: 8 }} />
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+                              <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 13, color: "#0D0D0D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.addr}</span>
+                              <span style={{ flex: "none", fontFamily: SANS, fontWeight: 500, fontSize: 13, color: "#0D0D0D" }}>{m.price}</span>
+                            </div>
+                            <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#5D5D5D", marginTop: 3 }}>{m.specs}</div>
+                            <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, fontStyle: "italic", color: "#8F8F8F", marginTop: 3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{m.tagline}</div>
+                            <div style={{ display: "flex", alignItems: "baseline", gap: 10, marginTop: 6 }}>
+                              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.05em", color: "#10A37F" }}>{m.match} fit</span>
+                              {m.isNew && <span style={{ display: "inline-block", background: "#E9E8E4", color: "#0D0D0D", fontFamily: SANS, fontWeight: 400, fontSize: 8, letterSpacing: "0.14em", textTransform: "uppercase", padding: "2px 6px" }}>New</span>}
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
+                    <button onClick={suggestMls} className="cd-chip" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "9px 18px", fontFamily: SANS, fontWeight: 500, fontSize: 10.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer", transition: "opacity 150ms" }}>Suggest selected · {mlsSelCount}</button>
+                    <button onClick={draftTour} className="cd-chip" style={{ background: "transparent", border: "1px solid #0D0D0D", borderRadius: 999, padding: "9px 16px", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer", transition: "background 150ms" }}>Draft tour · selected</button>
+                    <span title="Identified from the contact profile — Nationality & Languages" style={{ display: "inline-flex", alignItems: "center", gap: 6, border: "1px solid #E3E3E3", borderRadius: 999, padding: "5px 11px", fontFamily: SANS, fontWeight: 500, fontSize: 9.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D" }}><span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10A37F", flex: "none" }} />agent drafts in {mlsLang} — from the profile</span>
+                    {mlsAck && <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", flexBasis: "100%" }}>{mlsAck}</span>}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

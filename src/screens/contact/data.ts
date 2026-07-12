@@ -43,6 +43,75 @@ export const CRITERIA: Record<string, Array<[string, string]>> = {
 
 export const CHAT_CHIPS = ["Read this relationship", "What should I do next?", "Draft outreach", "MLS matches for them", "Referral / expansion angle"];
 
+/* ===== Buyer Requirement Profile (fragment 08 ~408-544) — 6 sections.
+   Canonical per-contact seed from logic-and-data.js: prefAsset/prefAreas/
+   prefBudget (~2149-2211) + prefsX beds/baths/sqft/notes (~2658-2665). The
+   select defaults are the literal option sets from the fragment; per-contact
+   picks below are the demo values. Empty string ⇒ show the placeholder. */
+
+export const PROFILE_OPTS = {
+  style: ["Contemporary", "Modern", "Classic / Traditional", "Mediterranean", "Industrial / Loft", "No preference"],
+  condition: ["Turn-key", "Light renovation OK", "Full renovation OK", "New construction"],
+  purpose: ["Primary residence", "Investment", "Vacation home", "Relocation", "1031 exchange"],
+  ownership: ["Individual", "Trust", "LLC / Entity", "Family office"],
+  timeline: ["Immediate", "Within 3 months", "3–6 months", "6–12 months", "Exploratory"],
+  financing: ["All cash", "Conventional mortgage", "Jumbo loan", "Portfolio / private bank", "Undecided"],
+  outdoor: ["Balcony / terrace", "Private garden", "Rooftop", "Not required"],
+} as const;
+
+export const AMENITIES = [
+  "Pool", "Private Gym", "Elevator", "24/7 Security", "Waterfront", "Sea / Water View",
+  "Home Office", "Wine Cellar", "Staff Quarters", "Smart Home", "Private Garden",
+  "Rooftop Terrace", "Concierge", "EV Charging", "Guest Suite", "Home Theater",
+  "Beach Access", "Helipad",
+];
+
+export interface BuyerProfile {
+  assetType: string; style: string; condition: string; purpose: string; ownership: string; timeline: string;
+  areas: string; proximity: string;
+  budgetMin: string; budgetMax: string; financing: string;
+  bedsMin: string; bathsMin: string; sqftMin: string; lotSize: string; parking: string; outdoor: string;
+  amenities: string[];
+  nonNegotiables: string; dealbreakers: string; notes: string;
+}
+
+/* Canonical demo values, keyed by contact id. */
+const PREFS: Record<string, Partial<BuyerProfile>> = {
+  marcelo: { assetType: "Penthouse condo", style: "Contemporary", condition: "New construction", purpose: "Primary residence", ownership: "Trust", timeline: "Within 3 months", areas: "Sunny Isles · Bal Harbour", proximity: "Ocean · private schools", budgetMax: "$15–20M", financing: "All cash", bedsMin: "3–4", bathsMin: "4", sqftMin: "4,000–6,000", outdoor: "Balcony / terrace", amenities: ["Pool", "Elevator", "Sea / Water View", "Smart Home"], nonNegotiables: "Private pool · service elevator", notes: "Ocean views · high floor · turnkey" },
+  keller: { assetType: "Waterfront compound", style: "Modern", condition: "Turn-key", purpose: "Primary residence", ownership: "Family office", timeline: "3–6 months", areas: "Golden Beach · Indian Creek", proximity: "Gated · deep-water dock", budgetMax: "$25–30M", financing: "Portfolio / private bank", bedsMin: "5+", bathsMin: "6", sqftMin: "8,000+", outdoor: "Private garden", amenities: ["Waterfront", "Staff Quarters", "24/7 Security", "Private Garden"], nonNegotiables: "Discretion · staff quarters · dock", dealbreakers: "No shared amenities", notes: "Waterfront · privacy · dock" },
+  sterling: { assetType: "Oceanfront condo", style: "Contemporary", condition: "Turn-key", purpose: "Primary residence", ownership: "Individual", timeline: "Immediate", areas: "Sunny Isles", proximity: "Oceanfront · full-service tower", budgetMax: "$10–12M", financing: "All cash", bedsMin: "3", bathsMin: "3.5", sqftMin: "3,000–4,000", outdoor: "Balcony / terrace", amenities: ["Sea / Water View", "Concierge", "Pool", "24/7 Security"], nonNegotiables: "Full service · ocean view", notes: "Oceanfront · full services" },
+  zanotti: { assetType: "Tower condo", areas: "Sunny Isles", budgetMax: "$3–5M", bedsMin: "2–3", bathsMin: "2", sqftMin: "2,000–3,000", amenities: ["Sea / Water View", "Concierge"], notes: "Tower · Sunny Isles" },
+  nakamura: { assetType: "Oceanfront condo", purpose: "Investment", timeline: "6–12 months", areas: "Bal Harbour", budgetMax: "$8–10M", bedsMin: "3", bathsMin: "3", sqftMin: "3,000–3,500", amenities: ["Sea / Water View", "Concierge"], notes: "Bal Harbour · long horizon" },
+  ravel: { assetType: "Branded residence", style: "Modern", areas: "Faena · Brickell", budgetMax: "$8–10M", bedsMin: "2–3", bathsMin: "3", sqftMin: "2,500–3,500", amenities: ["Concierge", "Home Theater"], notes: "Branded · design-led" },
+  alvarez: { assetType: "Tower condo", areas: "Sunny Isles", budgetMax: "$6–8M", bedsMin: "2–3", bathsMin: "2.5", sqftMin: "2,000–2,800", amenities: ["Sea / Water View"], notes: "Tower · Sunny Isles" },
+};
+
+const EMPTY: BuyerProfile = {
+  assetType: "", style: PROFILE_OPTS.style[0], condition: PROFILE_OPTS.condition[0], purpose: PROFILE_OPTS.purpose[0], ownership: PROFILE_OPTS.ownership[0], timeline: PROFILE_OPTS.timeline[0],
+  areas: "", proximity: "", budgetMin: "", budgetMax: "", financing: PROFILE_OPTS.financing[0],
+  bedsMin: "", bathsMin: "", sqftMin: "", lotSize: "", parking: "", outdoor: PROFILE_OPTS.outdoor[0],
+  amenities: [], nonNegotiables: "", dealbreakers: "", notes: "",
+};
+
+export function buildProfile(id: string, saved?: Partial<BuyerProfile>): BuyerProfile {
+  return { ...EMPTY, ...(PREFS[id] ?? {}), ...(saved ?? {}) } as BuyerProfile;
+}
+
+export function hasProfile(id: string): boolean {
+  return !!PREFS[id] && (PREFS[id].assetType ?? "—") !== "—" && (PREFS[id].assetType ?? "") !== "";
+}
+
+/* MLS Match demo results (mlsMatches ~4858) — the sweep against the profile.
+   Solid tinted plates instead of the prototype's gradients (visual law). */
+export const MLS_LANG: Record<string, string> = { marcelo: "PT", duarte: "PT", bittencourt: "PT", keller: "EN", sterling: "EN", nakamura: "EN", zanotti: "EN", ravel: "EN", alvarez: "ES" };
+export interface MlsMatch { id: string; addr: string; price: string; specs: string; tagline: string; match: string; isNew: boolean; plate: string }
+export const MLS_MATCHES: MlsMatch[] = [
+  { id: "m1", addr: "8842 Ocean Drive · Golden Beach", price: "$24.5M", specs: "6 bd · 8 ba · 11,200 sqft · Waterfront", tagline: "Turn-key contemporary · 118 ft of frontage · deep-water dock", match: "96%", isNew: true, plate: "#3B453E" },
+  { id: "m2", addr: "12 Indian Creek Island Rd", price: "$41.0M", specs: "7 bd · 9 ba · 15,400 sqft · Waterfront estate", tagline: "Gated island · private beach · full staff quarters", match: "92%", isNew: true, plate: "#463E36" },
+  { id: "m3", addr: "305 Ocean Blvd · Golden Beach", price: "$18.9M", specs: "5 bd · 6 ba · 8,600 sqft · Contemporary", tagline: "Turn-key · rooftop pool · smart-home throughout", match: "88%", isNew: false, plate: "#363B45" },
+  { id: "m4", addr: "720 Aqua Ave · Miami Beach", price: "$16.2M", specs: "5 bd · 7 ba · 7,900 sqft · New construction", tagline: "Sea view · elevator · wine cellar · private garden", match: "84%", isNew: false, plate: "#3D3645" },
+];
+
 /* Pre-meeting brief (briefMap ~2480) — agent-generated 30 min before. */
 export interface Brief { objections: string[]; family: string[]; comps: string[]; objective: string }
 export const BRIEF: Record<string, Brief> = {
