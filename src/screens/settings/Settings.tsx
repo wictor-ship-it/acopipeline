@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import { useCollection } from "../../data/hooks";
 import { getAuditLog, onDataChange, save } from "../../data/repository";
 import type { AuditEntry, Contact, Settings as SettingsRec } from "../../domain/types";
@@ -37,6 +37,114 @@ const CONNECTORS = [
   { name: "MLS", kind: "Matrix + broker feeds · nightly sync", on: true },
   { name: "DocuSign", kind: "Not connected — contracts stay manual", on: false },
 ];
+
+/* Field descriptors — literal from logic-and-data.js (setScoring/Voice/Mls/Display/Stages). */
+type Field = { id: string; label: string; value: string; opts?: string[] };
+
+const SET_SCORING: Array<{ label: string; value: string; note: string }> = [
+  { label: "Health Score weights", value: "Coverage 30 · Velocity 25 · Aging 25 · Hygiene 20", note: 'How the 82/100 is composed — tune what "healthy" means for your book' },
+  { label: "Momentum factors", value: "Engagement 40 · Recency 35 · Velocity 25", note: "Per-deal momentum used in probability-arbitrage suggestions" },
+  { label: "Stale thresholds", value: "HOT 14d · WARM 30d · Listing 21d", note: "Days without touch before a record surfaces in Risk Radar" },
+  { label: "Forecast weighting", value: "Probability × GCI · month of expected close", note: "What the GCI Forecast bars are built from" },
+  { label: "Queue ranking", value: "Urgency × Weighted GCI", note: "Order of Touch Today — value-weighted, not just chronological" },
+];
+const SET_VOICE: Field[] = [
+  { id: "v1", label: "Draft tone", value: "Sober · direct", opts: ["Sober · direct", "Warm · personal", "Formal · institutional"] },
+  { id: "v2", label: "Aphorism line", value: "On · rotates weekly", opts: ["On · rotates weekly", "On · fixed", "Off"] },
+  { id: "v3", label: "Templates", value: "14 active · manage library" },
+  { id: "v4", label: "Per-contact language", value: "Auto-detect from thread", opts: ["Auto-detect from thread", "Always PT", "Always EN", "Ask per contact"] },
+  { id: "v5", label: "Signature block", value: "Short (WhatsApp) · Full (email)", opts: ["Short (WhatsApp) · Full (email)", "Always short", "Always full"] },
+  { id: "v6", label: "Forbidden words", value: '"stunning" · "dream" · "exclusive" · "!"' },
+];
+const SET_MLS: Field[] = [
+  { id: "m0", label: "Match source", value: "IDX · arraescollection.com", opts: ["IDX · arraescollection.com", "MIAMI MLS · RESO API (when live)", "Manual entry only"] },
+  { id: "m1", label: "Sweep frequency", value: "Nightly", opts: ["Nightly", "Twice daily", "Weekly", "Manual only"] },
+  { id: "m2", label: "Match threshold", value: "≥ 80% fit", opts: ["≥ 70% fit", "≥ 80% fit", "≥ 90% fit"] },
+  { id: "m3", label: "Price tolerance", value: "+10% above budget", opts: ["+5% above budget", "+10% above budget", "+15% above budget", "Strict"] },
+  { id: "m4", label: "Off-market sources", value: "Network · expired · FSBO" },
+  { id: "m5", label: "Auto-suggest to client", value: "Off — always via approval", opts: ["Off — always via approval", "On — curated matches only"] },
+  { id: "m6", label: "Comp radius", value: "Same building · 0.5 mi fallback", opts: ["Same building · 0.5 mi fallback", "0.5 mi", "1 mi", "Neighborhood"] },
+];
+const SET_DISPLAY: Field[] = [
+  { id: "d1", label: "Landing screen", value: "Command Center", opts: ["Command Center", "Contacts · Queue", "Pipeline", "Activities"] },
+  { id: "d2", label: "Currency · units", value: "USD · sq ft", opts: ["USD · sq ft", "USD · m²", "BRL · m²"] },
+  { id: "d3", label: "Timezone", value: "America/New_York (EST)", opts: ["America/New_York (EST)", "America/Sao_Paulo (BRT)", "Europe/Zurich (CET)"] },
+  { id: "d4", label: "Number format", value: "$18.5M · compact", opts: ["$18.5M · compact", "$18,500,000 · full"] },
+  { id: "d5", label: "Density", value: "Comfortable", opts: ["Comfortable", "Compact"] },
+  { id: "d6", label: "Week starts", value: "Monday", opts: ["Monday", "Sunday"] },
+];
+const SET_STAGE_FIELDS: Field[] = [
+  { id: "s1", label: "Stage probabilities", value: "Prospecting 10 · Warm 30 · Hot 60 · UC 90" },
+  { id: "s2", label: "Auto-advance rules", value: "Documented events only", opts: ["Documented events only", "Agent may move · logged", "Manual only"] },
+  { id: "s3", label: "Lost reasons", value: "Price · Timing · Inventory · Cooled · Other broker" },
+  { id: "s4", label: "Milestone templates", value: "Cash 9 · Financed 12 · Pre-construction 6" },
+];
+
+type Stage = { n: string; p: number };
+type Pipes = { order: string[]; data: Record<string, Stage[]> };
+const DEFAULT_PIPES: Pipes = {
+  order: ["Purchases", "Listings", "Rentals", "Investments"],
+  data: {
+    Purchases: [{ n: "Prospecting", p: 10 }, { n: "Warm", p: 30 }, { n: "Hot", p: 60 }, { n: "Under Contract", p: 90 }, { n: "Won", p: 100 }, { n: "Lost", p: 0 }],
+    Listings: [{ n: "Prospecting", p: 10 }, { n: "Contract", p: 40 }, { n: "Staging", p: 60 }, { n: "Marketing", p: 70 }, { n: "Won", p: 100 }, { n: "Lost", p: 0 }],
+    Rentals: [{ n: "Prospecting", p: 10 }, { n: "Showings", p: 40 }, { n: "Contract", p: 80 }, { n: "Won", p: 100 }, { n: "Lost", p: 0 }],
+    Investments: [{ n: "Prospecting", p: 10 }, { n: "Mandate", p: 30 }, { n: "Presented", p: 45 }, { n: "Underwriting", p: 65 }, { n: "Committed", p: 85 }, { n: "Won", p: 100 }],
+  },
+};
+const PIPES_KEY = "aco-settings-pipes";
+function loadPipes(): Pipes {
+  try {
+    const raw = localStorage.getItem(PIPES_KEY);
+    if (raw) { const p = JSON.parse(raw) as Pipes; if (p?.order?.length) return p; }
+  } catch { /* fall through to defaults */ }
+  return DEFAULT_PIPES;
+}
+
+const GLASS: Array<{ name: string; base: string; b1: string; b2: string }> = [
+  { name: "Sand & Ocean", base: "linear-gradient(135deg,#EFE7D8 0%,#DEE8E4 45%,#D8E0EC 100%)", b1: "rgba(219,190,138,0.55)", b2: "rgba(139,184,175,0.55)" },
+  { name: "Miami Dusk", base: "linear-gradient(135deg,#F2E3DC 0%,#E6DEEC 45%,#D8DFF0 100%)", b1: "rgba(224,168,140,0.50)", b2: "rgba(178,166,214,0.50)" },
+  { name: "Emerald Coast", base: "linear-gradient(135deg,#E3EDE7 0%,#DCE9E9 50%,#D9E4EE 100%)", b1: "rgba(126,188,162,0.50)", b2: "rgba(120,180,190,0.45)" },
+  { name: "Champagne", base: "linear-gradient(135deg,#F5EBDD 0%,#F1E7DB 50%,#EDE4D8 100%)", b1: "rgba(226,196,148,0.50)", b2: "rgba(236,216,180,0.48)" },
+  { name: "Rosé", base: "linear-gradient(135deg,#F6E8E4 0%,#F2E4E8 50%,#EEE2EE 100%)", b1: "rgba(230,168,158,0.45)", b2: "rgba(216,170,196,0.40)" },
+  { name: "Sky", base: "linear-gradient(135deg,#E8F0F6 0%,#E4ECF4 50%,#DFE8F2 100%)", b1: "rgba(150,190,226,0.45)", b2: "rgba(170,206,232,0.42)" },
+  { name: "Lavender", base: "linear-gradient(135deg,#EFEAF6 0%,#EAE6F2 50%,#E6E4F0 100%)", b1: "rgba(186,168,216,0.45)", b2: "rgba(202,186,226,0.40)" },
+  { name: "Ivory Calm", base: "linear-gradient(135deg,#F6F3EC 0%,#F0EFEA 50%,#EAECEF 100%)", b1: "rgba(214,196,160,0.30)", b2: "rgba(168,196,190,0.28)" },
+];
+
+const SEL_STYLE: CSSProperties = {
+  minWidth: 0, maxWidth: "56%", appearance: "none", WebkitAppearance: "none", backgroundColor: "rgba(255,255,255,0.55)",
+  border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 32px 7px 14px",
+  backgroundImage: "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path d='M1 1l4 4 4-4' stroke='%238F8F8F' stroke-width='1.5' fill='none' stroke-linecap='round'/></svg>\")",
+  backgroundRepeat: "no-repeat", backgroundPosition: "right 13px center", cursor: "pointer",
+  fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#303030", outline: "none",
+};
+const TXT_STYLE: CSSProperties = {
+  minWidth: 0, flex: 1, maxWidth: "56%", background: "transparent", border: "none", borderBottom: "1px solid #E3E3E3",
+  padding: "4px 0", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030", outline: "none", textAlign: "right",
+};
+
+/* Two-column select/input grid — Voice §08, MLS §12, Display §13. */
+function FieldGrid({ fields, vals, onVal }: { fields: Field[]; vals: Record<string, string>; onVal: (id: string, v: string) => void }) {
+  return (
+    <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 60px" }}>
+      {fields.map((f) => {
+        const v = vals[f.id] ?? f.value;
+        return (
+          <div key={f.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, padding: "12px 4px", borderBottom: "1px solid #E3E3E3" }}>
+            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F", flex: "none" }}>{f.label}</span>
+            {f.opts ? (
+              <select value={v} onChange={(e) => onVal(f.id, e.target.value)} style={SEL_STYLE}>
+                {f.opts.map((o) => <option key={o} value={o}>{o}</option>)}
+              </select>
+            ) : (
+              <input value={v} onChange={(e) => onVal(f.id, e.target.value)} style={TXT_STYLE} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 /* Live Google Workspace connector (Phase 2) — real state from the BFF. */
 function GoogleLiveCard() {
@@ -128,6 +236,15 @@ export function Settings() {
   const { items: contacts } = useCollection<Contact>("contacts");
   const [sec, setSec] = useState("03");
   const [econ, setEcon] = useState<Record<string, string>>({});
+  const [vals, setVals] = useState<Record<string, string>>({});
+  const onVal = (id: string, v: string) => setVals((s) => ({ ...s, [id]: v }));
+  const [glass, setGlass] = useState("Sand & Ocean");
+  const [pipes, setPipes] = useState<Pipes>(loadPipes);
+  const [pipeSel, setPipeSel] = useState<string>(() => loadPipes().order[0]);
+  const commitPipes = (next: Pipes, sel: string) => {
+    setPipes(next); setPipeSel(sel);
+    try { localStorage.setItem(PIPES_KEY, JSON.stringify(next)); } catch { /* storage may be unavailable */ }
+  };
   const [audit, setAudit] = useState<AuditEntry[]>([]);
   useEffect(() => {
     const load = () => void getAuditLog().then(setAudit);
@@ -166,6 +283,30 @@ export function Settings() {
   };
 
   const navNumFor = (key: string) => String(NAV.findIndex(([k]) => k === key) + 1).padStart(2, "0");
+
+  /* Pipeline & Stages editor (§11) — structured, persisted to localStorage. */
+  const pSel = pipes.order.includes(pipeSel) ? pipeSel : pipes.order[0];
+  const pStages = pipes.data[pSel] ?? [];
+  const setStageArr = (arr: Stage[]) => commitPipes({ ...pipes, data: { ...pipes.data, [pSel]: arr } }, pSel);
+  const addPipe = () => {
+    let name = "New Pipeline", i = 2;
+    while (pipes.order.includes(name)) name = `New Pipeline ${i++}`;
+    commitPipes({ order: [...pipes.order, name], data: { ...pipes.data, [name]: [{ n: "Prospecting", p: 10 }, { n: "Won", p: 100 }, { n: "Lost", p: 0 }] } }, name);
+  };
+  const delPipe = (name: string) => {
+    if (pipes.order.length <= 1) return;
+    const order = pipes.order.filter((x) => x !== name);
+    const data = { ...pipes.data }; delete data[name];
+    commitPipes({ order, data }, order[0]);
+  };
+  const renamePipe = (nv: string) => {
+    if (!nv || (pipes.order.includes(nv) && nv !== pSel)) return;
+    const order = pipes.order.map((x) => (x === pSel ? nv : x));
+    const data: Record<string, Stage[]> = {};
+    pipes.order.forEach((x) => { data[x === pSel ? nv : x] = pipes.data[x]; });
+    commitPipes({ order, data }, nv);
+  };
+  const addStage = () => setStageArr([...pStages, { n: "New Stage", p: 50 }]);
 
   return (
     <div style={{ display: "flex", gap: 52, padding: "8px 48px 80px", alignItems: "flex-start" }}>
@@ -352,11 +493,120 @@ export function Settings() {
           )}
 
           {/* Representative sections */}
-          {sec === "11" && <><SecHead num={navNumFor("11")} title="Pipeline & Stages" desc="The stages each pipeline moves through — Purchases, Listings, Rentals, Investments, Off-Market." /><Rows><RepLines lines={["Purchases — Prospecting · Warm · Hot · Under Contract · Won · Lost", "Listings — Prospecting · Contract · Staging · Marketing · Under Contract · Won · Lost", "Rentals — Prospecting · Showings · Contract · Won · Lost", "Investments — Prospecting · Mandate · Presented · Underwriting · Committed · Won", "Off-Market — Quiet · Preview · Circulating · Placed"]} /></Rows></>}
-          {sec === "12" && <><SecHead num={navNumFor("12")} title="MLS & Matching" desc="How the agent sweeps inventory against every active buyer profile." /><Rows><RepLines lines={["Sources — Matrix + broker feeds · nightly sync at 6 AM", "Match on — asset type · areas · budget band · beds/baths · must-haves", "Off-market — quiet mandates matched to the buyer book before they list", "New match → surfaces in the contact's MLS Match tab for your review"]} /></Rows></>}
-          {sec === "08" && <><SecHead num={navNumFor("08")} title="Voice & Templates" desc="The Constitution the agent writes under — short, declarative, no superlatives." /><Rows><RepLines lines={["Forbidden — ultra-luxury · world-class · exclusive · iconic · state-of-the-art · best-in-class · premier · bespoke", "No exclamation, no emoji · conviction signalled (high/medium/low)", "Every claim references a record or is marked as inference", "Drafts always in the contact's language (PT · EN · ES)"]} /></Rows></>}
-          {sec === "07" && <><SecHead num={navNumFor("07")} title="Scoring & Forecast" desc="How heat and probability are computed, and how the forecast weights them." /><Rows><RepLines lines={["Probability bands — HOT 60 · WARM 30 · NEW 10 (overridable per deal)", "Heat — momentum-weighted: reply speed · opens · dwell · inbound recency", "Forecast — weighted GCI = budget × probability × fee rate, by expected close month", "Aging — deals past their stage's expected duration flagged to Risk Radar"]} /></Rows></>}
-          {sec === "13" && <><SecHead num={navNumFor("13")} title="Display & Locale" desc="How numbers, dates and currency render across the workspace." /><Rows><RepLines lines={["Currency — USD · $ · thousands grouped", "Dates — Mon DD, YYYY", "Interface language — English", "Contact-facing sends — auto-localized to the contact's language"]} /></Rows></>}
+          {sec === "11" && (
+            <>
+              <SecHead num={navNumFor("11")} title="Pipeline & Stages" desc="The shape of the funnel is yours to define — the agent obeys it." />
+              <div style={{ borderTop: "1px solid #E3E3E3" }}>
+                {/* pipeline tabs */}
+                <div style={{ display: "flex", alignItems: "baseline", gap: 26, padding: "16px 4px 0", flexWrap: "wrap" }}>
+                  {pipes.order.map((name) => {
+                    const active = name === pSel;
+                    return (
+                      <div key={name} onClick={() => setPipeSel(name)} style={{ display: "flex", alignItems: "center", gap: 8, fontFamily: SANS, fontWeight: active ? 400 : 300, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", color: active ? "#0D0D0D" : "#8F8F8F", paddingBottom: 7, borderBottom: `1px solid ${active ? "#0D0D0D" : "transparent"}`, cursor: "pointer", transition: "color 150ms" }}>
+                        <span>{name}</span>
+                        {pipes.order.length > 1 && <span onClick={(e) => { e.stopPropagation(); delPipe(name); }} title="Delete pipeline" className="st-pipex" style={{ fontSize: 11, color: "#8F8F8F", cursor: "pointer", transition: "color 150ms" }}>×</span>}
+                      </div>
+                    );
+                  })}
+                  <div onClick={addPipe} className="st-pipeadd" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8F8F8F", paddingBottom: 7, cursor: "pointer", transition: "color 150ms" }}>+ Pipeline</div>
+                </div>
+
+                {/* pipeline name */}
+                <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, padding: "16px 4px 13px", borderBottom: "1px solid #E3E3E3", alignItems: "center" }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>Pipeline name</span>
+                  <input value={pSel} onChange={(e) => renamePipe(e.target.value)} style={{ width: 280, background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", padding: "4px 0", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", outline: "none" }} />
+                </div>
+
+                {/* stage rows */}
+                {pStages.map((s, i) => (
+                  <div key={i} className="st-stagerow" style={{ display: "flex", alignItems: "center", gap: 18, padding: "11px 4px", borderBottom: "1px solid #E3E3E3", transition: "background 150ms" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 12, letterSpacing: "0.1em", color: "#8F8F8F", width: 24, flex: "none" }}>{String(i + 1).padStart(2, "0")}</span>
+                    <input value={s.n} onChange={(e) => { const a = [...pStages]; a[i] = { ...a[i], n: e.target.value }; setStageArr(a); }} style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", borderBottom: "0.5px solid transparent", padding: "4px 0", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", outline: "none" }} />
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 6, flex: "none" }}>
+                      <input type="number" min={0} max={100} value={s.p} onChange={(e) => { const a = [...pStages]; a[i] = { ...a[i], p: Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0)) }; setStageArr(a); }} style={{ width: 44, background: "transparent", border: "none", borderBottom: "1px solid #E3E3E3", fontFamily: SANS, fontWeight: 200, fontSize: 15, color: "#0D0D0D", padding: "0 0 2px", outline: "none", textAlign: "center" }} />
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>%</span>
+                    </div>
+                    <div style={{ display: "flex", gap: 4, flex: "none" }}>
+                      <span onClick={() => { if (i === 0) return; const a = [...pStages]; [a[i - 1], a[i]] = [a[i], a[i - 1]]; setStageArr(a); }} title="Move up" className="st-stagebtn" style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", fontFamily: SANS, fontSize: 11, color: i === 0 ? "#E3E3E3" : "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>↑</span>
+                      <span onClick={() => { if (i === pStages.length - 1) return; const a = [...pStages]; [a[i], a[i + 1]] = [a[i + 1], a[i]]; setStageArr(a); }} title="Move down" className="st-stagebtn" style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", fontFamily: SANS, fontSize: 11, color: i === pStages.length - 1 ? "#E3E3E3" : "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>↓</span>
+                      <span onClick={() => setStageArr(pStages.filter((_, x) => x !== i))} title="Delete stage" className="st-stagedel" style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", fontFamily: SANS, fontSize: 12, color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>×</span>
+                    </div>
+                  </div>
+                ))}
+
+                {/* add stage */}
+                <div onClick={addStage} className="st-addstage" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 4px", borderBottom: "1px solid #E3E3E3", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>+ Add stage</div>
+
+                {/* stage-level rules */}
+                {SET_STAGE_FIELDS.map((f) => {
+                  const v = vals[f.id] ?? f.value;
+                  return (
+                    <div key={f.id} style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, padding: "13px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center" }}>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.04em", color: "#0D0D0D" }}>{f.label}</span>
+                      {f.opts ? (
+                        <select value={v} onChange={(e) => onVal(f.id, e.target.value)} style={{ ...SEL_STYLE, maxWidth: 320, justifySelf: "start" }}>
+                          {f.opts.map((o) => <option key={o} value={o}>{o}</option>)}
+                        </select>
+                      ) : (
+                        <input value={v} onChange={(e) => onVal(f.id, e.target.value)} style={{ width: "100%", background: "transparent", border: "none", borderBottom: "1px solid #E3E3E3", padding: "4px 0", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030", outline: "none" }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </>
+          )}
+          {sec === "12" && (
+            <>
+              <SecHead num={navNumFor("12")} title="MLS & Matching" desc="How the nightly sweep hunts — and how much it may say without you." />
+              <FieldGrid fields={SET_MLS} vals={vals} onVal={onVal} />
+            </>
+          )}
+          {sec === "08" && (
+            <>
+              <SecHead num={navNumFor("08")} title="Voice & Templates" desc="Every draft the agent writes obeys these rules — the brand speaks with one voice." />
+              <FieldGrid fields={SET_VOICE} vals={vals} onVal={onVal} />
+            </>
+          )}
+          {sec === "07" && (
+            <>
+              <SecHead num={navNumFor("07")} title="Scoring & Forecast" desc="The formulas behind every number on the Command Center — tunable, never opaque." />
+              <div style={{ borderTop: "1px solid #E3E3E3" }}>
+                {SET_SCORING.map((r) => (
+                  <div key={r.label} style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, padding: "15px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "baseline" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.04em", color: "#0D0D0D" }}>{r.label}</span>
+                    <div>
+                      <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030" }}>{r.value}</div>
+                      <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#8F8F8F", marginTop: 3 }}>{r.note}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {sec === "13" && (
+            <>
+              <SecHead num={navNumFor("13")} title="Display & Locale" desc="How the instrument reads." />
+              <div style={{ display: "flex", flexDirection: "column", alignItems: "stretch", gap: 14, borderTop: "1px solid #E3E3E3", padding: "16px 4px", borderBottom: "1px solid #E3E3E3" }}>
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 13.5, color: "#0D0D0D" }}>Liquid Glass — ambient background</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", marginTop: 3 }}>The wallpaper behind the glass. Applies live across the whole system.</div>
+                </div>
+                <div style={{ display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "flex-start" }}>
+                  {GLASS.map((g) => {
+                    const act = g.name === glass;
+                    return (
+                      <div key={g.name} onClick={() => setGlass(g.name)} style={{ cursor: "pointer", textAlign: "center", userSelect: "none" }}>
+                        <div style={{ width: 56, height: 36, borderRadius: 9, background: `radial-gradient(circle at 28% 22%,${g.b1},transparent 62%),radial-gradient(circle at 76% 82%,${g.b2},transparent 62%),${g.base}`, border: `2px solid ${act ? "rgba(255,255,255,0.95)" : "rgba(0,0,0,0.08)"}`, boxShadow: act ? "0 0 0 1.5px rgba(0,0,0,0.22), 0 4px 14px rgba(0,0,0,0.14)" : "none", transition: "all 150ms" }} />
+                        <div style={{ fontFamily: SANS, fontSize: 10, marginTop: 6, letterSpacing: "0.02em", fontWeight: act ? 600 : 400, color: act ? "#0D0D0D" : "#8F8F8F" }}>{g.name}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+              <FieldGrid fields={SET_DISPLAY} vals={vals} onVal={onVal} />
+            </>
+          )}
           {sec === "09" && (
             <>
               <SecHead num={navNumFor("09")} title="Data & Privacy" desc="Retention, the private vault, and export rights." />
