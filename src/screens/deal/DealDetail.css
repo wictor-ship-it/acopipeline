@@ -46,6 +46,15 @@
 }
 .dd-approve:hover { opacity: 0.85; }
 .dd-skip:hover { color: #0D0D0D; }
+.dd-review:hover { color: #0D0D0D; }
+.dd-red-accept:hover { background: #DEDDD7; border-color: #0D0D0D; }
 .dd-planrow:hover { background: rgba(255, 255, 255, 0.45); }
+.dd-mlsrow:hover { background: rgba(255, 255, 255, 0.45); }
+.dd-qcard {
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  background: rgba(255, 255, 255, 0.42);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
+}
 .dd-send:hover { opacity: 0.85; }
 .dd-composer input::placeholder { color: #8F8F8F; }
