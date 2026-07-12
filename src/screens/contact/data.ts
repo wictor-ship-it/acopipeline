@@ -167,6 +167,42 @@ export function enrichRows(name: string): Array<{ field: string; value: string; 
   ];
 }
 
+/* Each status carries a cadence + default action plan (Settings §02 spirit). */
+export const STATUS_PLAY: Record<string, { cadence: string; action: string }> = {
+  Hot: { cadence: "Every 3 days", action: "Agent drafts the next touch; decision items surface daily until it moves." },
+  Warm: { cadence: "Every 2 weeks", action: "Value-touch cadence; re-qualify against the mandate monthly." },
+  Nurturing: { cadence: "Quarterly", action: "Long-horizon nurture; anniversary + market-brief touches, no pressure." },
+  Won: { cadence: "Quarterly + key dates", action: "Post-sale care: referral ask at 90 days, anniversary gesture armed." },
+  Lost: { cadence: "Quarterly watch", action: "Loss reason tagged; agent watches for re-entry signals only." },
+  "Not classified": { cadence: "Paused", action: "No cadence until a status is set — pick one to arm the plan." },
+};
+
+/* Contact information editor — sections & fields. Keys in TOP_KEYS write to the
+   contact record (header reads them); the rest live in preferences.info. */
+export const INFO_TOP_KEYS = ["name", "email", "phone", "company", "title", "linkedin", "birthday", "spouse", "location", "since"] as const;
+export interface InfoField { key: string; label: string; area?: boolean }
+export const INFO_SECTIONS: Array<{ title: string; fields: InfoField[] }> = [
+  { title: "Personal", fields: [
+    { key: "name", label: "Full name" }, { key: "nickname", label: "Preferred name" },
+    { key: "email", label: "Email" }, { key: "phone", label: "Phone · WhatsApp" },
+    { key: "location", label: "Residence" }, { key: "nationality", label: "Nationality" },
+    { key: "languages", label: "Languages" }, { key: "birthday", label: "Birthday" },
+  ] },
+  { title: "Professional", fields: [
+    { key: "company", label: "Company" }, { key: "title", label: "Title" },
+    { key: "industry", label: "Industry" }, { key: "workPhone", label: "Work phone" },
+    { key: "linkedin", label: "LinkedIn" }, { key: "assistant", label: "Assistant / EA" },
+  ] },
+  { title: "Family", fields: [
+    { key: "spouse", label: "Spouse / Partner" }, { key: "children", label: "Children" },
+    { key: "familyNotes", label: "Family notes", area: true },
+  ] },
+  { title: "Important dates", fields: [
+    { key: "anniversary", label: "Anniversary" }, { key: "since", label: "Client since" },
+    { key: "keyDate", label: "Next key date" },
+  ] },
+];
+
 /* Status select — canonical 6 (canonS6 ~2933) mapped from the seed's display status. */
 export const CANON_STATUS = ["Hot", "Warm", "Nurturing", "Won", "Lost", "Not classified"];
 export function toCanonStatus(status: string): string {

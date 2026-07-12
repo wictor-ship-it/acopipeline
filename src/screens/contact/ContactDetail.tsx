@@ -6,9 +6,9 @@ import type { Contact, Mandate, Opportunity } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
-  DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, JOURNEY_IDX,
-  JOURNEY_SEQ, LEARNED, MLS_LANG, MLS_MATCHES, PINNED, PLAN_AHEAD, type PlanItem,
-  PROFILE_OPTS, RELATED, SINCE_LINE, toCanonStatus,
+  DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, INFO_SECTIONS,
+  INFO_TOP_KEYS, JOURNEY_IDX, JOURNEY_SEQ, LEARNED, MLS_LANG, MLS_MATCHES, PINNED,
+  PLAN_AHEAD, type PlanItem, PROFILE_OPTS, RELATED, SINCE_LINE, STATUS_PLAY, toCanonStatus,
 } from "./data";
 import "./ContactDetail.css";
 
@@ -43,6 +43,10 @@ export function ContactDetail() {
   const [tlShift, setTlShift] = useState<Record<number, string>>({});
   const [tlHov, setTlHov] = useState<number | null>(null);
   const [learnDone, setLearnDone] = useState(false);
+  const [actionMenu, setActionMenu] = useState<"phone" | "email" | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editForm, setEditForm] = useState<Record<string, string>>({});
+  const [statusLocal, setStatusLocal] = useState("");
 
   const ct = contacts.find((c) => c.id === id);
   const deals = useMemo(() => opportunities.filter((o) => o.contact_id === id), [opportunities, id]);
@@ -146,9 +150,43 @@ export function ContactDetail() {
   };
 
   const statusVal = toCanonStatus(ct.status);
+  const statusSel = statusLocal || statusVal;
+  const play = STATUS_PLAY[statusSel] ?? STATUS_PLAY["Not classified"];
   const onStatus = (v: string) => {
+    setStatusLocal(v);
     if (v === statusVal) return;
-    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: v }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · follow-up cadence armed` }); });
+    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: v }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · cadence ${STATUS_PLAY[v]?.cadence ?? "armed"}` }); });
+  };
+
+  /* Contact information — merged view + editor. Top-level keys write to the
+     record; the rest live in preferences.info. */
+  const info = (ct.preferences?.info ?? {}) as Record<string, string>;
+  const isTop = (k: string) => (INFO_TOP_KEYS as readonly string[]).includes(k);
+  const infoVal = (key: string): string => (isTop(key) ? (ct as unknown as Record<string, string>)[key] : info[key]) ?? "";
+  const openEdit = () => {
+    const f: Record<string, string> = {};
+    for (const s of INFO_SECTIONS) for (const fld of s.fields) f[fld.key] = infoVal(fld.key);
+    setEditForm(f); setEditOpen(true);
+  };
+  const saveEdit = () => {
+    const patch: Record<string, string> = {};
+    const infoPatch: Record<string, string> = { ...info };
+    for (const [k, v] of Object.entries(editForm)) { if (isTop(k)) patch[k] = v; else infoPatch[k] = v; }
+    void getById<Contact>("contacts", id).then((cur) => {
+      if (!cur) return;
+      void save<Contact>("contacts", { ...cur, ...(patch as Partial<Contact>), preferences: { ...(cur.preferences ?? {}), info: infoPatch } }, { actor: "user", skill: "chief_of_staff", action: `Edited contact information — ${ct.name}` });
+    });
+    setEditOpen(false);
+  };
+
+  /* Reach-out actions on the phone/email line (user-initiated; opens the app). */
+  const phoneDigits = (ct.phone ?? "").replace(/[^\d]/g, "");
+  const reach = (kind: "whatsapp" | "call" | "email") => {
+    setActionMenu(null);
+    if (kind === "whatsapp") window.open(`https://wa.me/${phoneDigits}`, "_blank", "noopener");
+    else if (kind === "call") window.location.href = `tel:+${phoneDigits}`;
+    else window.location.href = `mailto:${ct.email ?? ""}`;
+    void recordAction({ actor: "user", skill: "chief_of_staff", action: `Opened ${kind === "whatsapp" ? "WhatsApp" : kind === "call" ? "call" : "email"} — ${ct.name}` }, `contact/${id}/reach`, () => {});
   };
 
   /* Buyer Requirement Profile field renderers (literal styles from fragment 08). */
@@ -184,17 +222,44 @@ export function ContactDetail() {
           <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8F8F8F" }}>{typeVal} · {ct.location} · since {ct.since} <span onClick={() => setSeg("profile")} className="cd-editlink" style={{ cursor: "pointer", color: "#C9C7C1" }}>· edit ›</span></div>
           <div style={{ display: "flex", alignItems: "center", gap: 20, marginTop: 4 }}>
             <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 28, letterSpacing: "-0.01em", color: "#0D0D0D" }}>{ct.name}</span>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, flex: "none" }}>
+            <div className="cd-statuswrap" style={{ display: "inline-flex", alignItems: "center", gap: 8, flex: "none", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 11px", background: "rgba(255,255,255,0.5)" }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: ct.dot ?? "#8F8F8F" }} />
-              <select defaultValue={statusVal} onChange={(e) => onStatus(e.target.value)} title="Status — changing it arms the default follow-up cadence" className="cd-status" style={{ appearance: "none", WebkitAppearance: "none", background: "transparent", border: "none", padding: "1px 0", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#5D5D5D", outline: "none", cursor: "pointer" }}>
+              <select value={statusSel} onChange={(e) => onStatus(e.target.value)} title="Status — sets the follow-up cadence &amp; action plan" className="cd-status" style={{ appearance: "none", WebkitAppearance: "none", background: "transparent", border: "none", padding: "1px 0", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0D0D0D", outline: "none", cursor: "pointer" }}>
                 {CANON_STATUS.map((o) => <option key={o} value={o}>{o}</option>)}
               </select>
+              <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 11, color: "#8F8F8F", pointerEvents: "none", marginLeft: -2 }}>⌄</span>
             </div>
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 16, flexWrap: "wrap", marginTop: 7 }}>
-            {[ct.phone, ct.email, ct.spouse ? `Spouse · ${ct.spouse}` : null].filter(Boolean).map((v) => (
-              <span key={v} onClick={() => navigator.clipboard?.writeText(String(v))} title="Click to copy" className="cd-copy" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, letterSpacing: "0.01em", color: "#5D5D5D", cursor: "pointer", transition: "color 150ms" }}>{v}</span>
-            ))}
+          {/* Cadence + action plan for the selected status */}
+          <div style={{ display: "flex", alignItems: "baseline", gap: 8, flexWrap: "wrap", marginTop: 7 }}>
+            <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5D5D5D" }}>Cadence · {play.cadence}</span>
+            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{play.action}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginTop: 8, position: "relative" }}>
+            {ct.phone && (
+              <div style={{ position: "relative" }}>
+                <span onClick={() => setActionMenu((m) => (m === "phone" ? null : "phone"))} className="cd-reach" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#5D5D5D", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>{ct.phone} <span style={{ fontSize: 9, color: "#B8B8B8" }}>⌄</span></span>
+                {actionMenu === "phone" && (
+                  <div className="cd-reachmenu">
+                    <div onClick={() => reach("whatsapp")} className="cd-reachitem">WhatsApp</div>
+                    <div onClick={() => reach("call")} className="cd-reachitem">Call</div>
+                    <div onClick={() => { navigator.clipboard?.writeText(ct.phone ?? ""); setActionMenu(null); }} className="cd-reachitem">Copy number</div>
+                  </div>
+                )}
+              </div>
+            )}
+            {ct.email && (
+              <div style={{ position: "relative" }}>
+                <span onClick={() => setActionMenu((m) => (m === "email" ? null : "email"))} className="cd-reach" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#5D5D5D", cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>{ct.email} <span style={{ fontSize: 9, color: "#B8B8B8" }}>⌄</span></span>
+                {actionMenu === "email" && (
+                  <div className="cd-reachmenu">
+                    <div onClick={() => reach("email")} className="cd-reachitem">Send email</div>
+                    <div onClick={() => { navigator.clipboard?.writeText(ct.email ?? ""); setActionMenu(null); }} className="cd-reachitem">Copy email</div>
+                  </div>
+                )}
+              </div>
+            )}
+            {ct.spouse && <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#5D5D5D" }}>Spouse · {ct.spouse}</span>}
           </div>
           <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.5, color: "#5D5D5D", marginTop: 8, maxWidth: 560 }}>{essence}</div>
           {hasRef && (
@@ -491,13 +556,36 @@ export function ContactDetail() {
             style={{ width: "100%", boxSizing: "border-box", border: "1px solid #D9D9D9", background: "rgba(250,250,250,0.5)", padding: "12px 14px", marginTop: 12, fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.6, color: "#303030", outline: "none", resize: "vertical" }}
           />
 
-          <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", paddingBottom: 11, borderBottom: "1px solid #E3E3E3", margin: "34px 0 4px" }}>Contact information</div>
-          {[["Type", typeVal], ["Location", ct.location ?? "—"], ["Phone · WhatsApp", ct.phone ?? "—"], ["Email", ct.email ?? "—"], ["Client since", ct.since ?? "—"], ["Language", (ct.language ?? []).join(" · ") || "—"], ["Lifetime GCI", ct.lifetime_gci ?? "—"], ["Deals won", ct.deals_won ?? "—"]].map(([l, v]) => (
-            <div key={l} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "12px 0", borderBottom: "1px solid #E3E3E3" }}>
-              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "#8F8F8F" }}>{l}</span>
-              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#303030", textAlign: "right" }}>{v}</span>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, paddingBottom: 11, borderBottom: "1px solid #E3E3E3", margin: "34px 0 4px" }}>
+            <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>Contact information</span>
+            <button onClick={openEdit} className="cd-chip" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", background: "rgba(255,255,255,0.55)", border: "1px solid #E3E3E3", borderRadius: 999, padding: "6px 14px", cursor: "pointer", transition: "all 150ms" }}>Edit</button>
+          </div>
+          {(() => {
+            const sections = INFO_SECTIONS.map((sec) => ({ title: sec.title, rows: sec.fields.map((f) => [f.label, infoVal(f.key)] as [string, string]).filter(([, v]) => v.trim()) })).filter((s) => s.rows.length);
+            if (!sections.length) return <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#8F8F8F", padding: "14px 0" }}>No contact information yet — press Edit to add it, or let the agent enrich below.</div>;
+            return sections.map((sec) => (
+              <div key={sec.title} style={{ marginTop: 14 }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F", marginBottom: 2 }}>{sec.title}</div>
+                {sec.rows.map(([l, v]) => (
+                  <div key={l} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "11px 0", borderBottom: "1px solid #E3E3E3" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "#8F8F8F" }}>{l}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#303030", textAlign: "right" }}>{v}</span>
+                  </div>
+                ))}
+              </div>
+            ));
+          })()}
+          {(ct.lifetime_gci || ct.deals_won) && (
+            <div style={{ marginTop: 14 }}>
+              <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F", marginBottom: 2 }}>Relationship</div>
+              {[["Lifetime GCI", ct.lifetime_gci], ["Deals won", ct.deals_won]].filter(([, v]) => v).map(([l, v]) => (
+                <div key={l} style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, padding: "11px 0", borderBottom: "1px solid #E3E3E3" }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.07em", textTransform: "uppercase", color: "#8F8F8F" }}>{l}</span>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#303030", textAlign: "right" }}>{v}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
 
           {(ct.tags?.length ?? 0) > 0 && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 20 }}>
@@ -582,6 +670,45 @@ export function ContactDetail() {
                 <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Objective of this conversation</div>
                 <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14.5, lineHeight: 1.65, color: "#303030", marginTop: 12 }}>{brief.objective}</div>
               </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* CONTACT INFORMATION · editor drawer */}
+      {editOpen && (
+        <>
+          <div onClick={() => setEditOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(0,0,0,0.32)" }} />
+          <div className="cd-brief">
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", padding: "28px 32px 20px", borderBottom: "1px solid #E3E3E3" }}>
+              <div>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 15, color: "#0D0D0D" }}>Edit contact information</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F", marginTop: 6 }}>{ct.name} · auto-saved on save · only filled fields display</div>
+              </div>
+              <span onClick={() => setEditOpen(false)} style={{ fontFamily: SANS, fontWeight: 200, fontSize: 20, color: "#8F8F8F", cursor: "pointer", lineHeight: 1 }}>×</span>
+            </div>
+            <div style={{ padding: "8px 32px 24px" }}>
+              {INFO_SECTIONS.map((sec) => (
+                <div key={sec.title} style={{ padding: "20px 0", borderBottom: "1px solid #E3E3E3" }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", marginBottom: 14 }}>{sec.title}</div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 22px" }}>
+                    {sec.fields.map((f) => (
+                      <div key={f.key} style={{ display: "flex", flexDirection: "column", gap: 6, gridColumn: f.area ? "1 / -1" : undefined }}>
+                        <label style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>{f.label}</label>
+                        {f.area ? (
+                          <textarea rows={2} value={editForm[f.key] ?? ""} onChange={(e) => setEditForm((s) => ({ ...s, [f.key]: e.target.value }))} className="cd-pf" style={{ border: "1px solid #D9D9D9", background: "transparent", padding: "9px 12px", fontFamily: SANS, fontWeight: 400, fontSize: 14, lineHeight: 1.5, color: "#303030", outline: "none", resize: "vertical", boxSizing: "border-box" }} />
+                        ) : (
+                          <input value={editForm[f.key] ?? ""} onChange={(e) => setEditForm((s) => ({ ...s, [f.key]: e.target.value }))} className="cd-pf" style={{ border: "none", borderBottom: "1px solid #D9D9D9", background: "transparent", padding: "7px 0", fontFamily: SANS, fontWeight: 400, fontSize: 14.5, color: "#303030", outline: "none", boxSizing: "border-box" }} />
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ position: "sticky", bottom: 0, display: "flex", gap: 10, padding: "16px 32px", borderTop: "1px solid #E3E3E3", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)" }}>
+              <button onClick={saveEdit} className="cd-chip" style={{ background: "#0D0D0D", border: "1px solid #0D0D0D", borderRadius: 999, padding: "10px 22px", fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#FFFFFF", cursor: "pointer" }}>Save</button>
+              <button onClick={() => setEditOpen(false)} className="cd-chip" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "10px 18px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Cancel</button>
             </div>
           </div>
         </>

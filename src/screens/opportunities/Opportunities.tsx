@@ -11,6 +11,7 @@ import "./Opportunities.css";
 /* ================= SCREEN 2 · PIPELINE (fragment 02) ================= */
 
 const initials = (n: string) => n.split(/\s+/).map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+const STAGE_OV_KEY = "aco-board-stage-ov";
 
 type Sort = "weighted" | "budget" | "prob" | "due" | "name";
 const CMP: Record<Sort, (a: Card, b: Card) => number> = {
@@ -41,8 +42,13 @@ export function Opportunities() {
   const [peek, setPeek] = useState<Card | null>(null);
   const [refDecided, setRefDecided] = useState<null | "accepted" | "declined">(null);
   const [closedSeg, setClosedSeg] = useState<"won" | "lost">("won");
-  /* Board drag-to-stage: per-session stage overrides (card name → stage). */
-  const [stageOv, setStageOv] = useState<Record<string, string>>({});
+  /* Board drag-to-stage: stage overrides (card name → stage), persisted to
+     localStorage so a move survives reload. */
+  const [stageOv, setStageOvState] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem(STAGE_OV_KEY) || "{}") as Record<string, string>; } catch { return {}; }
+  });
+  const setStageOv = (updater: (prev: Record<string, string>) => Record<string, string>) =>
+    setStageOvState((prev) => { const next = updater(prev); try { localStorage.setItem(STAGE_OV_KEY, JSON.stringify(next)); } catch { /* ignore */ } return next; });
   const [dragCard, setDragCard] = useState<{ name: string; from: string } | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
