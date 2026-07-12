@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { useCollection } from "../../data/hooks";
-import { save } from "../../data/repository";
-import type { Contact, Settings as SettingsRec } from "../../domain/types";
+import { getAuditLog, onDataChange, save } from "../../data/repository";
+import type { AuditEntry, Contact, Settings as SettingsRec } from "../../domain/types";
 import { SANS } from "../contacts/data";
 import "./Settings.css";
 
@@ -51,6 +51,12 @@ export function Settings() {
   const { items: contacts } = useCollection<Contact>("contacts");
   const [sec, setSec] = useState("03");
   const [econ, setEcon] = useState<Record<string, string>>({});
+  const [audit, setAudit] = useState<AuditEntry[]>([]);
+  useEffect(() => {
+    const load = () => void getAuditLog().then(setAudit);
+    load();
+    return onDataChange(load);
+  }, []);
   const settings = settingsRows[0];
 
   const autonomy = (settings?.autonomy_rules ?? {}) as Record<string, { label: string; desc: string; autonomous: boolean }>;
@@ -249,7 +255,27 @@ export function Settings() {
           {sec === "08" && <><SecHead num={navNumFor("08")} title="Voice & Templates" desc="The Constitution the agent writes under — short, declarative, no superlatives." /><Rows><RepLines lines={["Forbidden — ultra-luxury · world-class · exclusive · iconic · state-of-the-art · best-in-class · premier · bespoke", "No exclamation, no emoji · conviction signalled (high/medium/low)", "Every claim references a record or is marked as inference", "Drafts always in the contact's language (PT · EN · ES)"]} /></Rows></>}
           {sec === "07" && <><SecHead num={navNumFor("07")} title="Scoring & Forecast" desc="How heat and probability are computed, and how the forecast weights them." /><Rows><RepLines lines={["Probability bands — HOT 60 · WARM 30 · NEW 10 (overridable per deal)", "Heat — momentum-weighted: reply speed · opens · dwell · inbound recency", "Forecast — weighted GCI = budget × probability × fee rate, by expected close month", "Aging — deals past their stage's expected duration flagged to Risk Radar"]} /></Rows></>}
           {sec === "13" && <><SecHead num={navNumFor("13")} title="Display & Locale" desc="How numbers, dates and currency render across the workspace." /><Rows><RepLines lines={["Currency — USD · $ · thousands grouped", "Dates — Mon DD, YYYY", "Interface language — English", "Contact-facing sends — auto-localized to the contact's language"]} /></Rows></>}
-          {sec === "09" && <><SecHead num={navNumFor("09")} title="Data & Privacy" desc="Retention, the private vault, and export rights." /><Rows><RepLines lines={["Agent Ledger — insert-only · 7-year retention · action rollback for 30 days", "Private vault — commission economics & sensitive notes · Principal-only · no agent output may use it", "LGPD / CCPA — per-contact data export on request", "Nothing reaches a client without human approval (Law 1)"]} /></Rows></>}
+          {sec === "09" && (
+            <>
+              <SecHead num={navNumFor("09")} title="Data & Privacy" desc="Retention, the private vault, and export rights." />
+              <Rows><RepLines lines={["Agent Ledger — insert-only · 7-year retention · action rollback for 30 days", "Private vault — commission economics & sensitive notes · Principal-only · no agent output may use it", "LGPD / CCPA — per-contact data export on request", "Nothing reaches a client without human approval (Law 1)"]} /></Rows>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "26px 0 8px" }}>
+                <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0D0D0D" }}>Agent Ledger · live audit trail</span>
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F" }}>{audit.length} entries · insert-only · actor · action · timestamp</span>
+              </div>
+              <div style={{ borderTop: "1px solid #E3E3E3" }}>
+                {audit.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F", padding: "12px 4px" }}>No entries yet — every approval, edit, send, status change and file drop lands here.</div>}
+                {audit.slice(0, 40).map((e) => (
+                  <div key={e.id} style={{ display: "flex", alignItems: "baseline", gap: 14, padding: "11px 4px", borderBottom: "1px solid #ECECEC" }}>
+                    <span style={{ flex: "none", width: 52, fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: e.actor === "agent" ? "#10A37F" : "#8F8F8F" }}>{e.actor}</span>
+                    <span style={{ flex: "none", width: 96, fontFamily: SANS, fontWeight: 400, fontSize: 10.5, color: "#8F8F8F" }}>{e.skill ? e.skill.replace(/_/g, " ") : ""}</span>
+                    <span style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.5, color: "#303030" }}>{e.action}</span>
+                    <span style={{ flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#B8B8B8" }}>{e.created_at.slice(11, 16)}</span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </section>
       </div>
     </div>
