@@ -1,9 +1,10 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import { useAppState } from "./state";
 import { ROLES } from "./roles";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { UndoBar } from "./UndoBar";
+import { ErrorBoundary } from "./ErrorBoundary";
 import "./Shell.css";
 
 /* App shell — literal from fragment 00: layout flex (line 130), ambient
@@ -12,6 +13,7 @@ import "./Shell.css";
 export function Shell() {
   const { viewAsActive, viewAs, exitViewAs } = useAppState();
   const vaRole = ROLES.find((r) => r.id === viewAs)?.label ?? "";
+  const { pathname } = useLocation();
 
   return (
     <div className="app-layout">
@@ -33,7 +35,9 @@ export function Shell() {
 
       <main className="app-canvas">
         <TopBar />
-        <Outlet />
+        <ErrorBoundary key={pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
 
       <UndoBar />
