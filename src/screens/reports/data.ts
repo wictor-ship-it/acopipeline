@@ -5,7 +5,7 @@
 
 export const REP_NAV: Array<[string, string]> = [
   ["01", "Overview"], ["02", "Pipeline & Forecast"], ["04", "Sources & Market"],
-  ["05", "Activity"], ["08", "Marketing"], ["07", "Income"],
+  ["05", "Activity"], ["08", "Marketing"], ["07", "Income"], ["06", "Custom Report"],
 ];
 
 export const REPORT_KPIS: Array<{ label: string; value: string }> = [

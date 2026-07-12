@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { recordAction } from "../../data/repository";
 import { SANS } from "../contacts/data";
+import { PIPES, PIPE_NAMES, tagsFor, type Card } from "../opportunities/data";
 import {
   ACTV_DATA, ASSET_MIX, DIVISION_GCI, FORECAST, FUNNEL, GEOGRAPHY, INC_HIST, INC_KPIS,
   INC_PAID, INC_RECV, INC_TOTAL_LINE, LOSS_REASONS, MKT_ATTR, MKT_CHANNELS, MKT_KPIS,
@@ -16,12 +17,31 @@ import "./Reports.css";
 const H2 = ({ children }: { children: ReactNode }) => <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 16, color: "#0D0D0D", marginBottom: 22 }}>{children}</div>;
 const Bar = ({ w, bg = "#0D0D0D", h = 8 }: { w: string; bg?: string; h?: number }) => <div style={{ height: h, background: "rgba(255,255,255,0.55)", position: "relative" }}><div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: w, background: bg }} /></div>;
 
+const ALL_DEALS: Array<Card & { pipe: string }> = (["purchases", "listings", "rentals", "investments", "offmarket"] as const).flatMap((p) => PIPES[p].flatMap((c) => c.cards.map((card) => ({ ...card, stage: c.stage, pipe: PIPE_NAMES[p], tags: tagsFor(card) }))));
+const fmtM = (m: number) => (m >= 1000 ? `$${(m / 1000).toFixed(1)}B` : `$${m.toFixed(1)}M`);
+
 export function Reports() {
   const [sec, setSec] = useState("01");
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const actv = ACTV_DATA[period];
 
+  /* Custom Report builder */
+  const [crPipe, setCrPipe] = useState("all");
+  const [crHeat, setCrHeat] = useState("all");
+  const [crGroup, setCrGroup] = useState("pipe");
+  const [crMetrics, setCrMetrics] = useState({ count: true, vol: true, gci: true, wgci: true });
+  const crRows = useMemo(() => {
+    const filtered = ALL_DEALS.filter((d) => (crPipe === "all" || d.pipe === crPipe) && (crHeat === "all" || d.status === crHeat) && !/\/mo/.test(d.budget));
+    const dimOf = (d: Card & { pipe: string }) => crGroup === "pipe" ? d.pipe : crGroup === "stage" ? (d.stage ?? "—") : crGroup === "status" ? d.status : (d.tags?.[0] ?? "Untagged");
+    const groups: Record<string, { count: number; vol: number; gci: number; wgci: number }> = {};
+    for (const d of filtered) { const k = dimOf(d); const g = (groups[k] ??= { count: 0, vol: 0, gci: 0, wgci: 0 }); g.count++; g.vol += d.budgetNum; g.gci += d.budgetNum * 0.03; g.wgci += d.weightedNum * 0.03; }
+    const rows = Object.entries(groups).map(([k, v]) => ({ k, ...v })).sort((a, b) => b.wgci - a.wgci);
+    const max = Math.max(...rows.map((r) => r.wgci), 1);
+    return rows.map((r) => ({ ...r, barW: `${Math.round((r.wgci / max) * 100)}%` }));
+  }, [crPipe, crHeat, crGroup]);
+
   const exportPdf = () => void recordAction({ actor: "user", action: `Reports · exported — PDF · scope ${period}` }, "reports", () => {});
+  const crExport = () => void recordAction({ actor: "user", action: `Custom Report · exported — PDF · ${crPipe} · grouped by ${crGroup}` }, "reports/custom", () => {});
 
   return (
     <div style={{ padding: "0 48px 140px" }}>
@@ -365,6 +385,53 @@ export function Reports() {
                 </section>
               </div>
             </div>
+          )}
+
+          {/* ===== 06 · CUSTOM REPORT ===== */}
+          {sec === "06" && (
+            <section>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
+                <H2>Custom Report</H2>
+                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{crRows.reduce((n, r) => n + r.count, 0)} deals · grouped by {crGroup === "pipe" ? "pipeline" : crGroup}</span>
+              </div>
+              <div className="rp-kpigrid" style={{ display: "block", padding: "18px 20px" }}>
+                {([["Pipeline", crPipe, setCrPipe, [["All", "all"], ["Purchases", "Purchases"], ["Listings", "Listings"], ["Investments", "Investments"], ["Off-Market", "Off-Market"]]], ["Status", crHeat, setCrHeat, [["All", "all"], ["HOT", "HOT"], ["WARM", "WARM"]]], ["Group by", crGroup, setCrGroup, [["Pipeline", "pipe"], ["Stage", "stage"], ["Status", "status"], ["Tag", "tag"]]]] as Array<[string, string, (v: string) => void, Array<[string, string]>]>).map(([label, val, setter, opts]) => (
+                  <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 12 }}>
+                    <span style={{ width: 84, flex: "none", fontFamily: SANS, fontWeight: 600, fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>{label}</span>
+                    {opts.map(([l, id]) => { const on = val === id; return <div key={id} onClick={() => setter(id)} style={{ fontFamily: SANS, fontWeight: on ? 500 : 400, fontSize: 11.5, color: on ? "#0D0D0D" : "#5D5D5D", background: on ? "rgba(255,255,255,0.62)" : "transparent", border: `1px solid ${on ? "#0D0D0D" : "#E3E3E3"}`, borderRadius: 999, padding: "5px 12px", cursor: "pointer", userSelect: "none", transition: "all 150ms" }}>{l}</div>; })}
+                  </div>
+                ))}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+                  <span style={{ width: 84, flex: "none", fontFamily: SANS, fontWeight: 600, fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>Metrics</span>
+                  {([["Count", "count"], ["Volume", "vol"], ["GCI", "gci"], ["Weighted GCI", "wgci"]] as Array<[string, keyof typeof crMetrics]>).map(([l, k]) => { const on = crMetrics[k]; return <div key={k} onClick={() => setCrMetrics((m) => ({ ...m, [k]: !m[k] }))} style={{ fontFamily: SANS, fontWeight: on ? 500 : 400, fontSize: 11.5, color: on ? "#0D0D0D" : "#5D5D5D", background: on ? "rgba(255,255,255,0.62)" : "transparent", border: `1px solid ${on ? "#0D0D0D" : "#E3E3E3"}`, borderRadius: 999, padding: "5px 12px", cursor: "pointer", userSelect: "none", transition: "all 150ms" }}>{l}</div>; })}
+                </div>
+                <div style={{ margin: "16px -20px 0", borderTop: "1px solid #E3E3E3" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 12, padding: "11px 20px", borderBottom: "1px solid #ECECEC", background: "rgba(255,255,255,0.38)" }}>
+                    <span style={{ flex: 1, fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Segment</span>
+                    {crMetrics.count && <span style={{ width: 70, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Deals</span>}
+                    {crMetrics.vol && <span style={{ width: 96, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Volume</span>}
+                    {crMetrics.gci && <span style={{ width: 90, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>GCI</span>}
+                    {crMetrics.wgci && <span style={{ width: 110, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Weighted GCI</span>}
+                  </div>
+                  {crRows.map((r) => (
+                    <div key={r.k} style={{ position: "relative", display: "flex", alignItems: "baseline", gap: 12, padding: "12px 20px", borderBottom: "1px solid #ECECEC" }}>
+                      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: r.barW, background: "rgba(13,13,13,0.035)", pointerEvents: "none" }} />
+                      <span style={{ flex: 1, minWidth: 0, fontFamily: SANS, fontWeight: 500, fontSize: 13, color: "#0D0D0D", position: "relative" }}>{r.k}</span>
+                      {crMetrics.count && <span style={{ width: 70, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", position: "relative" }}>{r.count}</span>}
+                      {crMetrics.vol && <span style={{ width: 96, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#0D0D0D", position: "relative" }}>{fmtM(r.vol)}</span>}
+                      {crMetrics.gci && <span style={{ width: 90, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", position: "relative" }}>{fmtM(r.gci)}</span>}
+                      {crMetrics.wgci && <span style={{ width: 110, flex: "none", textAlign: "right", fontFamily: SANS, fontWeight: 500, fontSize: 13, color: "#0D0D0D", position: "relative" }}>{fmtM(r.wgci)}</span>}
+                    </div>
+                  ))}
+                  {crRows.length === 0 && <div style={{ padding: "18px 20px", fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#8F8F8F" }}>No deals match these filters — widen the pipeline or status.</div>}
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "center", marginTop: 16, flexWrap: "wrap" }}>
+                  <button onClick={crExport} className="rp-export" style={{ background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "9px 18px", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Save view</button>
+                  <button onClick={crExport} className="rp-export" style={{ background: "transparent", border: "1px solid #B4B4B4", borderRadius: 999, padding: "9px 16px", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer" }}>Export PDF</button>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F" }}>live on the same deals the board runs on</span>
+                </div>
+              </div>
+            </section>
           )}
         </div>
       </div>
