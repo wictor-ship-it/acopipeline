@@ -41,11 +41,17 @@ export function Opportunities() {
   const [peek, setPeek] = useState<Card | null>(null);
   const [refDecided, setRefDecided] = useState<null | "accepted" | "declined">(null);
   const [closedSeg, setClosedSeg] = useState<"won" | "lost">("won");
+  /* Board drag-to-stage: per-session stage overrides (card name → stage). */
+  const [stageOv, setStageOv] = useState<Record<string, string>>({});
+  const [dragCard, setDragCard] = useState<{ name: string; from: string } | null>(null);
+  const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
   const view = collPipe === "all" ? (viewSel === "week" ? "week" : "list") : viewSel;
   const matchQ = (c: Card) => !query.trim() || (c.name + " " + c.opp).toLowerCase().includes(query.trim().toLowerCase());
 
-  /* current pipeline columns (tag/query filtered + sorted) */
+  /* current pipeline columns (tag/query filtered + sorted). Board drag applies
+     per-session stage overrides: a card's effective stage = stageOv[name] ?? its
+     seed stage, re-bucketed into the same stage order. */
   const columns: Column[] = useMemo(() => {
     const raw = collPipe === "all"
       ? ALL_ORDER.map((st) => {
@@ -56,8 +62,14 @@ export function Opportunities() {
           return cards.length ? { stage: st, cards } : null;
         }).filter(Boolean) as Column[]
       : (PIPES[collPipe] ?? PIPES.purchases).map((c0) => ({ stage: c0.stage, cards: c0.cards.map((c) => ({ ...c, pipeName: PIPE_NAMES[collPipe] })) }));
-    return raw.map((c0) => ({ ...c0, cards: c0.cards.map((c) => ({ ...c, tags: tagsFor(c) })).filter(matchQ).sort(CMP[sort]) }));
-  }, [collPipe, sort, query]);
+    const order = raw.map((c) => c.stage);
+    const flat = raw.flatMap((col) => col.cards.map((c) => ({ ...c, _origStage: col.stage })));
+    const effStage = (c: { name: string; _origStage: string }) => stageOv[c.name] ?? c._origStage;
+    return order.map((st) => ({
+      stage: st,
+      cards: flat.filter((c) => effStage(c) === st).map((c) => ({ ...c, tags: tagsFor(c) })).filter(matchQ).sort(CMP[sort]),
+    }));
+  }, [collPipe, sort, query, stageOv]);
 
   const allCards = columns.flatMap((c) => c.cards);
   const isRent = collPipe === "rentals";
@@ -114,6 +126,20 @@ export function Opportunities() {
   const openCard = (c: Card) => setPeek(c);
 
   const decideRef = (d: "accepted" | "declined") => { setRefDecided(d); void recordAction({ actor: "user", skill: "compliance", action: `Partner referral ${d} — ${PIPE_REF.name} (§3.3 timestamp priority)` }, "referral/rosen", () => setRefDecided(null)); };
+
+  /* Drag a board card to another stage — human action, audited + reversible. */
+  const moveCard = (name: string, from: string, to: string) => {
+    if (from === to) return;
+    const prev = stageOv[name];
+    setStageOv((s) => ({ ...s, [name]: to }));
+    void recordAction(
+      { actor: "user", skill: "chief_of_staff", action: `Opportunity moved — ${name} · ${from} → ${to}` },
+      `opp/${name}`,
+      () => setStageOv((s) => { const n = { ...s }; if (prev === undefined) delete n[name]; else n[name] = prev; return n; }),
+    );
+  };
+  const onDropStage = (to: string) => { if (dragCard) moveCard(dragCard.name, dragCard.from, to); setDragCard(null); setDragOverStage(null); };
+  const openDeal = (c: Card, stage: string) => navigate(`/deal/${encodeURIComponent(c.name)}`, { state: { deal: { name: c.name, stage, status: c.status, budget: c.budget, prob: c.prob, opp: c.opp } } });
 
   const p = peek ? buildPeek(peek) : null;
 
@@ -199,8 +225,16 @@ export function Opportunities() {
                     <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#B8B8B8" }}>{pid === "offmarket" ? "" : "Pipeline → stages"}</span>
                   </div>
                   <div style={{ display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8, alignItems: "flex-start" }}>
-                    {cols.map((cx) => (
-                      <div key={cx.stage} style={{ width: 250, flex: "none" }}>
+                    {cols.map((cx) => {
+                      const dropActive = !!dragCard && dragOverStage === cx.stage && dragCard.from !== cx.stage;
+                      return (
+                      <div
+                        key={cx.stage}
+                        onDragOver={(e) => { if (dragCard) { e.preventDefault(); if (dragOverStage !== cx.stage) setDragOverStage(cx.stage); } }}
+                        onDragLeave={(e) => { if (!e.currentTarget.contains(e.relatedTarget as Node)) setDragOverStage((s) => (s === cx.stage ? null : s)); }}
+                        onDrop={(e) => { e.preventDefault(); onDropStage(cx.stage); }}
+                        style={{ width: 250, flex: "none", borderRadius: 12, outline: dropActive ? "1.5px dashed #10A37F" : "1.5px dashed transparent", outlineOffset: 4, background: dropActive ? "rgba(16,163,127,0.05)" : "transparent", transition: "background 120ms" }}
+                      >
                         <div style={{ paddingBottom: 12, borderBottom: "1px solid #E3E3E3", marginBottom: 14 }}>
                           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
                             <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0D0D0D" }}>{cx.stage}</div>
@@ -213,9 +247,17 @@ export function Opportunities() {
                         </div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                           {cx.cards.map((c) => (
-                            <div key={c.name} onClick={() => openCard({ ...c, stage: cx.stage })} className="op-dealcard" style={{ borderRadius: 12, padding: "15px 15px 13px", cursor: "pointer", transition: "background 150ms" }}>
+                            <div
+                              key={c.name}
+                              draggable
+                              onDragStart={(e) => { setDragCard({ name: c.name, from: cx.stage }); e.dataTransfer.effectAllowed = "move"; }}
+                              onDragEnd={() => { setDragCard(null); setDragOverStage(null); }}
+                              onClick={() => openCard({ ...c, stage: cx.stage })}
+                              className="op-dealcard"
+                              style={{ borderRadius: 12, padding: "15px 15px 13px", cursor: "grab", transition: "background 150ms", opacity: dragCard?.name === c.name ? 0.5 : 1 }}
+                            >
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
-                                <span onClick={(e) => { e.stopPropagation(); navigate(`/deal/${encodeURIComponent(c.name)}`, { state: { deal: { name: c.name, stage: cx.stage, status: c.status, budget: c.budget, prob: c.prob, opp: c.opp } } }); }} title="Open deal record" className="op-dealname" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", cursor: "pointer" }}>{c.name}</span>
+                                <span onClick={(e) => { e.stopPropagation(); openDeal(c, cx.stage); }} title="Open deal record" className="op-dealname" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", cursor: "pointer" }}>{c.name}</span>
                                 <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", flex: "none" }}>{c.budget}</span>
                               </div>
                               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 4 }}>{c.opp}</div>
@@ -237,7 +279,8 @@ export function Opportunities() {
                           ))}
                         </div>
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               );
@@ -259,7 +302,7 @@ export function Opportunities() {
             <div key={c.name} onClick={() => openCard(c)} className="op-listrow" style={{ display: "grid", minWidth: 920, gridTemplateColumns: "1.5fr 0.8fr 1.2fr 1fr 0.7fr 0.55fr 1.5fr 0.7fr", padding: "16px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center", cursor: "pointer", transition: "background 150ms" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: c.dot, flex: "none" }} />
-                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{c.name}</span>
+                <span onClick={(e) => { e.stopPropagation(); openDeal(c, c.stage ?? ""); }} title="Open deal record" className="op-dealname" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", cursor: "pointer" }}>{c.name}</span>
               </div>
               <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, letterSpacing: "0.02em", color: "#0D0D0D" }}>{c.pipeName}</div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.opp}</div>
