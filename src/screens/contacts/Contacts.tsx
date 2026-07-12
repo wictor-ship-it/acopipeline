@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CSSProperties } from "react";
 import { useCollection } from "../../data/hooks";
@@ -431,12 +431,40 @@ interface QueueViewProps {
   onBulk: (list: QueueItem[], how: string) => void; onBulkLog: (list: QueueItem[], label: string) => void; onApproveDay: () => void; onSnooze: (q: QueueItem, day: string) => void; onWaSel: (id: string) => void;
 }
 function QueueView(p: QueueViewProps) {
+  /* Keyboard processing: ↑↓/jk navigate active rows · ⏎ act (send WhatsApp / log
+     the rest) · S snooze · A approve the day. Mirrors the Act Now queue. */
+  const navRows = p.groups.flatMap((g) => g.rows.filter((r) => p.isActive(r)));
+  const [focusIdx, setFocusIdx] = useState(0);
+  useEffect(() => { setFocusIdx((f) => Math.min(f, Math.max(0, navRows.length - 1))); }, [navRows.length]);
+  const focusedId = navRows[focusIdx]?.id;
+  const actFocused = () => { const q = navRows[focusIdx]; if (!q) return; if (q.channel === "WhatsApp" && !p.sent[q.id]) p.onSend(q, "WhatsApp"); else p.onLog(q); };
+  const snoozeFocused = () => { const q = navRows[focusIdx]; if (q) p.onSnooze(q, "Tue"); };
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (navRows.length === 0) return;
+      const el = e.target as HTMLElement | null;
+      if (el && /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+      if (e.key === "ArrowDown" || e.key === "j") { e.preventDefault(); setFocusIdx((f) => Math.min(f + 1, navRows.length - 1)); }
+      else if (e.key === "ArrowUp" || e.key === "k") { e.preventDefault(); setFocusIdx((f) => Math.max(f - 1, 0)); }
+      else if (e.key === "Enter") { e.preventDefault(); actFocused(); }
+      else if (e.key === "s" || e.key === "S") { e.preventDefault(); snoozeFocused(); }
+      else if (e.key === "a" || e.key === "A") { e.preventDefault(); p.onApproveDay(); }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [navRows, focusIdx]);
   return (
     <>
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", margin: "30px 0 18px" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
           <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 16, color: "#0D0D0D" }}>Touch Today</span>
           <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, fontStyle: "italic", color: "#5D5D5D" }}>ranked by return per minute</span>
+          {p.openCount > 0 && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.03em", color: "#B8B8B8" }}>
+              <span className="ct-kbd">↑↓</span> move<span className="ct-kbd">⏎</span> act<span className="ct-kbd">S</span> snooze<span className="ct-kbd">A</span> day
+            </span>
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{p.openCount} open · {p.doneCount} touched</span>
@@ -479,8 +507,8 @@ function QueueView(p: QueueViewProps) {
                 const showDraftLine = !!q.brief.draft && q.channel === "WhatsApp" && active && !p.sent[q.id];
                 const selectable = p.waSelectable(q);
                 return (
-                  <div key={q.id} style={{ borderBottom: "1px solid #E3E3E3", borderLeft: "2px solid transparent", background: "transparent", opacity: snz ? 0.55 : 1 }}>
-                    <div onClick={() => p.onBrief(q.id)} className="ct-qrow" style={{ display: "flex", alignItems: "center", gap: 18, padding: "17px 4px 17px 10px", cursor: "pointer", transition: "background 150ms" }}>
+                  <div key={q.id} style={{ borderBottom: "1px solid #E3E3E3", borderLeft: `2px solid ${q.id === focusedId ? "#0D0D0D" : "transparent"}`, background: q.id === focusedId ? "rgba(255,255,255,0.6)" : "transparent", opacity: snz ? 0.55 : 1, transition: "background 120ms" }}>
+                    <div onClick={() => { p.onBrief(q.id); const fi = navRows.findIndex((r) => r.id === q.id); if (fi >= 0) setFocusIdx(fi); }} className="ct-qrow" style={{ display: "flex", alignItems: "center", gap: 18, padding: "17px 4px 17px 10px", cursor: "pointer", transition: "background 150ms" }}>
                       <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 13, letterSpacing: "0.1em", color: "#8F8F8F", flex: "none", width: 24 }}>{String(idx + 1).padStart(2, "0")}</span>
                       <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: dot }} />
                       {selectable && <div onClick={(e) => { e.stopPropagation(); p.onWaSel(q.id); }} title="Select for bulk approval" style={{ width: 15, height: 15, flex: "none", border: "1px solid #C9C9C9", borderRadius: 5, background: p.waSel[q.id] ? "#0D0D0D" : "transparent", cursor: "pointer", transition: "background 150ms" }} />}
