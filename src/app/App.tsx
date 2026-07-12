@@ -3,7 +3,6 @@ import { useAppState } from "./state";
 import { homePathForRole } from "./roles";
 import { Login } from "./Login";
 import { Shell } from "./Shell";
-import { Placeholder } from "./Placeholder";
 import { Contacts } from "../screens/contacts/Contacts";
 import { Command } from "../screens/command/Command";
 import { Opportunities } from "../screens/opportunities/Opportunities";
@@ -19,6 +18,7 @@ import { PartnerDashboard } from "../screens/partner/PartnerDashboard";
 import { PartnerPortal } from "../screens/partner/PartnerPortal";
 import { PartnerNewReferral } from "../screens/partner/PartnerNewReferral";
 import { PartnerCollaterals } from "../screens/partner/PartnerCollaterals";
+import { Activities } from "../screens/activities/Activities";
 
 export function App() {
   const { authed, viewAs } = useAppState();
@@ -48,7 +48,7 @@ export function App() {
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/transactions" element={<Transactions />} />
-        <Route path="/activities" element={<Placeholder name="Activities" />} />
+        <Route path="/activities" element={<Activities />} />
         <Route path="/partner/dashboard" element={<PartnerDashboard />} />
         <Route path="/partner/pipeline" element={<PartnerPortal />} />
         <Route path="/partner/new-referral" element={<PartnerNewReferral />} />
