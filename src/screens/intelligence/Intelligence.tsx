@@ -59,6 +59,7 @@ export function Intelligence() {
   const [naCollapsed, setNaCollapsed] = useState<Record<string, boolean>>({});
   const [riskDone, setRiskDone] = useState<Record<string, boolean>>({});
   const [riskSnooze, setRiskSnooze] = useState<Record<string, boolean>>({});
+  const [playOpened, setPlayOpened] = useState<Record<string, boolean>>({});
   const parseTask = (raw: string) => {
     const lo = raw.toLowerCase();
     const nameMap: Array<[string, string]> = [["marcelo", "Marcelo C. · Rivage PH"], ["keller", "Family Office · Zurich"], ["zurich", "Family Office · Zurich"], ["sterling", "Sterling · Acqualina 4802"], ["bittencourt", "A. Bittencourt"], ["ana ", "A. Bittencourt"], ["nakamura", "Nakamura · Bal Harbour 1503"], ["ravel", "Faena 8C · Ravel"], ["alvarez", "Alvarez · Continuum 2904"]];
@@ -129,6 +130,12 @@ export function Intelligence() {
   const snoozeRisk = (d: RiskItem) => {
     setRiskSnooze((s) => ({ ...s, [d.id]: true }));
     void recordAction({ actor: "user", skill: "senior_advisor", action: `Risk Radar · snoozed 7 days — ${d.lead} · resurfaces Jul 16` }, `risk-snooze/${d.id}`, () => setRiskSnooze((s) => ({ ...s, [d.id]: false })));
+    void getAuditLog().then(setAudit);
+  };
+  const openPlay = (title: string) => {
+    if (playOpened[title]) return;
+    setPlayOpened((s) => ({ ...s, [title]: true }));
+    void recordAction({ actor: "user", skill: "senior_advisor", action: `Opportunity play · brief opened — ${title}` }, `play/${title}`, () => setPlayOpened((s) => ({ ...s, [title]: false })));
     void getAuditLog().then(setAudit);
   };
 
@@ -512,17 +519,24 @@ export function Intelligence() {
       </Block>
 
       {/* OPPORTUNITY PLAYS */}
-      <Block title="Opportunity Plays" badge={String(PLAYS.length)} hint="where the agent sees upside" open={sec.plays} onToggle={() => toggle("plays")}>
-        <div style={{ padding: "20px 22px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-          {PLAYS.map((p) => (
-            <div key={p.idx} style={{ display: "flex", gap: 14 }}>
-              <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 12, letterSpacing: "0.1em", color: "#B8B8B8", flex: "none", paddingTop: 2 }}>{p.idx}</span>
-              <div>
-                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13.5, color: "#0D0D0D" }}>{p.title}</div>
-                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.6, color: "#303030", marginTop: 5 }}>{p.body}</div>
+      <Block title="Opportunity Plays" badge={String(PLAYS.length)} hint="agent-proposed moves" open={sec.plays} onToggle={() => toggle("plays")}>
+        <div style={{ padding: "20px 22px 26px", display: "flex", flexDirection: "column", gap: 12 }}>
+          {PLAYS.map((p) => {
+            const opened = !!playOpened[p.title];
+            return (
+              <div key={p.idx} style={{ border: "1px solid #E3E3E3", borderRadius: 10, padding: "22px 26px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
+                <div style={{ maxWidth: 720 }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 14.5, color: "#0D0D0D" }}>{p.title}</span>
+                  <p style={{ margin: "10px 0 0", fontFamily: SANS, fontWeight: 400, fontSize: 14, lineHeight: 1.6, color: "#303030" }}>{p.body}</p>
+                </div>
+                {opened ? (
+                  <span style={{ flex: "none", whiteSpace: "nowrap", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#10A37F" }}>Brief opened ✓</span>
+                ) : (
+                  <button onClick={() => openPlay(p.title)} className="in-openbrief" style={{ background: "transparent", border: "1px solid #B4B4B4", borderRadius: 999, padding: "9px 17px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer", flex: "none", whiteSpace: "nowrap", transition: "background 150ms" }}>Open brief</button>
+                )}
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </Block>
 

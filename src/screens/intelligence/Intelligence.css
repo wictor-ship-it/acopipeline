@@ -19,6 +19,7 @@
 .in-quick::placeholder { color: #8F8F8F; }
 .in-resched:hover { color: #0D0D0D; border-color: #8F8F8F; }
 .in-snooze:hover { border-color: #8F8F8F; color: #0D0D0D; }
+.in-openbrief:hover { background: rgba(255, 255, 255, 0.55); }
 .in-ghost:hover { background: rgba(255, 255, 255, 0.62); }
 .in-touchrow:hover { background: rgba(255, 255, 255, 0.55); }
 .in-kbd {
