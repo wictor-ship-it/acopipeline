@@ -167,6 +167,17 @@ export function enrichRows(name: string): Array<{ field: string; value: string; 
   ];
 }
 
+/* Auto-status by momentum — the agent reads activity signals and, when
+   momentum diverges from the set status, proposes a change (or auto-applies it
+   when Settings §03 "status" autonomy is on). Curated from the seed narrative;
+   the real Claude agent computes this in Phase 2. */
+export interface Momentum { reads: "heating" | "cooling"; suggest: string; reason: string }
+export const MOMENTUM: Record<string, Momentum> = {
+  keller: { reads: "cooling", suggest: "Warm", reason: "The counter has sat since Thursday and everything waits on one principal call — momentum has cooled below a HOT band." },
+  nakamura: { reads: "cooling", suggest: "Nurturing", reason: "No inbound in weeks on a long-horizon mandate — momentum has settled into a nurture band." },
+  alvarez: { reads: "heating", suggest: "Hot", reason: "Continuum 2904 is under contract and heading to close — engagement is well above a WARM band." },
+};
+
 /* Each status carries a cadence + default action plan (Settings §02 spirit). */
 export const STATUS_PLAY: Record<string, { cadence: string; action: string }> = {
   Hot: { cadence: "Every 3 days", action: "Agent drafts the next touch; decision items surface daily until it moves." },

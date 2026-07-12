@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCollection } from "../../data/hooks";
 import { getById, recordAction, save } from "../../data/repository";
@@ -7,7 +7,7 @@ import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
   DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, INFO_SECTIONS,
-  INFO_TOP_KEYS, JOURNEY_IDX, JOURNEY_SEQ, LEARNED, MLS_LANG, MLS_MATCHES, PINNED,
+  INFO_TOP_KEYS, JOURNEY_IDX, JOURNEY_SEQ, LEARNED, MLS_LANG, MLS_MATCHES, MOMENTUM, PINNED,
   PLAN_AHEAD, type PlanItem, PROFILE_OPTS, RELATED, SINCE_LINE, STATUS_PLAY, toCanonStatus,
 } from "./data";
 import "./ContactDetail.css";
@@ -49,6 +49,24 @@ export function ContactDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [editForm, setEditForm] = useState<Record<string, string>>({});
   const [statusLocal, setStatusLocal] = useState("");
+  const [momDismissed, setMomDismissed] = useState(false);
+  const [momApplied, setMomApplied] = useState(false);
+
+  /* Auto-status by momentum — auto-apply when §03 "status" autonomy is on.
+     Self-contained (runs before the ct guard to keep hook order stable). */
+  useEffect(() => {
+    const ctx = contacts.find((c) => c.id === id);
+    const mm = ctx ? MOMENTUM[id] : undefined;
+    if (!ctx || !mm || momApplied || momDismissed) return;
+    const sel = statusLocal || toCanonStatus(ctx.status);
+    if (mm.suggest === sel) return;
+    const auto = !!((settingsRows[0]?.autonomy_rules as Record<string, { autonomous?: boolean }> | undefined)?.status?.autonomous);
+    if (!auto) return;
+    setStatusLocal(mm.suggest);
+    setMomApplied(true);
+    const cad = settingsRows[0]?.status_cadence?.[mm.suggest]?.cadence ?? STATUS_PLAY[mm.suggest]?.cadence ?? "armed";
+    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: mm.suggest }, { actor: "agent", skill: "senior_advisor", action: `Momentum auto-applied · ${ctx.name} — ${sel} → ${mm.suggest} · ${mm.reads} · cadence ${cad}` }); });
+  }, [contacts, settingsRows, id, statusLocal, momApplied, momDismissed]);
 
   const ct = contacts.find((c) => c.id === id);
   const deals = useMemo(() => opportunities.filter((o) => o.contact_id === id), [opportunities, id]);
@@ -179,6 +197,22 @@ export function ContactDetail() {
     void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: v }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · cadence ${cad}` }); });
   };
 
+  /* Auto-status by momentum (§03 "status" autonomy). The agent reads momentum;
+     when it diverges from the set status it proposes a change, or auto-applies
+     it when the toggle is on — always audited + reversible (actor: agent). */
+  const mom = MOMENTUM[id];
+  const momDiverges = !!mom && mom.suggest !== statusSel;
+  const autoStatus = !!((settingsRows[0]?.autonomy_rules as Record<string, { autonomous?: boolean }> | undefined)?.status?.autonomous);
+  const applyMomentum = (auto: boolean) => {
+    if (!mom) return;
+    const target = mom.suggest;
+    const from = statusSel;
+    setStatusLocal(target);
+    setMomApplied(true);
+    const cad = statusCadenceCfg?.[target]?.cadence ?? STATUS_PLAY[target]?.cadence ?? "armed";
+    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: target }, { actor: "agent", skill: "senior_advisor", action: `Momentum ${auto ? "auto-applied" : "accepted"} · ${ct.name} — ${from} → ${target} · ${mom.reads} · cadence ${cad}` }); });
+  };
+
   /* Contact information — merged view + editor. Top-level keys write to the
      record; the rest live in preferences.info. */
   const info = (ct.preferences?.info ?? {}) as Record<string, string>;
@@ -256,6 +290,22 @@ export function ContactDetail() {
             <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5D5D5D" }}>Cadence · {play.cadence}</span>
             <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>{play.action}</span>
           </div>
+
+          {/* Auto-status by momentum — proposal (ask-first) or applied note */}
+          {momApplied && mom && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 9, padding: "8px 12px", borderRadius: 10, border: "1px solid #E3E3E3", borderLeft: "2px solid #10A37F", background: "rgba(255,255,255,0.5)", flexWrap: "wrap" }}>
+              <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#10A37F" }} />
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#303030" }}><span style={{ fontWeight: 600 }}>Agent {autoStatus ? "auto-updated" : "updated"} status → {mom.suggest}</span> · {mom.reads}. {mom.reason} <span style={{ color: "#8F8F8F" }}>Undo in the bar below.</span></span>
+            </div>
+          )}
+          {!momApplied && momDiverges && !momDismissed && !autoStatus && mom && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 9, padding: "8px 12px", borderRadius: 10, border: "1px solid #E3E3E3", borderLeft: "2px solid #B45309", background: "rgba(255,255,255,0.5)", flexWrap: "wrap" }}>
+              <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: "#B45309" }} />
+              <span style={{ flex: 1, minWidth: 220, fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#303030" }}><span style={{ fontWeight: 600 }}>Agent reads {mom.reads} — suggests {mom.suggest}.</span> {mom.reason}</span>
+              <button onClick={() => applyMomentum(false)} className="cd-chip" style={{ flex: "none", fontFamily: SANS, fontWeight: 500, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "6px 13px", cursor: "pointer", transition: "all 150ms" }}>Apply {mom.suggest}</button>
+              <button onClick={() => setMomDismissed(true)} className="cd-chip" style={{ flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", textTransform: "uppercase", color: "#5D5D5D", background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "6px 12px", cursor: "pointer", transition: "all 150ms" }}>Dismiss</button>
+            </div>
+          )}
           <div style={{ display: "flex", alignItems: "center", gap: 14, flexWrap: "wrap", marginTop: 8, position: "relative" }}>
             {ct.phone && (
               <div style={{ position: "relative" }}>
