@@ -3,7 +3,10 @@
 .ib-page {
   display: flex;
   flex-direction: column;
-  height: calc(100vh - 96px);
+  /* Inbox hides the TopBar (TopBar.tsx returns null on /inbox), so the page
+     fills the whole canvas — only the canvas's 14px top+bottom margins are
+     subtracted. The old 96px offset assumed a TopBar and left a gap. */
+  height: calc(100vh - 28px);
   padding: 18px 48px;
   box-sizing: border-box;
 }
