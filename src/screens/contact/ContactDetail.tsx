@@ -40,7 +40,8 @@ export function ContactDetail() {
   const [mlsAck, setMlsAck] = useState("");
   const [planOpen, setPlanOpen] = useState(true);
   const [memOpen, setMemOpen] = useState(true);
-  const [tlShift, setTlShift] = useState<Record<number, string>>({});
+  const [planLocal, setPlanLocal] = useState<Record<string, PlanItem[]>>({});
+  const [planEdit, setPlanEdit] = useState<{ index: number | null; d: string; what: string; why: string; st: string } | null>(null);
   const [tlHov, setTlHov] = useState<number | null>(null);
   const [learnDone, setLearnDone] = useState(false);
   const [actionMenu, setActionMenu] = useState<"phone" | "email" | null>(null);
@@ -117,15 +118,32 @@ export function ContactDetail() {
   const startEnrich = () => { setEnrich("scanning"); window.setTimeout(() => setEnrich("review"), 900); };
   const applyEnrich = () => { setEnrich("applied"); void save<Contact>("contacts", { ...ct, company: enrichData[0].value, title: enrichData[1].value, linkedin: enrichData[3].value }, { actor: "agent", skill: "chief_of_staff", action: `Enriched profile — ${ct.name} · ${enrichData.length} fields from LinkedIn + public sources (sources logged)` }); };
 
-  /* Relationship timeline — Future (plan ahead) + Past (memory log). */
-  const plan: PlanItem[] = PLAN_AHEAD[id] ?? DEFAULT_PLAN;
+  /* Relationship timeline — Future (plan ahead, editable) + Past (memory log).
+     The plan persists to preferences.plan; edits audit + are undoable via save. */
+  const PLAN_STATUS = ["Scheduled", "Planned", "Armed", "Done"];
+  const PLAN_STATUS_COLOR: Record<string, string> = { Scheduled: "#0D0D0D", Planned: "#B45309", Armed: "#8F8F8F", Done: "#10A37F" };
+  const seedPlan: PlanItem[] = PLAN_AHEAD[id] ?? DEFAULT_PLAN;
+  const plan: PlanItem[] = planLocal[id] ?? (ct.preferences?.plan as PlanItem[] | undefined) ?? seedPlan;
   const shiftDate = (label: string, days: number) => { const mm = /([A-Za-z]{3}) (\d+)/.exec(label); return mm ? `${mm[1]} ${parseInt(mm[2], 10) + days}` : label; };
+  const persistPlan = (next: PlanItem[], action: string) => {
+    setPlanLocal((s) => ({ ...s, [id]: next }));
+    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, preferences: { ...(cur.preferences ?? {}), plan: next } }, { actor: "user", skill: "chief_of_staff", action }); });
+  };
   const nudgePlan = (i: number, days: number) => {
-    const base = tlShift[i] ?? plan[i].d;
-    const next = shiftDate(base, days);
-    if (next === base) return;
-    setTlShift((s) => ({ ...s, [i]: next }));
-    void recordAction({ actor: "user", skill: "chief_of_staff", action: `Plan adjusted · ${ct.name} — "${plan[i].what}" → ${next} · agent re-plans around it` }, `contact/${id}/plan/${i}`, () => setTlShift((s) => { const n = { ...s }; delete n[i]; return n; }));
+    const it = plan[i]; if (!it) return;
+    const nd = shiftDate(it.d, days);
+    if (nd === it.d) return;
+    persistPlan(plan.map((p, idx) => (idx === i ? { ...p, d: nd } : p)), `Plan step moved · ${ct.name} — "${it.what}" → ${nd}`);
+  };
+  const removeStep = (i: number) => { const it = plan[i]; if (!it) return; persistPlan(plan.filter((_, idx) => idx !== i), `Plan step removed · ${ct.name} — "${it.what}"`); };
+  const openAddStep = () => setPlanEdit({ index: null, d: "", what: "", why: "", st: "Scheduled" });
+  const openEditStep = (i: number) => { const it = plan[i]; if (it) setPlanEdit({ index: i, d: it.d, what: it.what, why: it.why, st: it.st }); };
+  const savePlanEdit = () => {
+    if (!planEdit || !planEdit.what.trim()) { setPlanEdit(null); return; }
+    const item: PlanItem = { d: planEdit.d.trim() || "TBD", what: planEdit.what.trim(), why: planEdit.why.trim(), st: planEdit.st, c: PLAN_STATUS_COLOR[planEdit.st] ?? "#5D5D5D" };
+    const next = planEdit.index === null ? [...plan, item] : plan.map((p, idx) => (idx === planEdit.index ? { ...p, ...item, goDeal: p.goDeal } : p));
+    persistPlan(next, planEdit.index === null ? `Plan step added · ${ct.name} — "${item.what}"` : `Plan step edited · ${ct.name} — "${item.what}"`);
+    setPlanEdit(null);
   };
   const learned = LEARNED[id];
   const saveLearned = () => {
@@ -470,20 +488,20 @@ export function ContactDetail() {
             ))}
           </div>
 
-          {/* FUTURE · The plan ahead */}
+          {/* FUTURE · The plan ahead (editable) */}
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, marginTop: 46 }}>
             <div onClick={() => setPlanOpen((o) => !o)} style={{ display: "flex", alignItems: "center", gap: 10, cursor: "pointer", userSelect: "none" }}>
               <span style={{ width: 10, flex: "none", fontFamily: SANS, fontWeight: 300, fontSize: 12, color: "#8F8F8F" }}>{planOpen ? "⌄" : "›"}</span>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#0D0D0D", flex: "none" }} />
               <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>The plan ahead</span>
             </div>
-            <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, color: "#B8B8B8" }}>relationship plan — search milestones live on the opportunity · hover to move</span>
+            <button onClick={openAddStep} className="cd-chip" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", background: "rgba(255,255,255,0.55)", border: "1px solid #E3E3E3", borderRadius: 999, padding: "6px 13px", cursor: "pointer", transition: "all 150ms" }}>+ Add step</button>
           </div>
           {planOpen && (
             <div style={{ borderTop: "1px solid #E3E3E3", marginTop: 14 }}>
               {plan.map((f, i) => (
                 <div key={i} onClick={() => { if (f.goDeal && deals[0]) navigate(`/deal/${encodeURIComponent(deals[0].name ?? deals[0].id)}`); }} onMouseEnter={() => setTlHov(i)} onMouseLeave={() => setTlHov(null)} className="cd-planrow" style={{ display: "flex", alignItems: "center", gap: 16, padding: "14px 4px", borderBottom: "1px solid #ECECEC", cursor: f.goDeal ? "pointer" : "default", transition: "background 150ms" }}>
-                  <span style={{ width: 56, flex: "none", fontFamily: SANS, fontWeight: 300, fontSize: 12, letterSpacing: "0.02em", color: "#5D5D5D" }}>{tlShift[i] ?? f.d}</span>
+                  <span style={{ width: 56, flex: "none", fontFamily: SANS, fontWeight: 300, fontSize: 12, letterSpacing: "0.02em", color: "#5D5D5D" }}>{f.d}</span>
                   <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: f.c }} />
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#0D0D0D" }}>{f.what}</div>
@@ -491,13 +509,16 @@ export function ContactDetail() {
                   </div>
                   {tlHov === i && !f.goDeal && (
                     <div style={{ display: "flex", gap: 6, flex: "none" }}>
-                      <button onClick={(e) => { e.stopPropagation(); nudgePlan(i, 1); }} className="cd-nudge" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 10px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>+1d</button>
-                      <button onClick={(e) => { e.stopPropagation(); nudgePlan(i, 7); }} className="cd-nudge" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 10px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>+1w</button>
+                      <button onClick={(e) => { e.stopPropagation(); nudgePlan(i, 1); }} className="cd-nudge" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 9px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>+1d</button>
+                      <button onClick={(e) => { e.stopPropagation(); nudgePlan(i, 7); }} className="cd-nudge" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 9px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>+1w</button>
+                      <button onClick={(e) => { e.stopPropagation(); openEditStep(i); }} className="cd-nudge" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 9px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>Edit</button>
+                      <button onClick={(e) => { e.stopPropagation(); removeStep(i); }} className="cd-nudge-x" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 9px", fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>Remove</button>
                     </div>
                   )}
                   <span style={{ flex: "none", fontFamily: SANS, fontWeight: 500, fontSize: 9.5, letterSpacing: "0.06em", textTransform: "uppercase", color: f.c }}>{f.st}</span>
                 </div>
               ))}
+              {plan.length === 0 && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#8F8F8F", padding: "14px 4px" }}>No steps yet — press “+ Add step” to build the plan.</div>}
             </div>
           )}
 
@@ -709,6 +730,42 @@ export function ContactDetail() {
             <div style={{ position: "sticky", bottom: 0, display: "flex", gap: 10, padding: "16px 32px", borderTop: "1px solid #E3E3E3", background: "rgba(255,255,255,0.85)", backdropFilter: "blur(10px)" }}>
               <button onClick={saveEdit} className="cd-chip" style={{ background: "#0D0D0D", border: "1px solid #0D0D0D", borderRadius: 999, padding: "10px 22px", fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#FFFFFF", cursor: "pointer" }}>Save</button>
               <button onClick={() => setEditOpen(false)} className="cd-chip" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "10px 18px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Cancel</button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* PLAN STEP · add/edit modal */}
+      {planEdit && (
+        <>
+          <div onClick={() => setPlanEdit(null)} style={{ position: "fixed", inset: 0, zIndex: 90, background: "rgba(0,0,0,0.34)" }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 91, width: 440, maxWidth: "92vw", background: "rgba(255,255,255,0.94)", backdropFilter: "blur(26px) saturate(1.7)", WebkitBackdropFilter: "blur(26px) saturate(1.7)", border: "1px solid rgba(255,255,255,0.8)", borderRadius: 16, boxShadow: "0 24px 70px rgba(0,0,0,0.22)", overflow: "hidden" }}>
+            <div style={{ padding: "20px 24px 14px", borderBottom: "1px solid #E3E3E3", fontFamily: SANS, fontWeight: 600, fontSize: 14, color: "#0D0D0D" }}>{planEdit.index === null ? "Add plan step" : "Edit plan step"}</div>
+            <div style={{ padding: "18px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>Date</label>
+                  <input value={planEdit.d} onChange={(e) => setPlanEdit((p) => (p ? { ...p, d: e.target.value } : p))} placeholder="e.g. Jul 20" className="cd-pf" style={{ border: "none", borderBottom: "1px solid #D9D9D9", background: "transparent", padding: "7px 0", fontFamily: SANS, fontSize: 14.5, color: "#303030", outline: "none" }} />
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                  <label style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>Status</label>
+                  <select value={planEdit.st} onChange={(e) => setPlanEdit((p) => (p ? { ...p, st: e.target.value } : p))} className="cd-pf" style={{ border: "none", borderBottom: "1px solid #D9D9D9", background: "transparent", padding: "7px 0", fontFamily: SANS, fontSize: 14.5, color: "#303030", outline: "none" }}>
+                    {PLAN_STATUS.map((o) => <option key={o} value={o}>{o}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>Step</label>
+                <input value={planEdit.what} onChange={(e) => setPlanEdit((p) => (p ? { ...p, what: e.target.value } : p))} placeholder="What happens on this step" className="cd-pf" style={{ border: "none", borderBottom: "1px solid #D9D9D9", background: "transparent", padding: "7px 0", fontFamily: SANS, fontSize: 14.5, color: "#303030", outline: "none" }} />
+              </div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <label style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>Why / note</label>
+                <input value={planEdit.why} onChange={(e) => setPlanEdit((p) => (p ? { ...p, why: e.target.value } : p))} placeholder="Reason or context" className="cd-pf" style={{ border: "none", borderBottom: "1px solid #D9D9D9", background: "transparent", padding: "7px 0", fontFamily: SANS, fontSize: 14.5, color: "#303030", outline: "none" }} />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 10, padding: "14px 24px", borderTop: "1px solid #E3E3E3", background: "rgba(255,255,255,0.6)" }}>
+              <button onClick={savePlanEdit} className="cd-chip" style={{ background: "#0D0D0D", border: "1px solid #0D0D0D", borderRadius: 999, padding: "9px 20px", fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#FFFFFF", cursor: "pointer" }}>{planEdit.index === null ? "Add" : "Save"}</button>
+              <button onClick={() => setPlanEdit(null)} className="cd-chip" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "9px 16px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Cancel</button>
             </div>
           </div>
         </>

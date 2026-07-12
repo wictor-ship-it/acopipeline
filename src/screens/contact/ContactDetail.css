@@ -49,6 +49,7 @@
 .cd-mlsbtn:hover { opacity: 0.85; }
 .cd-planrow:hover { background: rgba(255, 255, 255, 0.45); }
 .cd-nudge:hover { border-color: #0D0D0D; color: #0D0D0D; }
+.cd-nudge-x:hover { border-color: #D0342C; color: #D0342C; }
 .cd-statuswrap:hover { border-color: #B8B8B8; }
 .cd-reach:hover { color: #0D0D0D; }
 .cd-reachmenu {
