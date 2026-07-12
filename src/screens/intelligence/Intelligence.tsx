@@ -9,8 +9,9 @@ import { SANS } from "../contacts/data";
 import { useNavigate } from "react-router-dom";
 import {
   AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE, HERO_SUB,
-  LEARNED, MONEY_STRIP, MORNING_BRIEF, NA_PROPOSALS, NA_SEQUENCES, PLAYS, PROPOSALS,
-  RISK_ROWS, TOUCH_TODAY, WEEKLY_MOVEMENT,
+  LEARNED, MONEY_STRIP, MORNING_BRIEF, NA_PROPOSALS, NA_SEQUENCES, NET_CADENCE,
+  NET_KPIS, NET_SUMMARY, PLAYS, PROPOSALS, RECIP_HEAD, RECIP_ROWS, RISK_ROWS,
+  TOUCH_TODAY, VENDOR_HEAD, VENDOR_ROWS, WEEKLY_MOVEMENT,
 } from "./data";
 import "./Intelligence.css";
 
@@ -37,7 +38,7 @@ function Block({ dot, title, badge, hint, open, onToggle, children }: { dot?: st
 export function Intelligence() {
   const navigate = useNavigate();
   const [metricsOpen, setMetricsOpen] = useState(false);
-  const [sec, setSec] = useState({ act: true, touch: true, next: true, learned: true, risk: true, plays: false, perf: false, agent: false });
+  const [sec, setSec] = useState({ act: true, touch: true, next: true, learned: true, risk: true, plays: false, perf: false, agent: false, net: false });
   const toggle = (k: keyof typeof sec) => setSec((s) => ({ ...s, [k]: !s[k] }));
   const [naDone, setNaDone] = useState<Record<string, "accepted" | "dismissed">>({});
   const [lnDone, setLnDone] = useState<Record<string, boolean>>({});
@@ -402,6 +403,87 @@ export function Intelligence() {
               <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.5, color: "#303030" }}>{e.action}</span>
             </div>
           ))}
+        </div>
+      </Block>
+
+      {/* NETWORK · Vendors & Partners */}
+      <Block title="Network — Vendors & Partners" hint={sec.net ? "directory lives in Contacts · Partners / Vendors" : NET_SUMMARY} open={sec.net} onToggle={() => toggle("net")}>
+        <div style={{ padding: "2px 22px 28px" }}>
+          {/* KPIs */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: "1px solid #E3E3E3", borderRadius: 10, overflow: "hidden", margin: "20px 0 30px" }}>
+            {NET_KPIS.map((k, i) => (
+              <div key={k.label} style={{ padding: "24px 24px 22px", borderRight: i < 3 ? "1px solid #E3E3E3" : "none" }}>
+                <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{k.label}</div>
+                <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 30, lineHeight: 1, marginTop: 14, color: "#0D0D0D" }}>{k.value}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Vendor Scorecard */}
+          <section style={{ marginBottom: 38 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13.5, color: "#0D0D0D" }}>Vendor Scorecard</span>
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Measured from transaction groups · nobody else measures this</span>
+            </div>
+            <div style={{ borderTop: "1px solid #E3E3E3", overflowX: "auto" }}>
+              <div style={{ display: "grid", minWidth: 760, gridTemplateColumns: "1.2fr 1fr 0.8fr 0.6fr 0.8fr 1.5fr 1.2fr", padding: "13px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)" }}>
+                {VENDOR_HEAD.map((h) => <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>)}
+              </div>
+              {VENDOR_ROWS.map((v) => (
+                <div key={v.name} className="in-touchrow" style={{ display: "grid", minWidth: 760, gridTemplateColumns: "1.2fr 1fr 0.8fr 0.6fr 0.8fr 1.5fr 1.2fr", padding: "16px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "baseline", transition: "background 150ms" }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{v.name}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{v.role}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030" }}>{v.deals}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030" }}>{v.ontime}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030" }}>{v.resp}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: v.slaColor }}>{v.sla}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F" }}>{v.cad}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Reciprocity Ledger */}
+          <section style={{ marginBottom: 38 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13.5, color: "#0D0D0D" }}>Reciprocity Ledger</span>
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Who sends · who receives · what the balance asks for</span>
+            </div>
+            <div style={{ borderTop: "1px solid #E3E3E3", overflowX: "auto" }}>
+              <div style={{ display: "grid", minWidth: 760, gridTemplateColumns: "1.2fr 1.1fr 0.9fr 0.6fr 1.8fr", padding: "13px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)" }}>
+                {RECIP_HEAD.map((h) => <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>)}
+              </div>
+              {RECIP_ROWS.map((r) => (
+                <div key={r.name} className="in-touchrow" style={{ display: "grid", minWidth: 760, gridTemplateColumns: "1.2fr 1.1fr 0.9fr 0.6fr 1.8fr", padding: "16px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "baseline", transition: "background 150ms" }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{r.name}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#303030" }}>{r.got}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.gave}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: r.balColor }}>{r.bal}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, fontStyle: "italic", color: "#5D5D5D" }}>↳ {r.move}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Network Cadence */}
+          <section>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14, flexWrap: "wrap", gap: 8 }}>
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13.5, color: "#0D0D0D" }}>Network Cadence</span>
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>Relationship with who closes with you is future pipeline</span>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: "1px solid #E3E3E3", borderRadius: 10, overflow: "hidden" }}>
+              {NET_CADENCE.map((c, i) => (
+                <div key={i} style={{ padding: "18px 20px", borderRight: i < NET_CADENCE.length - 1 ? "1px solid #E3E3E3" : "none" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 18, color: "#0D0D0D" }}>{c.when}</span>
+                    <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: c.statusColor }}>{c.status}</span>
+                  </div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#0D0D0D", marginTop: 12 }}>{c.who}</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.55, color: "#5D5D5D", marginTop: 5 }}>{c.what}</div>
+                </div>
+              ))}
+            </div>
+          </section>
         </div>
       </Block>
     </div>

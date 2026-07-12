@@ -103,3 +103,36 @@ export const AGENT_LEDGER: Array<{ time: string; tag: string; text: string }> = 
   { time: "05:02", tag: "Sent", text: "Chase sent to Title Co. — commitment due Jul 22." },
   { time: "06:00", tag: "Prepared", text: "Morning brief assembled · 3 calls, 2 drafts ready for approval." },
 ];
+
+/* BLOCK 05 · Network — Vendors & Partners (fragment 05 ~658-752). */
+export const NET_KPIS = [
+  { label: "Active Vendors", value: "14" },
+  { label: "Referral Partners", value: "8" },
+  { label: "Referrals YTD · In / Out", value: "11 / 6" },
+  { label: "GCI via Network", value: "$2.3M" },
+];
+export const VENDOR_HEAD = ["Vendor", "Role", "Deals Together", "On-Time", "Avg Response", "SLA Signal", "Cadence"];
+export interface VendorRow { name: string; role: string; deals: string; ontime: string; resp: string; sla: string; slaColor: string; cad: string }
+export const VENDOR_ROWS: VendorRow[] = [
+  { name: "M. Delgado", role: "RE Attorney", deals: "9", ontime: "96%", resp: "2h", sla: "On pattern", slaColor: "#5D5D5D", cad: "Lunch · due this quarter" },
+  { name: "Coastal Title Co.", role: "Title", deals: "7", ontime: "71%", resp: "26h", sla: "Slipping · day 7 of usual 5", slaColor: "#D0342C", cad: "—" },
+  { name: "S. Whitfield", role: "Transaction Coord.", deals: "12", ontime: "98%", resp: "1h", sla: "On pattern", slaColor: "#5D5D5D", cad: "Quarterly check-in · Aug" },
+  { name: "ProInspect Miami", role: "Inspector", deals: "6", ontime: "88%", resp: "5h", sla: "On pattern", slaColor: "#5D5D5D", cad: "—" },
+  { name: "R. Katz", role: "Co-broke Agent", deals: "4", ontime: "—", resp: "3h", sla: "Compatible book · off-market channel", slaColor: "#5D5D5D", cad: "Coffee · due Jul" },
+];
+export const RECIP_HEAD = ["Partner", "Sent to You", "You Sent", "Balance", "Suggested Move"];
+export interface RecipRow { name: string; got: string; gave: string; bal: string; balColor: string; move: string }
+export const RECIP_ROWS: RecipRow[] = [
+  { name: "A. Bittencourt", got: "7 referrals · $1.2M GCI", gave: "2 introductions", bal: "You owe", balColor: "#D0342C", move: "Send the Zurich FO attorney intro + lunch in São Paulo" },
+  { name: "R. Katz · Co-broke", got: "2 buyers", gave: "2 listings", bal: "Even", balColor: "#5D5D5D", move: "Propose off-market sourcing sweep together" },
+  { name: "M. Delgado", got: "1 referral", gave: "4 clients sent", bal: "Owes you", balColor: "#5D5D5D", move: "Natural ask: estate-planning clients relocating to FL" },
+  { name: "Private Banker · Itaú Miami", got: "1 UHNW intro", gave: "0", bal: "You owe", balColor: "#D0342C", move: "Reciprocate: introduce the Duarte family" },
+];
+export interface NetCadence { when: string; who: string; what: string; status: string; statusColor: string }
+export const NET_CADENCE: NetCadence[] = [
+  { when: "Jul", who: "R. Katz", what: "Coffee — explore off-market inventory swap", status: "Due", statusColor: "#D0342C" },
+  { when: "Aug", who: "S. Whitfield", what: "Quarterly check-in + volume forecast for H2", status: "Scheduled", statusColor: "#5D5D5D" },
+  { when: "Sep", who: "M. Delgado", what: "Lunch — 3 deals closed together this year", status: "Proposed", statusColor: "#5D5D5D" },
+  { when: "Sep", who: "A. Bittencourt", what: "São Paulo trip — referral dinner", status: "Proposed", statusColor: "#5D5D5D" },
+];
+export const NET_SUMMARY = "5 vendors tracked · 2 balances to settle · 1 cadence due";
