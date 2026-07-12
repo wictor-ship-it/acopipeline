@@ -18,3 +18,14 @@ npm-debug.log*
 # vite
 *.local
 .vite/
+
+# secrets — real env files never committed (keep .env.example)
+.env
+.env.*
+!.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# typescript incremental cache (can false-pass tsc — see phase2 gotcha)
+*.tsbuildinfo
