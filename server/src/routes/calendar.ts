@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { accessTokenFor, googleGet } from "../google.js";
+import { accessTokenFor, googleGet, googlePost, GoogleApiError } from "../google.js";
 import { readSession } from "../session.js";
 
 /* Read-only Calendar surface (Stage 2a) — upcoming events from the primary
@@ -45,6 +45,42 @@ calendarRouter.get("/events", async (req, res) => {
     res.json({ events });
   } catch (err) {
     console.error("[calendar] events failed:", err);
+    res.status(502).json({ error: "calendar_upstream" });
+  }
+});
+
+/* POST /api/calendar/events — Stage 2b WRITE. Creates one event on the primary
+   calendar. LAW 1: inert until an explicit human-approved SPA action calls it.
+   Requires the calendar.events scope; a missing scope surfaces as 403. Callers
+   must write an audit row. Body: { title, start, end, description?, attendees? } */
+calendarRouter.post("/events", async (req, res) => {
+  const sid = readSession(req);
+  if (!sid) return res.status(401).json({ error: "unauthenticated" });
+  const title = typeof req.body?.title === "string" ? req.body.title : "";
+  const start = typeof req.body?.start === "string" ? req.body.start : "";
+  const end = typeof req.body?.end === "string" ? req.body.end : "";
+  if (!title || !start || !end) return res.status(400).json({ error: "missing_title_or_times" });
+  const attendees = Array.isArray(req.body?.attendees) ? (req.body.attendees as string[]).filter((a) => typeof a === "string") : [];
+  try {
+    const accessToken = await accessTokenFor(sid);
+    if (!accessToken) return res.status(401).json({ error: "unauthenticated" });
+
+    const event = {
+      summary: title,
+      description: typeof req.body?.description === "string" ? req.body.description : undefined,
+      start: { dateTime: start },
+      end: { dateTime: end },
+      attendees: attendees.map((email) => ({ email })),
+    };
+    const result = await googlePost<{ id: string; htmlLink: string }>(
+      accessToken,
+      "https://www.googleapis.com/calendar/v3/calendars/primary/events",
+      event,
+    );
+    res.json({ id: result.id, htmlLink: result.htmlLink });
+  } catch (err) {
+    if (err instanceof GoogleApiError && err.status === 403) return res.status(403).json({ error: "reconnect_needed", scope: "calendar.events" });
+    console.error("[calendar] create failed:", err);
     res.status(502).json({ error: "calendar_upstream" });
   }
 });

@@ -51,3 +51,23 @@ export async function googleGet<T = unknown>(accessToken: string, url: string): 
   if (!res.ok) throw new Error(`Google API ${res.status}: ${await res.text()}`);
   return (await res.json()) as T;
 }
+
+/* GoogleApiError carries the upstream status so write routes can map a missing
+   scope (403) to a clear "reconnect with send permission" message. */
+export class GoogleApiError extends Error {
+  constructor(public status: number, public body = "") {
+    super(`Google API ${status}`);
+    this.name = "GoogleApiError";
+  }
+}
+
+/** Thin authorized POST (JSON) against a Google REST endpoint (Stage 2b writes). */
+export async function googlePost<T = unknown>(accessToken: string, url: string, body: unknown): Promise<T> {
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) throw new GoogleApiError(res.status, await res.text().catch(() => ""));
+  return (await res.json()) as T;
+}

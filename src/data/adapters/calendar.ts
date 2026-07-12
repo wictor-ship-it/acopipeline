@@ -20,3 +20,14 @@ export async function fetchCalendarEvents(limit = 20): Promise<CalEvent[] | null
     return null;
   }
 }
+
+/* Stage 2b WRITE. Call ONLY from an explicit human-approved action, and write an
+   audit row on success (Law 1 · Law 2). Throws BffError (403 ⇒ scope missing). */
+export interface CreatedEvent { id: string; htmlLink: string }
+export async function createCalendarEvent(ev: { title: string; start: string; end: string; description?: string; attendees?: string[] }): Promise<CreatedEvent> {
+  return bffFetch<CreatedEvent>("/api/calendar/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(ev),
+  });
+}

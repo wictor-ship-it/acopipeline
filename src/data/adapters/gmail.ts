@@ -20,3 +20,14 @@ export async function fetchGmailThreads(limit = 20): Promise<GmailThread[] | nul
     return null;
   }
 }
+
+/* Stage 2b WRITE. Call ONLY from an explicit human-approved action, and write an
+   audit row on success (Law 1 · Law 2). Throws BffError (403 ⇒ scope missing). */
+export interface SendResult { id: string; threadId: string }
+export async function sendGmail(msg: { to: string; subject: string; body: string; threadId?: string }): Promise<SendResult> {
+  return bffFetch<SendResult>("/api/gmail/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(msg),
+  });
+}

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { accessTokenFor, googleGet } from "../google.js";
+import { accessTokenFor, googleGet, googlePost, GoogleApiError } from "../google.js";
 import { readSession } from "../session.js";
 
 /* Read-only Gmail surface (Stage 2a). Normalizes Google's message shape into the
@@ -51,6 +51,38 @@ gmailRouter.get("/threads", async (req, res) => {
     res.json({ threads });
   } catch (err) {
     console.error("[gmail] threads failed:", err);
+    res.status(502).json({ error: "gmail_upstream" });
+  }
+});
+
+/* POST /api/gmail/send — Stage 2b WRITE. Sends one message. LAW 1: this route
+   is inert until an explicit human-approved action in the SPA calls it; it
+   never fires on its own. Requires the gmail.send scope (added in Google Cloud +
+   OAUTH_SCOPES) — a missing scope surfaces as 403 → "reconnect_needed". Callers
+   must write an audit row for every send. */
+gmailRouter.post("/send", async (req, res) => {
+  const sid = readSession(req);
+  if (!sid) return res.status(401).json({ error: "unauthenticated" });
+  const to = typeof req.body?.to === "string" ? req.body.to : "";
+  const subject = typeof req.body?.subject === "string" ? req.body.subject : "";
+  const body = typeof req.body?.body === "string" ? req.body.body : "";
+  const threadId = typeof req.body?.threadId === "string" ? req.body.threadId : undefined;
+  if (!to || !body) return res.status(400).json({ error: "missing_to_or_body" });
+  try {
+    const accessToken = await accessTokenFor(sid);
+    if (!accessToken) return res.status(401).json({ error: "unauthenticated" });
+
+    const rfc822 = [`To: ${to}`, `Subject: ${subject}`, "Content-Type: text/plain; charset=UTF-8", "", body].join("\r\n");
+    const raw = Buffer.from(rfc822, "utf8").toString("base64url");
+    const result = await googlePost<{ id: string; threadId: string }>(
+      accessToken,
+      "https://gmail.googleapis.com/gmail/v1/users/me/messages/send",
+      threadId ? { raw, threadId } : { raw },
+    );
+    res.json({ id: result.id, threadId: result.threadId });
+  } catch (err) {
+    if (err instanceof GoogleApiError && err.status === 403) return res.status(403).json({ error: "reconnect_needed", scope: "gmail.send" });
+    console.error("[gmail] send failed:", err);
     res.status(502).json({ error: "gmail_upstream" });
   }
 });
