@@ -185,6 +185,15 @@ export function Opportunities() {
   const PIPE_KEYS = ["purchases", "listings", "rentals", "investments", "offmarket"] as const;
   const [newDeal, setNewDeal] = useState<null | { name: string; contactId: string; contactQuery: string; pipeline: string; status: string; budget: string; probability: string; lostReason: string }>(null);
   const openNewDeal = () => setNewDeal({ name: "", contactId: "", contactQuery: "", pipeline: "purchases", status: "Prospecting", budget: "", probability: "30", lostReason: "" });
+  /* No match while picking a contact → create one inline (starts unclassified,
+     audited) and select it for the deal. */
+  const createContactInline = (rawName: string) => {
+    const nm = rawName.trim();
+    if (!nm || !newDeal) return;
+    const c: Contact = { id: newId("contact"), name: nm, category: "prospect", status: "WARM", language: ["EN"], directory_status: "Not classified" };
+    void save<Contact>("contacts", c, { actor: "user", skill: "chief_of_staff", action: `Contact created — ${nm} · from New Deal · Not classified` });
+    setNewDeal({ ...newDeal, contactId: c.id, contactQuery: nm });
+  };
   const dueFromCadence = (cadence: string): string => {
     const c = cadence.toLowerCase();
     const wk = /(\d+)\s*week/.exec(c), dy = /(\d+)\s*day/.exec(c);
@@ -303,7 +312,7 @@ export function Opportunities() {
                           {matches.map((c) => (
                             <div key={c.id} onClick={() => setNewDeal({ ...newDeal, contactId: c.id, contactQuery: c.name })} className="op-menu-item" style={{ padding: "9px 12px", cursor: "pointer", fontFamily: SANS, fontSize: 13, color: "#0D0D0D" }}>{c.name}</div>
                           ))}
-                          {matches.length === 0 && <div style={{ padding: "9px 12px", fontFamily: SANS, fontSize: 12.5, color: "#8F8F8F" }}>No contact matches “{newDeal.contactQuery}”.</div>}
+                          <div onClick={() => createContactInline(newDeal.contactQuery)} className="op-menu-item" style={{ padding: "10px 12px", cursor: "pointer", fontFamily: SANS, fontWeight: 500, fontSize: 12.5, color: "#10A37F", borderTop: matches.length ? "1px solid #ECECEC" : "none" }}>+ Add “{newDeal.contactQuery.trim()}” as a new contact</div>
                         </div>
                       );
                     })()}
