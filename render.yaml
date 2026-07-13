@@ -7,27 +7,21 @@ services:
   - type: web
     name: aco-pipeline-intelligence
     runtime: node
-    plan: starter          # "free" also works (sleeps when idle, ephemeral disk)
-    region: oregon         # pick the region closest to you
+    plan: free             # zero-cost start (sleeps when idle ~40s cold start;
+                           # no persistent disk → Google re-auth after a restart).
+                           # Upgrade to "starter" in the dashboard for always-on +
+                           # add a disk + TOKEN_STORE_PATH=/data/.tokens.json.
+    region: virginia       # US East (closest to Miami); or ohio/oregon
     branch: main
     autoDeploy: true       # every push to main redeploys
     buildCommand: npm install && VITE_BFF_URL="" npm run build && npm --prefix server install && npm --prefix server run build
     startCommand: SERVE_SPA=true node server/dist/index.js
     healthCheckPath: /health
-    # Persistent disk so a Google connection survives restarts (token store).
-    # Remove this block on the free plan (free has no persistent disk).
-    disk:
-      name: tokens
-      mountPath: /data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "20"
       - key: SERVE_SPA
         value: "true"
-      # token store on the persistent disk (see disk above)
-      - key: TOKEN_STORE_PATH
-        value: /data/.tokens.json
       # generated once by Render — never shown, never in git
       - key: SESSION_SECRET
         generateValue: true
