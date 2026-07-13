@@ -75,7 +75,7 @@ function pickPrimary(cluster: Contact[]): Contact {
 export function Contacts() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { items: contacts } = useCollection<Contact>("contacts");
+  const { items: contacts, loading: contactsLoading } = useCollection<Contact>("contacts");
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
   const { google } = useAppState();
 
@@ -300,7 +300,7 @@ export function Contacts() {
           ))}
           <div onClick={() => navigate("/inbox")} className="ct-inboxlink" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8F8F8F", paddingBottom: 8, cursor: "pointer", transition: "color 150ms" }}>Inbox →</div>
         </div>
-        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>{rows.length} contacts</span>
+        <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>{contactsLoading && rows.length === 0 ? "Loading…" : `${rows.length} contacts`}</span>
       </div>
 
       {/* GOOGLE CONTACTS SYNC · TRIAGE BANNER (mock — demo only; real import is
@@ -451,6 +451,11 @@ export function Contacts() {
                 <div />
               </div>
             ))}
+            {rows.length === 0 && (
+              <div style={{ padding: "44px 4px", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F", textAlign: "center" }}>
+                {contactsLoading ? "Loading contacts…" : "No contacts yet — use “Import from Google” above, or add one."}
+              </div>
+            )}
           </div>
         </>
       )}
