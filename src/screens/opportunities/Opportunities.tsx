@@ -23,17 +23,19 @@ const CMP: Record<Sort, (a: Card, b: Card) => number> = {
 
 function buildPeek(c: Card) {
   const isRental = /\/mo/.test(c.budget);
-  const isInv = /Investor/.test(c.opp);
-  const side = /Seller|Listing|Staging|Marketing/.test(c.opp + " " + (c.stage ?? "")) ? "Listing · seller side" : /Tenant|Lease/.test(c.opp) ? "Rental" : isInv ? "Investment · Capital division" : "Purchase · buyer side";
-  const gciNum = isRental ? c.budgetNum : c.budgetNum * (isInv ? 10 : 30); // GCI in $K
+  const isInv = /Investor/.test(c.opp) || c.typeLabel === "Investment";
+  // Prefer the real record's type/side; fall back to the demo regex.
+  const side = c.typeLabel ? `${c.typeLabel} · ${c.typeSide}` : /Seller|Listing|Staging|Marketing/.test(c.opp + " " + (c.stage ?? "")) ? "Listing · seller side" : /Tenant|Lease/.test(c.opp) ? "Rental" : isInv ? "Investment · Capital division" : "Purchase · buyer side";
+  const ratePct = c.gciRate ?? (isInv ? 1 : 3); // commission %; per-deal override honored
+  const gciNum = isRental ? c.budgetNum : c.budgetNum * ratePct * 10; // GCI in $K (budgetNum is in $M)
   const fmtK = (k: number) => (k >= 1000 ? `$${(k / 1000).toFixed(1)}M` : `$${Math.round(k)}K`);
-  const gciStr = isRental ? `${fmtK(c.budgetNum)} · one month` : `${fmtK(gciNum)} · ${isInv ? "1%" : "3%"}`;
+  const gciStr = isRental ? `${fmtK(c.budgetNum)} · one month` : `${fmtK(gciNum)} · ${ratePct}%`;
   const wGciStr = fmtK((gciNum * c.probNum) / 100);
   const cur = PEEK_CURATED[c.name];
   const contacts = (cur?.contacts ?? [[c.name.split("·")[0].trim() || "Principal", isInv ? "Investor · principal" : "Principal"], ["Listing agent — co-broke", "Counterparty"], ["A/CO TC", "Transaction support"]]).map(([n, r]) => ({ n, r, initials: initials(n) }));
   const acts = (cur?.acts ?? [["Jul 05", `Next action set — ${c.next}`], ["Jul 01", "Touch logged · WhatsApp — client responsive"], ["Jun 24", `Moved to ${c.stage} · playbook cadence attached`]]).map(([d, t]) => ({ d, t }));
   const dues = (cur?.dues ?? [[c.next, c.due], ["Cadence touch — agent-run", "T+7d"], ["Re-qualify if no response", "T+21d"]]).map(([l, d], i) => ({ l, d, dColor: i === 0 ? c.dueColor : "#8F8F8F" }));
-  return { name: c.name, stage: c.stage ?? "", status: c.status, side, dot: c.dot, budget: fmtBudget(c.budget), gci: gciStr, wGci: wGciStr, probLabel: `${c.prob} probability`, address: cur?.address ?? c.name.split("·")[0].trim(), specs: cur?.specs ?? (isInv ? "Commercial asset · OM + rent roll on file" : "On file"), ppsf: cur?.ppsf ?? "—", delivery: cur?.delivery ?? `${c.stage} · ${c.opp}`, contacts, acts, dues };
+  return { name: c.name, stage: c.stage ?? "", status: c.status, side, flowStage: c.flowStage, typeLabel: c.typeLabel, dot: c.dot, budget: fmtBudget(c.budget), gci: gciStr, wGci: wGciStr, probLabel: `${c.prob} probability`, address: cur?.address ?? c.name.split("·")[0].trim(), specs: cur?.specs ?? (isInv ? "Commercial asset · OM + rent roll on file" : "On file"), ppsf: cur?.ppsf ?? "—", delivery: cur?.delivery ?? `${c.stage} · ${c.opp}`, contacts, acts, dues };
 }
 
 export function Opportunities() {
@@ -71,7 +73,8 @@ export function Opportunities() {
     const st = normStatus(o.stage);
     const hot = st === "Hot" || st === "Won";
     const base = mkCard(name, label, o.budget ?? "$0", hot, o.probability ?? 0, o.next_action ?? "Set the next step", o.next_due ?? "", o.overdue ?? false);
-    return { ...base, stage: st, pipeName: PIPE_NAMES[o.pipeline] ?? o.pipeline, pipeKey: o.pipeline, id: o.id };
+    const td = dealTypeOf(o.pipeline);
+    return { ...base, stage: st, pipeName: PIPE_NAMES[o.pipeline] ?? o.pipeline, pipeKey: o.pipeline, id: o.id, typeLabel: td.label, typeSide: td.side, flowStage: o.flow_stage ?? td.flow[0], gciRate: o.gci_rate };
   }), [opportunities, contacts]);
 
   /* Columns built from the real cards, bucketed into the canonical stage order
@@ -381,6 +384,12 @@ export function Opportunities() {
                                 <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", flex: "none" }}>{fmtBudget(c.budget)}</span>
                               </div>
                               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 4 }}>{c.opp}</div>
+                              {c.typeLabel && (
+                                <div style={{ display: "flex", alignItems: "center", gap: 7, marginTop: 8, flexWrap: "wrap" }}>
+                                  <span style={{ fontFamily: SANS, fontSize: 9, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", border: "1px solid #E3E3E3", borderRadius: 999, padding: "2px 8px", background: "rgba(249,249,249,0.55)" }}>{c.typeLabel}</span>
+                                  {c.flowStage && <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F" }}>{c.flowStage}</span>}
+                                </div>
+                              )}
                               {(c.tags?.length ?? 0) > 0 && (
                                 <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginTop: 9 }}>
                                   {c.tags!.slice(0, 3).map((tg) => <span key={tg} style={{ border: "1px solid #E3E3E3", borderRadius: 999, padding: "1px 8px", fontFamily: SANS, fontSize: 9.5, color: "#5D5D5D", background: "rgba(249,249,249,0.55)" }}>{tg}</span>)}
@@ -535,6 +544,9 @@ export function Opportunities() {
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: p.dot }} />
                 <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D" }}>{p.status} · {p.probLabel}</span>
               </div>
+              {p.flowStage && (
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", marginTop: 7 }}>{p.typeLabel} flow · <span style={{ fontWeight: 500, color: "#0D0D0D" }}>{p.flowStage}</span></div>
+              )}
             </div>
             <div style={{ flex: 1, overflowY: "auto" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderBottom: "1px solid #E3E3E3" }}>

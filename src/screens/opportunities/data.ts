@@ -12,6 +12,8 @@ export interface Card {
   stage?: string; pipeName?: string; tags?: string[];
   /* Set when the card is backed by a real Opportunity record (vs demo seed). */
   id?: string; pipeKey?: string;
+  /* Opportunity type + its closing-flow position (real records). */
+  typeLabel?: string; typeSide?: string; flowStage?: string; gciRate?: number;
 }
 
 /* Parse a budget string to MILLIONS (the unit the card/GCI math expects).
