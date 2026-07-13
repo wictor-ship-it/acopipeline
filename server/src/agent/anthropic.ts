@@ -95,3 +95,34 @@ export async function generateItems({ skill, context }: GenerateInput): Promise<
   const input = toolUse.input as { items?: unknown[] };
   return Array.isArray(input.items) ? input.items : [];
 }
+
+/* --- Conversational agent (Contact Detail chat + universal command bar) --- */
+export interface ChatInput {
+  skill?: Skill;
+  context: unknown;
+  messages: Array<{ role: "user" | "assistant"; content: string }>;
+  mode?: "relationship" | "command";
+}
+
+/** Free-form Claude reply grounded in the provided context. No side effects:
+    anything client-facing is described as a proposal for the approval queue
+    (Law 1), never executed here. */
+export async function agentChat({ skill, context, messages, mode }: ChatInput): Promise<string> {
+  const base = buildSystemPrompt(skill);
+  const modeNote = mode === "command"
+    ? "\n\nYou are the Principal's command bar over the CRM. Interpret the natural-language command and respond in ≤3 sentences. If it implies an outbound/client-facing action (message, email, calendar invite), DO NOT execute it — say precisely what you will queue in Needs Your Decision for approval (Law 1). For read/lookups, answer directly from the context. Reference records; mark anything not in the context as inference."
+    : "\n\nYou are advising the Principal on THIS relationship, grounded in the record below. Be concise, specific and actionable. Never produce something that reaches the client without the Principal's approval — offer it as a draft/proposal.";
+  const system = `${base}${modeNote}\n\n# Context (JSON)\n${JSON.stringify(context)}`;
+  const res = await anthropic().messages.create({
+    model: config.anthropicModel,
+    max_tokens: 1024,
+    system,
+    messages: messages.map((m) => ({ role: m.role, content: m.content })),
+  });
+  const text = res.content
+    .filter((b): b is Anthropic.TextBlock => b.type === "text")
+    .map((b) => b.text)
+    .join("\n")
+    .trim();
+  return text || "…";
+}

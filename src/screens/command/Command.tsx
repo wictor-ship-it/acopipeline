@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { recordAction } from "../../data/repository";
+import { useCollection } from "../../data/hooks";
+import { agentChat } from "../../data/adapters/agent";
+import type { Contact, Opportunity } from "../../domain/types";
 import { SANS } from "../contacts/data";
 import { ASK_CHIPS, askSubmit, HOME_REMINDERS, SCREEN_ROUTE, type AskAction, type AskAnswer } from "./ask";
 import "./Command.css";
@@ -9,16 +12,30 @@ import "./Command.css";
 
 export function Command() {
   const navigate = useNavigate();
+  const { items: contacts } = useCollection<Contact>("contacts");
+  const { items: opportunities } = useCollection<Opportunity>("opportunities");
   const [askText, setAskText] = useState("");
   const [thread, setThread] = useState<AskAnswer[]>([]);
 
-  const submit = (text: string) => {
+  const submit = async (text: string) => {
     const t = text.trim();
     if (!t) return;
-    const ans = askSubmit(t);
-    if (ans.audit) void recordAction({ actor: "agent", skill: "chief_of_staff", action: ans.audit }, "command", () => {});
-    setThread((prev) => [ans, ...prev].slice(0, 6));
     setAskText("");
+    const pending: AskAnswer = { q: t, a: "…", actions: [] as AskAction[] };
+    setThread((prev) => [pending, ...prev].slice(0, 6));
+    // Real Claude command interpretation (no side effects — proposals go to the queue).
+    const context = { note: "CRM command bar", contacts: contacts.length, deals: opportunities.length, reminders: HOME_REMINDERS.map((r) => r.text) };
+    let reply: string | null = null;
+    try { reply = await agentChat(context, [{ role: "user", content: t }], "command", "chief_of_staff"); } catch { reply = null; }
+    if (reply) {
+      void recordAction({ actor: "agent", skill: "chief_of_staff", action: `Command interpreted — "${t}"` }, "command", () => {});
+      setThread((prev) => prev.map((x) => (x === pending ? { q: t, a: reply as string, actions: [] as AskAction[] } : x)));
+    } else {
+      // Brain offline → local canned parsing (demo / fallback).
+      const ans = askSubmit(t);
+      if (ans.audit) void recordAction({ actor: "agent", skill: "chief_of_staff", action: ans.audit }, "command", () => {});
+      setThread((prev) => prev.map((x) => (x === pending ? ans : x)));
+    }
   };
 
   const goAction = (a: AskAction) => { if (a.contact) navigate(`/contacts/${a.contact}`); else if (a.screen) navigate(SCREEN_ROUTE[a.screen]); };

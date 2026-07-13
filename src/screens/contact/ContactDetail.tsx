@@ -5,6 +5,7 @@ import { getById, recordAction, save } from "../../data/repository";
 import type { Contact, Mandate, Opportunity, Settings } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import { useIsMobile } from "../../app/useIsMobile";
+import { agentChat } from "../../data/adapters/agent";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
   DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, INFO_SECTIONS,
@@ -214,9 +215,21 @@ export function ContactDetail() {
   const sendChat = async (text: string) => {
     const t = text.trim();
     if (!t) return;
-    const reply = `Noted on ${ct.name.split(" ")[0]}. This stays in the file — nothing reaches ${ct.name.split(" ")[0]} without your approval. I will surface a proposal in Needs Your Decision.`;
-    setChat((prev) => [...prev, { who: "u", txt: t }, { who: "a", txt: reply }]);
     setChatInput("");
+    const history = chat.filter((m) => m.txt !== "…").map((m) => ({ role: m.who === "u" ? ("user" as const) : ("assistant" as const), content: m.txt }));
+    setChat((prev) => [...prev, { who: "u", txt: t }, { who: "a", txt: "…" }]);
+    // Compact relationship context for the agent — grounded, no invented data.
+    const context = {
+      name: ct.name, status: ct.directory_status ?? toCanonStatus(ct.status), category: ct.category,
+      relationship: ct.relationship, location: ct.location, language: ct.language, tags: ct.tags,
+      company: ct.company, title: ct.title, lifetime_gci: ct.lifetime_gci, last_touch: ct.last_touch,
+      since: ct.since, narrative: ct.narrative, agent_note: ct.agent_note, touches: touches.length,
+      mandate: mandate?.text ?? null,
+    };
+    let reply: string | null = null;
+    try { reply = await agentChat(context, [...history, { role: "user", content: t }], "relationship", "senior_advisor"); } catch { reply = null; }
+    const finalReply = reply ?? "The agent brain is offline right now — I couldn't reach Claude. Nothing reaches the client without your approval.";
+    setChat((prev) => { const next = [...prev]; const i = next.map((m) => m.txt).lastIndexOf("…"); if (i >= 0) next[i] = { who: "a", txt: finalReply }; else next.push({ who: "a", txt: finalReply }); return next; });
   };
 
   const statusVal = toCanonStatus(ct.status);
