@@ -3,7 +3,7 @@
    directly. Every mutation writes an insert-only audit_log row (Law 2) and
    pushes an inverse op on the undo stack (Law 3).
    ========================================================================= */
-import type { Actor, AuditEntry } from "../domain/types";
+import type { Actor, AuditEntry, Contact } from "../domain/types";
 import type { StoreName } from "./idb";
 import { backend } from "./backend";
 
@@ -108,6 +108,86 @@ export async function remove<T extends { id: string }>(store: EntityStore, id: s
 /** Seed-only bulk write — no audit/undo (baseline state, not a user/agent action). */
 export async function seedBulk<T extends { id: string }>(store: EntityStore, values: T[]): Promise<void> {
   await backend().bulkPut(store, values);
+}
+
+/* Stores whose rows point at a contact via `contact_id` — repointed on merge so
+   nothing is orphaned. `contacts.referral_of` is handled separately. */
+const CONTACT_REF_STORES: EntityStore[] = ["mandates", "opportunities", "activities", "threads", "vault"];
+
+/** Fold a secondary contact into the primary in place: fill only-empty scalar
+    fields; union tags + language. Never overwrites data the primary already has. */
+function foldContact(target: Contact, src: Contact): void {
+  const t = target as unknown as Record<string, unknown>;
+  for (const [k, v] of Object.entries(src)) {
+    if (k === "id" || k === "tags" || k === "language") continue;
+    const cur = t[k];
+    if ((cur === undefined || cur === null || cur === "") && v !== undefined && v !== null && v !== "") {
+      t[k] = v;
+    }
+  }
+  const tags = new Set([...(target.tags ?? []), ...(src.tags ?? [])]);
+  if (tags.size) target.tags = [...tags];
+  const langs = new Set<string>([...(target.language ?? []), ...(src.language ?? [])]);
+  if (langs.size) target.language = [...langs] as Contact["language"];
+}
+
+/** Merge duplicate contacts into `primaryId`: repoint every contact_id reference
+    (deals, threads, mandates, activities, vault) + referral_of, fold fields into
+    the primary, delete the secondaries. One audit row (Law 2); Undo restores the
+    whole prior state (Law 3). CRM-side only — never touches Google. */
+export async function mergeContacts(primaryId: string, secondaryIds: string[], meta: MutationMeta): Promise<void> {
+  const sec = new Set(secondaryIds.filter((id) => id && id !== primaryId));
+  if (!sec.size) return;
+  const primary = await backend().get<Contact>("contacts", primaryId);
+  if (!primary) return;
+
+  const primaryBefore: Contact = { ...primary };
+  const repoints: Array<{ store: EntityStore; before: { id: string } }> = [];
+  const secBefore: Contact[] = [];
+
+  // Repoint contact_id references across the ref stores.
+  for (const store of CONTACT_REF_STORES) {
+    const rows = await backend().getAll<{ id: string; contact_id?: string }>(store);
+    for (const r of rows) {
+      if (r.contact_id && sec.has(r.contact_id)) {
+        repoints.push({ store, before: { ...r } });
+        await backend().put(store, { ...r, contact_id: primaryId });
+      }
+    }
+  }
+
+  // Repoint referral_of on any other contact, then fold + delete secondaries.
+  const allContacts = await backend().getAll<Contact>("contacts");
+  for (const c of allContacts) {
+    if (c.referral_of && sec.has(c.referral_of) && !sec.has(c.id) && c.id !== primaryId) {
+      repoints.push({ store: "contacts", before: { ...c } });
+      await backend().put("contacts", { ...c, referral_of: primaryId });
+    }
+  }
+  const merged: Contact = { ...primary };
+  for (const id of sec) {
+    const s = allContacts.find((c) => c.id === id);
+    if (!s) continue;
+    secBefore.push({ ...s });
+    foldContact(merged, s);
+    await backend().delete("contacts", id);
+  }
+  await backend().put("contacts", merged);
+
+  await writeAudit(meta, `contacts/merge → ${primaryId}`, { primary: primaryBefore, secondaries: secBefore }, merged);
+  undoStack.push({
+    label: meta.action,
+    undo: async () => {
+      for (const rp of repoints) await backend().put(rp.store, rp.before);
+      await backend().put("contacts", primaryBefore);
+      for (const s of secBefore) await backend().put("contacts", s);
+      await writeAudit({ actor: "user", action: `undo: ${meta.action}` }, `contacts/merge → ${primaryId}`, merged, { primary: primaryBefore, secondaries: secBefore });
+      emitChange("contacts");
+      for (const store of CONTACT_REF_STORES) emitChange(store);
+    },
+  });
+  emitChange("contacts");
+  for (const store of CONTACT_REF_STORES) emitChange(store);
 }
 
 /** Bulk import (e.g. Google Contacts) — one bulk write, one audit row for the

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CSSProperties } from "react";
 import { useCollection } from "../../data/hooks";
-import { recordAction, bulkImport, newId } from "../../data/repository";
+import { recordAction, bulkImport, newId, mergeContacts } from "../../data/repository";
 import { useAppState } from "../../app/state";
 import { fetchGoogleContacts, ReconnectNeeded } from "../../data/adapters/googleContacts";
 import type { Contact, Opportunity } from "../../domain/types";
@@ -43,6 +43,35 @@ function sortVal(c: Contact, key: string): string | number {
   return colValue(c, key).toLowerCase();
 }
 
+/* Duplicate detection — cluster contacts that share an email, phone, or name
+   (union-find). Returns only groups of 2+. CRM-side hygiene, never touches Google. */
+function findDuplicateClusters(contacts: Contact[]): Contact[][] {
+  const parent = new Map<string, string>();
+  const find = (x: string): string => { let r = x; while (parent.get(r) !== r) r = parent.get(r)!; while (parent.get(x) !== r) { const n = parent.get(x)!; parent.set(x, r); x = n; } return r; };
+  const union = (a: string, b: string) => { const ra = find(a), rb = find(b); if (ra !== rb) parent.set(ra, rb); };
+  for (const c of contacts) parent.set(c.id, c.id);
+  const linkBy = (keyOf: (c: Contact) => string) => {
+    const m = new Map<string, string[]>();
+    for (const c of contacts) { const k = keyOf(c); if (!k) continue; const a = m.get(k) ?? []; a.push(c.id); m.set(k, a); }
+    for (const ids of m.values()) for (let i = 1; i < ids.length; i++) union(ids[0], ids[i]);
+  };
+  // Guard each key against junk/partial values (masked seed data, short numbers)
+  // so we never cluster on a non-identifying fragment.
+  linkBy((c) => { const e = (c.email ?? "").toLowerCase().trim(); return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e) ? e : ""; });
+  linkBy((c) => { const d = (c.phone ?? "").replace(/\D/g, ""); return d.length >= 7 ? d : ""; });
+  linkBy((c) => { const n = (c.name ?? "").toLowerCase().replace(/\s+/g, " ").trim(); return n.length >= 3 ? n : ""; });
+  const groups = new Map<string, Contact[]>();
+  for (const c of contacts) { const r = find(c.id); const a = groups.get(r) ?? []; a.push(c); groups.set(r, a); }
+  return [...groups.values()].filter((g) => g.length > 1);
+}
+
+/* The record kept on merge — the one with the most filled fields (tiebreak: has
+   an email, then more relationship data). */
+function pickPrimary(cluster: Contact[]): Contact {
+  const score = (c: Contact) => Object.values(c).filter((v) => v !== undefined && v !== null && v !== "" && !(Array.isArray(v) && v.length === 0)).length + (c.email ? 2 : 0);
+  return [...cluster].sort((a, b) => score(b) - score(a))[0];
+}
+
 export function Contacts() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -54,7 +83,20 @@ export function Contacts() {
      directory, create the new ones in one audited batch (Undo removes them). */
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<string | null>(null);
-  const normPhone = (p?: string) => (p ?? "").replace(/\D/g, "");
+  // Normalized phone for dedup — only ≥7 digits counts as an identifying key.
+  const normPhone = (p?: string) => { const d = (p ?? "").replace(/\D/g, ""); return d.length >= 7 ? d : ""; };
+
+  /* Duplicate detection + merge suggestions (CRM-side hygiene). */
+  const [dupOpen, setDupOpen] = useState(false);
+  const [mergeMsg, setMergeMsg] = useState<string | null>(null);
+  const dupClusters = useMemo(() => findDuplicateClusters(contacts), [contacts]);
+  const doMerge = async (cluster: Contact[]) => {
+    const primary = pickPrimary(cluster);
+    const others = cluster.filter((c) => c.id !== primary.id).map((c) => c.id);
+    if (!others.length) return;
+    await mergeContacts(primary.id, others, { actor: "user", action: `Merged ${others.length + 1} duplicate contacts → ${primary.name}` });
+    setMergeMsg(`Merged ${others.length + 1} into ${primary.name}. References repointed · Undo available.`);
+  };
   const importGoogle = async () => {
     setImporting(true);
     setImportMsg(null);
@@ -298,6 +340,45 @@ export function Contacts() {
           </div>
           {importMsg && (
             <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#10A37F", padding: "0 0 12px" }}>{importMsg}</div>
+          )}
+
+          {/* DUPLICATE DETECTION · merge suggestions (CRM-side; never touches Google) */}
+          {dupClusters.length > 0 && (
+            <div style={{ marginBottom: 16 }}>
+              <div className="ct-card" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 18px", borderLeft: "2px solid #10A37F" }}>
+                <div style={{ minWidth: 0 }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, color: "#0D0D0D" }}>{dupClusters.length} possible duplicate group{dupClusters.length === 1 ? "" : "s"}</span>
+                  <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", marginLeft: 10 }}>same email, phone, or name</span>
+                </div>
+                <button onClick={() => setDupOpen((o) => !o)} className="ct-btn-outline" style={{ flex: "none", background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 15px", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer", whiteSpace: "nowrap", transition: "all 150ms" }}>{dupOpen ? "Hide" : "Review"}</button>
+              </div>
+              {mergeMsg && <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#10A37F", padding: "8px 2px 0" }}>{mergeMsg}</div>}
+              {dupOpen && (
+                <div style={{ marginTop: 12, display: "flex", flexDirection: "column", gap: 12 }}>
+                  {dupClusters.map((cluster, i) => {
+                    const primary = pickPrimary(cluster);
+                    return (
+                      <div key={i} className="ct-card" style={{ padding: "14px 18px" }}>
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+                          <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 12.5, color: "#0D0D0D" }}>{cluster.length} records look like the same person</span>
+                          <button onClick={() => void doMerge(cluster)} className="ct-btn-solid" style={{ flex: "none", background: "#E9E8E4", border: "1px solid #E0DFDA", borderRadius: 999, padding: "7px 15px", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer", whiteSpace: "nowrap", transition: "opacity 150ms" }}>Merge · keep {primary.name.split(" ")[0]}</button>
+                        </div>
+                        <div style={{ marginTop: 10, display: "flex", flexDirection: "column", gap: 6 }}>
+                          {cluster.map((c) => (
+                            <div key={c.id} style={{ display: "flex", alignItems: "baseline", gap: 10, fontFamily: SANS, fontSize: 12.5, flexWrap: "wrap" }}>
+                              <span style={{ width: 6, height: 6, borderRadius: "50%", flex: "none", background: c.id === primary.id ? "#10A37F" : "#D9D9D9", alignSelf: "center" }} />
+                              <span style={{ fontWeight: c.id === primary.id ? 600 : 400, color: "#0D0D0D" }}>{c.name}</span>
+                              <span style={{ color: "#8F8F8F", minWidth: 0 }}>{[c.email, c.phone, c.company].filter(Boolean).join(" · ") || "—"}</span>
+                              {c.id === primary.id && <span style={{ fontSize: 9.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#10A37F" }}>keep</span>}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
           {tagsOpen && (
