@@ -5,7 +5,7 @@ import { ROLES, navForRole, homePathForRole, type Role } from "./roles";
 
 /* Sidebar — literal from fragment 00 lines 166-207; SIDE_BASE (rounded
    floating 230px glass panel) from logic-and-data.js line 3602. */
-export function Sidebar() {
+export function Sidebar({ open = false, onNavigate = () => {} }: { open?: boolean; onNavigate?: () => void }) {
   const { viewAs, setViewAs, signOut, inboxUnread } = useAppState();
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -17,11 +17,12 @@ export function Sidebar() {
     setMenuOpen(false);
     setViewAsOpen(false);
     navigate(homePathForRole(r));
+    onNavigate();
   }
   const roleLabel = ROLES.find((r) => r.id === viewAs)?.label ?? "Admin";
 
   return (
-    <aside className="sb">
+    <aside className={open ? "sb open" : "sb"}>
       <div className="sb-brand">
         <div className="sb-logo">A/CO</div>
         <div className="sb-sub">Pipeline Intelligence</div>
@@ -29,7 +30,7 @@ export function Sidebar() {
 
       <nav className="sb-nav">
         {items.map((it) => (
-          <NavLink key={it.path} to={it.path} className={({ isActive }) => (isActive ? "sb-item active" : "sb-item")}>
+          <NavLink key={it.path} to={it.path} onClick={onNavigate} className={({ isActive }) => (isActive ? "sb-item active" : "sb-item")}>
             <span>{it.label}</span>
             {it.badge === "inbox-unread" && inboxUnread > 0 && <span className="sb-badge">{inboxUnread}</span>}
           </NavLink>
@@ -42,7 +43,7 @@ export function Sidebar() {
             <>
               <div className="sb-menu-scrim" onClick={() => { setMenuOpen(false); setViewAsOpen(false); }} />
               <div className="sb-menu">
-                <div className="sb-menu-item" onClick={() => { setMenuOpen(false); navigate("/settings"); }}>Settings</div>
+                <div className="sb-menu-item" onClick={() => { setMenuOpen(false); navigate("/settings"); onNavigate(); }}>Settings</div>
                 <div className="sb-menu-item" onClick={() => setViewAsOpen((o) => !o)}>
                   <span>View as</span><span className="sb-menu-role">{roleLabel} ▸</span>
                 </div>

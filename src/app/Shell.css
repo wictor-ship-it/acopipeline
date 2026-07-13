@@ -112,3 +112,79 @@
 .tb-bell:hover { box-shadow: 0 8px 26px rgba(0, 0, 0, 0.1); }
 /* topDividerStyle line 396 */
 .tb-divider { height: 0.5px; background: #e3e3e3; margin: 20px 48px 0; }
+
+/* =========================================================================
+   Mobile frame (<=820px) — sidebar becomes a slide-in drawer, canvas goes
+   full width. Desktop layout above is untouched; everything here is gated.
+   ========================================================================= */
+
+/* Mobile-only header (hamburger + brand). Hidden on desktop. */
+.mobile-header { display: none; }
+.mh-burger {
+  display: flex; align-items: center; justify-content: center;
+  width: 40px; height: 40px; flex: none; border-radius: 12px;
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(22px) saturate(1.7); -webkit-backdrop-filter: blur(22px) saturate(1.7);
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  box-shadow: 0 6px 22px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.mh-brand { font-family: var(--font-brand); font-weight: 400; font-size: 17px; letter-spacing: 0.06em; color: #0d0d0d; }
+
+/* Drawer scrim (behind the open sidebar). */
+.sb-drawer-scrim { display: none; }
+
+@media (max-width: 820px) {
+  .app-layout { flex-direction: column; }
+
+  /* Mobile header takes the top; sits above the ambient blobs. */
+  .mobile-header {
+    display: flex; align-items: center; gap: 14px;
+    position: sticky; top: 0; z-index: 40;
+    padding: 12px 16px;
+    background: rgba(236, 233, 226, 0.82);
+    backdrop-filter: blur(18px) saturate(1.4); -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  }
+
+  /* Sidebar → off-canvas drawer. */
+  .sb {
+    position: fixed; top: 0; left: 0; bottom: 0;
+    width: 264px; max-width: 82vw; height: 100vh;
+    margin: 0; border-radius: 0 18px 18px 0;
+    padding: 22px 18px;
+    transform: translateX(-108%);
+    transition: transform 220ms ease;
+    z-index: 80;
+    background: rgba(247, 245, 240, 0.94);
+    backdrop-filter: blur(26px) saturate(1.8); -webkit-backdrop-filter: blur(26px) saturate(1.8);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  }
+  .sb.open { transform: none; }
+
+  .sb-drawer-scrim {
+    display: block; position: fixed; inset: 0; z-index: 70;
+    background: rgba(13, 13, 13, 0.34);
+    backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);
+  }
+
+  /* Canvas: full width, tighter margins. */
+  .app-canvas { margin: 10px; border-radius: 16px; }
+
+  /* Top bar: pull the big desktop padding in. */
+  .tb { padding: 20px 18px 0; }
+  .tb-left { gap: 12px; flex-wrap: wrap; }
+  .tb-title { font-size: 17px; }
+  .tb-divider { margin: 14px 18px 0; }
+
+  /* View-as bar: keep it inside the viewport. */
+  .va-bar { max-width: calc(100vw - 20px); padding: 7px 8px 7px 14px; gap: 8px; }
+  .va-text { font-size: 11px; white-space: normal; }
+}
+
+@media (max-width: 460px) {
+  .app-canvas { margin: 8px; }
+  .tb { padding: 16px 14px 0; }
+  .tb-divider { margin: 12px 14px 0; }
+  /* Keep the ambient blobs from forcing horizontal scroll on small phones. */
+  .amb-b1, .amb-b2, .amb-b3 { display: none; }
+}
