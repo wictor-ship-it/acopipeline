@@ -9,7 +9,7 @@ import { gmailRouter } from "./routes/gmail.js";
 import { calendarRouter } from "./routes/calendar.js";
 import { agentRouter } from "./routes/agent.js";
 import { dataRouter } from "./routes/data.js";
-import { initDb } from "./db.js";
+import { initDb, dbPing } from "./db.js";
 
 /* A/CO Pipeline Intelligence — thin BFF (Phase 2).
    SPA ⇄ this ⇄ Google. Secrets + refresh tokens live here, never in the browser.
@@ -20,8 +20,9 @@ const app = express();
 app.use(cors({ origin: config.allowedOrigin, credentials: true }));
 app.use(express.json({ limit: "5mb" })); // seed bulk-writes can be larger than the 100kb default
 
-app.get("/health", (_req, res) => {
-  res.json({ ok: true, configured: isConfigured(), missing: missingConfig(), agent: agentConfigured(), db: dbConfigured() });
+app.get("/health", async (_req, res) => {
+  const dbOk = dbConfigured() ? await dbPing() : false;
+  res.json({ ok: true, configured: isConfigured(), missing: missingConfig(), agent: agentConfigured(), db: dbConfigured(), dbOk });
 });
 
 app.use("/auth", authRouter);

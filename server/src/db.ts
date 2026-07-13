@@ -61,6 +61,18 @@ async function doInit(): Promise<void> {
   `);
 }
 
+/** Lightweight connectivity probe (SELECT 1). Used by /health so the database
+    can be verified end-to-end without signing in. Never throws. */
+export async function dbPing(): Promise<boolean> {
+  try {
+    await dbPool().query("SELECT 1");
+    return true;
+  } catch (e) {
+    console.error("[bff] db ping failed:", e instanceof Error ? e.message : e);
+    return false;
+  }
+}
+
 /* --- records (per-user document store) --- */
 export async function getAllRecords<T>(userId: string, store: string): Promise<T[]> {
   const r = await dbPool().query("SELECT data FROM records WHERE user_id=$1 AND store=$2", [userId, store]);
