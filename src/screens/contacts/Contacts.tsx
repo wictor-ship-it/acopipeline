@@ -154,16 +154,24 @@ export function Contacts() {
   const [sent, setSent] = useState<Record<string, string>>({});
   const [waSel, setWaSel] = useState<Record<string, boolean>>({});
 
+  // Report bar computed from the ACTUAL contacts (not demo constants). Metrics we
+  // don't track yet (touch cadence, replies, 30-day intake) show "—" rather than
+  // fabricated numbers; trends stay "—" until we snapshot history.
   const relKey = SEG_KEY[seg] ?? "all";
-  const ctSel = REL_DATA[relKey] ?? REL_DATA.all;
+  const segLabel = (REL_DATA[relKey] ?? REL_DATA.all).label;
+  const segContacts = contacts.filter((c) => seg === "all" || c.category === seg);
+  const activeCount = segContacts.filter((c) => c.status !== "PAST").length;
+  const atRiskCount = segContacts.filter((c) => c.status === "SLIPPING").length;
+  const NA = { v: "—", d30: "—", dQ: "—", dY: "—" };
+  const num = (n: number) => ({ v: String(n), d30: "—", dQ: "—", dY: "—" });
   const reports = [
-    { label: "Active Contacts", sub: "in segment", m: ctSel.active, inv: false },
-    { label: "Touch Compliance", sub: "cadence on time", m: ctSel.comp, inv: false },
-    { label: "At-Risk", sub: "overdue · cooling", m: ctSel.risk, inv: true },
-    { label: "New Contacts", sub: "added · 30 days", m: ctSel.fresh, inv: false },
-    { label: "Response Rate", sub: "outreach replied", m: ctSel.resp, inv: false },
+    { label: "Active Contacts", sub: "in segment", m: num(activeCount), inv: false },
+    { label: "Touch Compliance", sub: "cadence on time", m: NA, inv: false },
+    { label: "At-Risk", sub: "status slipping", m: num(atRiskCount), inv: true },
+    { label: "New Contacts", sub: "added · 30 days", m: NA, inv: false },
+    { label: "Response Rate", sub: "outreach replied", m: NA, inv: false },
   ];
-  const reportMeta = `${ctSel.label} · ${ctSel.active.v} active · relationship health · trend vs. prior period`;
+  const reportMeta = `${segLabel} · ${activeCount} active · relationship health`;
 
   /* tag chips — top 9 by count within seg */
   const tagChips = useMemo(() => {
