@@ -101,6 +101,41 @@ advisory only; fine for an internal tool. Code-splitting is a later optimization
 
 ---
 
+## 5.0 Recommended path — ONE service (single origin)
+
+For a single-tenant deploy this is by far the simplest: the BFF serves the
+built SPA **and** the API on one origin, so there's **one deploy, no CORS, and
+the session cookie works with zero domain juggling** (§6 becomes a non-issue).
+Enabled by `SERVE_SPA=true` (added to `server/src/index.ts`).
+
+```bash
+# 1. Build the SPA with RELATIVE api calls (empty base → /api, /auth same-origin)
+VITE_BFF_URL="" npm run build          # → dist/
+# 2. Build the BFF
+npm --prefix server run build          # → server/dist/
+# 3. Run one process that serves both
+SERVE_SPA=true node server/dist/index.js
+```
+
+Env for this mode: `SERVE_SPA=true`, `ALLOWED_ORIGIN=https://<your-site>` (its
+own origin), plus `SESSION_SECRET`, `TOKEN_ENCRYPTION_KEY`, `ANTHROPIC_API_KEY`,
+and the Google vars. The dist path auto-resolves to `repo/dist` (anchored to the
+server file, cwd-independent); override with `SPA_DIR` if you deploy them apart.
+
+**Any Node host works** (it's just one Node app). E.g. on **Render** → New
+*Web Service* from the repo:
+- Build: `npm install && VITE_BFF_URL="" npm run build && npm --prefix server install && npm --prefix server run build`
+- Start: `SERVE_SPA=true node server/dist/index.js`
+- Add the env vars above; attach a **persistent disk** if you want Google
+  re-auth to survive restarts (token store, §5).
+- Add your custom domain (Render gives HTTPS) → set `ALLOWED_ORIGIN` and the
+  Google redirect URI to that domain.
+
+Prefer the two-service split below only if you specifically want the SPA on a
+CDN separate from the API — then §6's cookie rule applies.
+
+---
+
 ## 5. Deploy the BFF (Node service)
 
 1. Ship the repo (or just `server/` + its `package.json`/`node_modules`) to the host.
