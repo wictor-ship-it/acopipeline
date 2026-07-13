@@ -71,6 +71,9 @@ export interface Opportunity {
   /* Principal's free-form brief for the agent: context, constraints and what to
      watch on this opportunity. Fed into the agent's per-deal context. */
   agent_context?: string;
+  /* Where the deal sits in its TYPE's closing flow (see DEAL_TYPES) — distinct
+     from `stage` (the qualification heat that buckets the board). */
+  flow_stage?: string;
   /* v5 display fields */
   name?: string;
   contact_name?: string;

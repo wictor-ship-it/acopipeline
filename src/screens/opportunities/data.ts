@@ -2,6 +2,7 @@
    design-reference/logic-and-data.js (mkCard ~1220, pipes ~1232, closedRows
    ~1211, oppDeltas ~1441, buildPeekData ~1541, pipeRefRows ~3777). The pipeline
    demo data is the prototype seed for this screen. */
+import type { Pipeline } from "../../domain/types";
 
 const MONTH_IDX: Record<string, number> = { Jan: 0, Feb: 1, Mar: 2, Apr: 3, May: 4, Jun: 5, Jul: 6, Aug: 7, Sep: 8, Oct: 9, Nov: 10, Dec: 11 };
 
@@ -77,6 +78,26 @@ export interface Column { stage: string; cards: Card[] }
 const col = (stage: string, cards: Card[]): Column => ({ stage, cards });
 
 export const PIPE_NAMES: Record<string, string> = { purchases: "Purchases", listings: "Listings", rentals: "Rentals", investments: "Investments", offmarket: "Off-Market" };
+
+/* Opportunity type + its closing flow. `status` (Prospecting→…→Lost) is the
+   qualification heat that buckets the board; the FLOW below is the type-specific
+   path to close (a purchase closes differently than a listing or a lease). The
+   Deal Detail tracks the flow stage independently of the heat. */
+export type DealTypeDef = { label: string; side: string; flow: string[] };
+export const DEAL_TYPES: Record<Pipeline, DealTypeDef> = {
+  purchases:   { label: "Purchase",   side: "Buyer side",       flow: ["Prospect", "Qualified", "Touring", "Offer", "Negotiation", "Under Contract", "Closing", "Closed"] },
+  listings:    { label: "Listing",    side: "Seller side",      flow: ["Prospect", "Listing Prep", "Live · Marketing", "Showings", "Offer", "Under Contract", "Closing", "Closed"] },
+  rentals:     { label: "Rental",     side: "Tenant / Owner",   flow: ["Prospect", "Qualified", "Showings", "Application", "Lease Out", "Placed"] },
+  investments: { label: "Investment", side: "Capital division", flow: ["Sourcing", "Underwriting", "LOI", "Due Diligence", "Under Contract", "Closed"] },
+  offmarket:   { label: "Off-Market", side: "Pocket listing",   flow: ["Registered", "Matched", "Showing", "Offer", "Under Contract", "Closed"] },
+};
+export function dealTypeOf(pipeline?: string): DealTypeDef { return DEAL_TYPES[(pipeline as Pipeline)] ?? DEAL_TYPES.purchases; }
+/* Current index in the type's flow (case-insensitive match; -1 → 0). */
+export function flowIndex(pipeline: string | undefined, flowStage?: string): number {
+  const flow = dealTypeOf(pipeline).flow;
+  const i = flow.findIndex((s) => s.toLowerCase() === (flowStage ?? "").toLowerCase());
+  return i >= 0 ? i : 0;
+}
 
 /* Next-deal loop (Deal Detail all-clear): every open deal across pipelines,
    ranked by weighted GCI — the natural work queue. nextDealAfter wraps around. */

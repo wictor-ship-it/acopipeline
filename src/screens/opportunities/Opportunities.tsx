@@ -6,7 +6,7 @@ import type { Opportunity, Contact, Pipeline, Settings } from "../../domain/type
 import { SANS, deltaCell } from "../contacts/data";
 import {
   type Card, CLOSED_HEAD, COLL_PIPES, type Column, mkCard, DEAL_STATUS, DEAL_PLAY, DEFAULT_LOSS_REASONS, normStatus,
-  PEEK_CURATED, PIPE_NAMES, PIPE_REF, tagsFor, WEEK_DAYS, fmtBudget,
+  PEEK_CURATED, PIPE_NAMES, PIPE_REF, tagsFor, WEEK_DAYS, fmtBudget, dealTypeOf,
 } from "./data";
 import "./Opportunities.css";
 
@@ -192,6 +192,7 @@ export function Opportunities() {
     const opp: Opportunity = {
       id: newId("opp"), contact_id: newDeal.contactId, pipeline: newDeal.pipeline as Pipeline, stage: status,
       budget: newDeal.budget.trim() ? fmtBudget(newDeal.budget.trim()) : "$0", probability: Number(newDeal.probability) || 0,
+      flow_stage: dealTypeOf(newDeal.pipeline).flow[0],
       heat: status === "Hot" || status === "Won" ? "HOT" : "WARM",
       next_action: nextAction, next_due: dueFromCadence(play.cadence),
       lost_reason: status === "Lost" ? (newDeal.lostReason || "Unspecified") : undefined,
