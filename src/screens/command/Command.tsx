@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { recordAction } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
+import { isRemote } from "../../data/backend";
 import { agentChat } from "../../data/adapters/agent";
 import type { Contact, Opportunity } from "../../domain/types";
 import { SANS } from "../contacts/data";
@@ -44,7 +45,7 @@ export function Command() {
     <div style={{ padding: "0 0 60px" }}>
       {/* CONVERSATIONAL HERO */}
       <div style={{ padding: "0 48px", minHeight: "calc(100vh - 210px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-        <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 22, color: "#0D0D0D", textAlign: "center" }}>Good morning, Wictor. <span style={{ fontWeight: 400, color: "#5D5D5D" }}>3 decisions, 5 touches, 1 risk.</span></div>
+        <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 22, color: "#0D0D0D", textAlign: "center" }}>Good morning, Wictor. {!isRemote() && <span style={{ fontWeight: 400, color: "#5D5D5D" }}>3 decisions, 5 touches, 1 risk.</span>}{isRemote() && <span style={{ fontWeight: 400, color: "#5D5D5D" }}>{opportunities.length} open deal{opportunities.length === 1 ? "" : "s"} · {contacts.length.toLocaleString()} contacts.</span>}</div>
 
         <div className="cc-askbar" style={{ display: "flex", alignItems: "center", gap: 14, borderRadius: 999, padding: "12px 14px 12px 20px", marginTop: 22, width: "min(720px,92%)" }}>
           <span className="cc-plus" title="Upload contract / document — agent extracts terms" style={{ fontFamily: SANS, fontWeight: 300, fontSize: 17, color: "#8F8F8F", flex: "none", cursor: "pointer", transition: "color 150ms" }}>+</span>
@@ -153,7 +154,7 @@ export function Command() {
 
       {/* CRITICAL REMINDERS */}
       <div style={{ width: "min(680px,88%)", margin: "30px auto 0", display: "flex", flexDirection: "column" }}>
-        {HOME_REMINDERS.map((r) => (
+        {!isRemote() && HOME_REMINDERS.map((r) => (
           <div key={r.text} onClick={() => navigate(r.to)} className="cc-listrow" style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 8px", borderBottom: "1px solid #E3E3E3", cursor: "pointer", transition: "background 150ms" }}>
             <span style={{ width: 6, height: 6, flex: "none", borderRadius: "50%", background: r.dot }} />
             <span style={{ flex: 1, fontFamily: SANS, fontWeight: 400, fontSize: 13.5, color: "#303030" }}>{r.text}</span>

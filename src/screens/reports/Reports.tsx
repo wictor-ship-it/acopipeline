@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { recordAction } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
+import { isRemote } from "../../data/backend";
 import { useIsMobile } from "../../app/useIsMobile";
 import type { Opportunity, Transaction, Contact } from "../../domain/types";
 import { SANS } from "../contacts/data";
@@ -129,6 +130,13 @@ export function Reports() {
             <button onClick={exportPdf} className="rp-export" style={{ background: "transparent", border: "1px solid #B4B4B4", padding: "8px 16px", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#0D0D0D", cursor: "pointer", transition: "background 150ms" }}>Export PDF</button>
           </div>
 
+          {/* Real accounts: the deep report sections build from your data — no demo. */}
+          {isRemote() && sec !== "01" && (
+            <div style={{ padding: "64px 4px", textAlign: "center", fontFamily: SANS, fontWeight: 400, fontSize: 13.5, lineHeight: 1.7, color: "#8F8F8F" }}>
+              This report builds from your real data as you add deals, contacts and closings.<br />The Overview is already live.
+            </div>
+          )}
+
           {/* ===== 01 · OVERVIEW ===== */}
           {sec === "01" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 44 }}>
@@ -158,7 +166,7 @@ export function Reports() {
           )}
 
           {/* ===== 02 · PIPELINE & FORECAST ===== */}
-          {sec === "02" && (
+          {sec === "02" && !isRemote() && (
             <div style={{ display: "flex", flexDirection: "column", gap: 44 }}>
               <section>
                 <H2>Pipeline by Status</H2>
@@ -251,7 +259,7 @@ export function Reports() {
           )}
 
           {/* ===== 04 · SOURCES & MARKET ===== */}
-          {sec === "04" && (
+          {sec === "04" && !isRemote() && (
             <div style={{ display: "flex", flexDirection: "column", gap: 44 }}>
               <section>
                 <H2>Pipeline by Asset Type</H2>
@@ -310,7 +318,7 @@ export function Reports() {
           )}
 
           {/* ===== 05 · ACTIVITY ===== */}
-          {sec === "05" && (
+          {sec === "05" && !isRemote() && (
             <section>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 14 }}>
                 <H2>Activity &amp; Outreach</H2>
@@ -383,7 +391,7 @@ export function Reports() {
           )}
 
           {/* ===== 07 · INCOME ===== */}
-          {sec === "07" && (
+          {sec === "07" && !isRemote() && (
             <div style={{ display: "flex", flexDirection: "column", gap: 44 }}>
               <div className="rp-kpigrid">
                 {INC_KPIS.map((k) => (
@@ -448,7 +456,7 @@ export function Reports() {
           )}
 
           {/* ===== 06 · CUSTOM REPORT ===== */}
-          {sec === "06" && (
+          {sec === "06" && !isRemote() && (
             <section>
               <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12, flexWrap: "wrap", marginBottom: 14 }}>
                 <H2>Custom Report</H2>

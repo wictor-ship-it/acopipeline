@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getAuditLog, recordAction } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
+import { isRemote } from "../../data/backend";
 import type { AuditEntry, Contact, Opportunity, Transaction } from "../../domain/types";
 import { useAgentItems } from "../../agent/useAgentItems";
 import { resolveAgentItem } from "../../agent/resolve";
@@ -120,8 +121,9 @@ export function Intelligence() {
   const toggle = (k: keyof typeof sec) => setSec((s) => ({ ...s, [k]: !s[k] }));
   const [naDone, setNaDone] = useState<Record<string, "accepted" | "dismissed">>({});
   const [lnDone, setLnDone] = useState<Record<string, boolean>>({});
-  const naOpen = NA_PROPOSALS.filter((p) => !naDone[p.id]);
-  const lnOpen = LEARNED.filter((l) => !lnDone[l.id]);
+  // Demo-only content (hardcoded proposals/learnings) — empty on a real account.
+  const naOpen = isRemote() ? [] : NA_PROPOSALS.filter((p) => !naDone[p.id]);
+  const lnOpen = isRemote() ? [] : LEARNED.filter((l) => !lnDone[l.id]);
   const acceptNa = (id: string, label: string) => { setNaDone((d) => ({ ...d, [id]: "accepted" })); void recordAction({ actor: "user", skill: "chief_of_staff", action: `Follow-up accepted — ${label}` }, `na/${id}`, () => setNaDone((d) => { const n = { ...d }; delete n[id]; return n; })); void getAuditLog().then(setAudit); };
   const dismissNa = (id: string) => setNaDone((d) => ({ ...d, [id]: "dismissed" }));
   const saveLn = (id: string, audit: string) => { setLnDone((d) => ({ ...d, [id]: true })); void recordAction({ actor: "user", skill: "transaction_coordinator", action: audit }, `learned/${id}`, () => setLnDone((d) => { const n = { ...d }; delete n[id]; return n; })); void getAuditLog().then(setAudit); };
@@ -220,7 +222,7 @@ export function Intelligence() {
   const { items: agentItems } = useAgentItems();
   const agentDecisions = agentItems.filter((i) => i.needsDecision && decided[i.id] !== "snoozed");
 
-  const proposals = PROPOSALS.filter((p) => decided[p.id] !== "snoozed");
+  const proposals = isRemote() ? [] : PROPOSALS.filter((p) => decided[p.id] !== "snoozed");
   const openCount = proposals.filter((p) => !decided[p.id]).length + agentDecisions.filter((i) => !decided[i.id]).length;
 
   const decide = (id: string, kind: "approved" | "dismissed" | "snoozed", label: string) => {
@@ -407,7 +409,7 @@ export function Intelligence() {
       </Block>
 
       {/* TOUCH TODAY · COMMUNICATIONS */}
-      <Block dot="#D0342C" title="Touch Today · Communications" badge={String(TOUCH_TODAY.length)} hint="agent read the context, planned and drafted — review → approve → it sends" open={sec.touch} onToggle={() => toggle("touch")}>
+      {!isRemote() && (<Block dot="#D0342C" title="Touch Today · Communications" badge={String(TOUCH_TODAY.length)} hint="agent read the context, planned and drafted — review → approve → it sends" open={sec.touch} onToggle={() => toggle("touch")}>
         <div style={{ padding: "8px 22px 20px" }}>
           {TOUCH_TODAY.map((t) => (
             <div key={t.name} onClick={() => navigate("/contacts?view=queue")} className="in-touchrow" style={{ display: "flex", alignItems: "center", gap: 14, padding: "13px 4px", borderBottom: "1px solid #ECECEC", cursor: "pointer", transition: "background 150ms" }}>
@@ -420,7 +422,7 @@ export function Intelligence() {
           ))}
           <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#8F8F8F", marginTop: 12 }}>Open the full ranked queue in Contacts · Touch Today — bulk approve by channel, each send in the contact's language.</div>
         </div>
-      </Block>
+      </Block>)}
 
       {/* NEXT ACTIONS */}
       <Block dot="#0D0D0D" title="Next Actions" badge={naOpen.length > 0 ? String(naOpen.length) : undefined} hint="the agent proposes the follow-ups — you accept, it schedules & chases" open={sec.next} onToggle={() => toggle("next")}>
@@ -617,7 +619,7 @@ export function Intelligence() {
       </Block>
 
       {/* PERFORMANCE */}
-      <Block title="Performance" hint="forecast · movement · activity" open={sec.perf} onToggle={() => toggle("perf")}>
+      {!isRemote() && (<Block title="Performance" hint="forecast · movement · activity" open={sec.perf} onToggle={() => toggle("perf")}>
         <div style={{ padding: "20px 22px 28px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: 32, alignItems: "start" }}>
             <section>
@@ -669,10 +671,10 @@ export function Intelligence() {
             </section>
           </div>
         </div>
-      </Block>
+      </Block>)}
 
       {/* AGENT ACTIVITY */}
-      <Block title="Agent Activity" badge={String(AGENT_LEDGER.length)} hint="overnight ledger · learning loop · auditable" open={sec.agent} onToggle={() => toggle("agent")}>
+      {!isRemote() && (<Block title="Agent Activity" badge={String(AGENT_LEDGER.length)} hint="overnight ledger · learning loop · auditable" open={sec.agent} onToggle={() => toggle("agent")}>
         <div style={{ padding: "20px 22px 24px" }}>
           <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", marginBottom: 12 }}>Overnight ledger</div>
           {AGENT_LEDGER.map((a) => (
@@ -691,10 +693,10 @@ export function Intelligence() {
             </div>
           ))}
         </div>
-      </Block>
+      </Block>)}
 
       {/* NETWORK · Vendors & Partners */}
-      <Block title="Network — Vendors & Partners" hint={sec.net ? "directory lives in Contacts · Partners / Vendors" : NET_SUMMARY} open={sec.net} onToggle={() => toggle("net")}>
+      {!isRemote() && (<Block title="Network — Vendors & Partners" hint={sec.net ? "directory lives in Contacts · Partners / Vendors" : NET_SUMMARY} open={sec.net} onToggle={() => toggle("net")}>
         <div style={{ padding: "2px 22px 28px" }}>
           {/* KPIs */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", border: "1px solid #E3E3E3", borderRadius: 10, overflow: "hidden", margin: "20px 0 30px" }}>
@@ -772,7 +774,7 @@ export function Intelligence() {
             </div>
           </section>
         </div>
-      </Block>
+      </Block>)}
     </div>
   );
 }

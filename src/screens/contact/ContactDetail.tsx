@@ -6,6 +6,7 @@ import type { Contact, Mandate, Opportunity, Settings } from "../../domain/types
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import { useIsMobile } from "../../app/useIsMobile";
 import { agentChat } from "../../data/adapters/agent";
+import { isRemote } from "../../data/backend";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
   DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, INFO_SECTIONS,
@@ -128,7 +129,9 @@ export function ContactDetail() {
   const prof = profile ?? buildProfile(id, saved);
   const showProfile = hasProfile(id) || !!saved;
   const mlsLang = MLS_LANG[id] ?? (ct.language?.[0] ?? "EN");
-  const mlsSelCount = MLS_MATCHES.filter((m) => mlsSel[m.id]).length;
+  // Demo MLS listings — empty on a real account (real matching is Phase 2b).
+  const mlsMatches = isRemote() ? [] : MLS_MATCHES;
+  const mlsSelCount = mlsMatches.filter((m) => mlsSel[m.id]).length;
 
   const persistProfile = (next: BuyerProfile, field: string) => {
     setProfile(next);
@@ -176,7 +179,9 @@ export function ContactDetail() {
   // imports) carry NO plan until you classify them — no demo fallback.
   const classNow = statusLocal || ct.directory_status || toCanonStatus(ct.status);
   const seedPlan: PlanItem[] = PLAN_AHEAD[id] ?? DEFAULT_PLAN;
-  const plan: PlanItem[] = planLocal[id] ?? (ct.preferences?.plan as PlanItem[] | undefined) ?? (classNow === "Not classified" ? [] : seedPlan);
+  // Real accounts: no demo seed plan — a classified contact's plan comes from
+  // its saved preferences.plan (armed on classify), else empty.
+  const plan: PlanItem[] = planLocal[id] ?? (ct.preferences?.plan as PlanItem[] | undefined) ?? (classNow === "Not classified" || isRemote() ? [] : seedPlan);
   const shiftDate = (label: string, days: number) => { const mm = /([A-Za-z]{3}) (\d+)/.exec(label); return mm ? `${mm[1]} ${parseInt(mm[2], 10) + days}` : label; };
   const persistPlan = (next: PlanItem[], action: string) => {
     setPlanLocal((s) => ({ ...s, [id]: next }));
@@ -548,7 +553,7 @@ export function ContactDetail() {
               {mlsRun && (
                 <div style={{ borderTop: "1px solid #E3E3E3", padding: "18px 20px 22px" }}>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 10 }}>
-                    {MLS_MATCHES.map((m) => {
+                    {mlsMatches.map((m) => {
                       const on = !!mlsSel[m.id];
                       return (
                         <div key={m.id} onClick={() => setMlsSel((s) => ({ ...s, [m.id]: !s[m.id] }))} style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: 20, padding: 16, border: `0.5px solid ${on ? "#0D0D0D" : "#E3E3E3"}`, background: on ? "#FCFCFC" : "transparent", borderRadius: 12, transition: "border-color 150ms" }}>
