@@ -2,11 +2,11 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useCollection } from "../../data/hooks";
 import { getById, recordAction, save } from "../../data/repository";
-import type { Contact, Mandate, Opportunity, Settings } from "../../domain/types";
+import type { Activity, AuditEntry, Contact, Mandate, Message, Opportunity, Settings, Thread } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import { useIsMobile } from "../../app/useIsMobile";
 import { agentChat } from "../../data/adapters/agent";
-import { isRemote } from "../../data/backend";
+import { isRemote, backend } from "../../data/backend";
 import { fmtBudget, PIPE_NAMES } from "../opportunities/data";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
@@ -60,6 +60,13 @@ export function ContactDetail() {
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
   const { items: mandates } = useCollection<Mandate>("mandates");
   const { items: settingsRows } = useCollection<Settings>("settings");
+  const { items: activities } = useCollection<Activity>("activities");
+  const { items: threads } = useCollection<Thread>("threads");
+  const { items: messages } = useCollection<Message>("messages");
+  /* audit_log is insert-only and not a useCollection store — pull it directly
+     (works on both backends: IndexedDB or the BFF /api/data/audit endpoint). */
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
+  useEffect(() => { let live = true; void backend().getAll<AuditEntry>("audit_log").then((rows) => { if (live) setAuditLog(rows); }).catch(() => {}); return () => { live = false; }; }, [id, opportunities.length]);
 
   const [seg, setSeg] = useState<"profile" | "now" | "agent">("now");
   const [mandateText, setMandateText] = useState<string | null>(null);
@@ -106,6 +113,29 @@ export function ContactDetail() {
   const mandate = mandates.find((m) => m.contact_id === id);
   const touches = CONTACT_TOUCHES[id] ?? [];
 
+  /* Real interactions — drawn from the audit ledger (Law 2) scoped to this
+     contact + its deals, plus logged activities and thread messages. Never a
+     synthetic number: 0 when there's genuinely no history. QTR/1YR are the
+     counts that fall inside the last 90 / 365 days. Computed before the early
+     return below so the hook order stays stable. */
+  const interactions = useMemo(() => {
+    const dealIds = deals.map((d) => d.id);
+    const nameHit = (ct?.name ?? "").length >= 4 ? ct!.name : null;
+    // audit rows that are relationship/deal actions (exclude comm collections,
+    // which we count from their own stores below — no double count).
+    const auditEvents = auditLog
+      .filter((a) => !/^(activities|messages|threads|drafts)\//.test(a.entity))
+      .filter((a) => a.entity.includes(id) || dealIds.some((did) => a.entity.includes(did)) || (nameHit ? a.action.includes(nameHit) : false))
+      .map((a) => a.created_at);
+    const actEvents = activities.filter((a) => a.contact_id === id).map((a) => a.date ?? "");
+    const threadIds = new Set(threads.filter((t) => t.contact_id === id).map((t) => t.id));
+    const msgEvents = messages.filter((m) => threadIds.has(m.thread_id)).map((m) => m.at ?? "");
+    const all = [...auditEvents, ...actEvents, ...msgEvents];
+    const now = Date.now();
+    const within = (days: number) => all.filter((d) => { const t = new Date(d).getTime(); return !isNaN(t) && now - t <= days * 864e5; }).length;
+    return { total: all.length, qtr: within(90), yr: within(365), logged: auditEvents.length, comms: actEvents.length + msgEvents.length };
+  }, [auditLog, activities, threads, messages, deals, id, ct]);
+
   if (!ct) return <div style={{ padding: "40px 48px", fontFamily: SANS, color: "#8F8F8F" }}>Contact not found. <span onClick={() => navigate("/contacts")} style={{ color: "#0D0D0D", cursor: "pointer", textDecoration: "underline" }}>Back to Contacts</span></div>;
 
   const typeVal = (ct.relationship ?? "").split("·")[0].trim() || ct.category;
@@ -115,15 +145,12 @@ export function ContactDetail() {
   // contact (not a stale seed string), excluding closed ones.
   const openDeals = deals.filter((d) => !["Won", "Lost", "Placed"].includes(d.stage));
   const active = openDeals.length;
-  const q7 = touches.length;
-  const qtr7 = q7 + won * 2 + 2;
-  const yr7 = qtr7 + won * 6 + 4;
 
   const headStats = [
     { label: "Lifetime GCI", value: ct.lifetime_gci ?? "—", periods: [] as Array<{ p: string; v: string }>, sub: "" },
     { label: "Last Contact", value: ct.last_touch ?? "—", periods: [], sub: "" },
     { label: "Active Deals", value: String(active), periods: [{ p: "QTR", v: `↑+${active}` }, { p: "1 YR", v: `↑+${active + won}` }], sub: deals.length ? `${fmtBudget(deals[0].budget)} · ${deals[0].stage}` : "no live pipeline" },
-    { label: "Interactions", value: String(yr7 + 9), periods: [{ p: "QTR", v: `↑+${qtr7}` }, { p: "1 YR", v: `↑+${yr7}` }], sub: "" },
+    { label: "Interactions", value: String(interactions.total), periods: [{ p: "QTR", v: `↑+${interactions.qtr}` }, { p: "1 YR", v: `↑+${interactions.yr}` }], sub: interactions.total ? `${interactions.logged} logged · ${interactions.comms} comms` : "no interactions yet" },
   ];
 
   const journeyIdx = JOURNEY_IDX[id] ?? 1;
