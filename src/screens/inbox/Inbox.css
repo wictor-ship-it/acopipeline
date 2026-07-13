@@ -3,20 +3,21 @@
 .ib-page {
   display: flex;
   flex-direction: column;
-  /* Inbox hides the TopBar (TopBar.tsx returns null on /inbox), so the page
-     fills the whole canvas — only the canvas's 14px top+bottom margins are
-     subtracted. The old 96px offset assumed a TopBar and left a gap. */
+  /* Inbox hides the TopBar (TopBar.tsx returns null on /inbox) and, per fragment
+     15, the shell runs EDGE-TO-EDGE inside its container with no separate card
+     frame. So the page fills the whole canvas (only its 14px margins subtracted)
+     with NO padding — the shell becomes the canvas surface. */
   height: calc(100vh - 28px);
-  padding: 18px 48px;
+  padding: 0;
   box-sizing: border-box;
 }
 .ib-shell {
   display: flex;
-  border-radius: 14px;
+  /* Full-bleed: fills the canvas, matches its 18px radius, no extra border or
+     shadow — the app-canvas already provides the outer frame. */
+  border-radius: 18px;
   overflow: hidden;
   background: rgba(255, 255, 255, 0.62);
-  border: 1px solid #E3E3E3;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
   flex: 1;
   min-height: 0;
 }
