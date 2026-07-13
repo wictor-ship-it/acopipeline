@@ -31,7 +31,8 @@ function budgetM(b?: string): number {
   const n = parseFloat(b.replace(/[^0-9.]/g, "")) || 0;
   if (/b/i.test(b)) return n * 1000;
   if (/k/i.test(b)) return n / 1000;
-  return n; // assume millions
+  if (/m/i.test(b)) return n;
+  return n >= 1000 ? n / 1e6 : n; // bare: large → raw dollars, small → millions
 }
 const GCI_RATE = 0.03; // 3% commission basis (matches Custom Report)
 

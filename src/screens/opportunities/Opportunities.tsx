@@ -6,7 +6,7 @@ import type { Opportunity, Contact, Pipeline, Settings } from "../../domain/type
 import { SANS, deltaCell } from "../contacts/data";
 import {
   type Card, CLOSED_HEAD, COLL_PIPES, type Column, mkCard, DEAL_STATUS, DEAL_PLAY, DEFAULT_LOSS_REASONS, normStatus,
-  PEEK_CURATED, PIPE_NAMES, PIPE_REF, tagsFor, WEEK_DAYS,
+  PEEK_CURATED, PIPE_NAMES, PIPE_REF, tagsFor, WEEK_DAYS, fmtBudget,
 } from "./data";
 import "./Opportunities.css";
 
@@ -25,14 +25,15 @@ function buildPeek(c: Card) {
   const isRental = /\/mo/.test(c.budget);
   const isInv = /Investor/.test(c.opp);
   const side = /Seller|Listing|Staging|Marketing/.test(c.opp + " " + (c.stage ?? "")) ? "Listing · seller side" : /Tenant|Lease/.test(c.opp) ? "Rental" : isInv ? "Investment · Capital division" : "Purchase · buyer side";
-  const gciNum = isRental ? c.budgetNum : c.budgetNum * (isInv ? 10 : 30);
-  const gciStr = isRental ? `$${c.budgetNum}K · one month` : `$${Math.round(gciNum)}K · ${isInv ? "1%" : "3%"}`;
-  const wGciStr = `$${Math.round((gciNum * c.probNum) / 100)}K`;
+  const gciNum = isRental ? c.budgetNum : c.budgetNum * (isInv ? 10 : 30); // GCI in $K
+  const fmtK = (k: number) => (k >= 1000 ? `$${(k / 1000).toFixed(1)}M` : `$${Math.round(k)}K`);
+  const gciStr = isRental ? `${fmtK(c.budgetNum)} · one month` : `${fmtK(gciNum)} · ${isInv ? "1%" : "3%"}`;
+  const wGciStr = fmtK((gciNum * c.probNum) / 100);
   const cur = PEEK_CURATED[c.name];
   const contacts = (cur?.contacts ?? [[c.name.split("·")[0].trim() || "Principal", isInv ? "Investor · principal" : "Principal"], ["Listing agent — co-broke", "Counterparty"], ["A/CO TC", "Transaction support"]]).map(([n, r]) => ({ n, r, initials: initials(n) }));
   const acts = (cur?.acts ?? [["Jul 05", `Next action set — ${c.next}`], ["Jul 01", "Touch logged · WhatsApp — client responsive"], ["Jun 24", `Moved to ${c.stage} · playbook cadence attached`]]).map(([d, t]) => ({ d, t }));
   const dues = (cur?.dues ?? [[c.next, c.due], ["Cadence touch — agent-run", "T+7d"], ["Re-qualify if no response", "T+21d"]]).map(([l, d], i) => ({ l, d, dColor: i === 0 ? c.dueColor : "#8F8F8F" }));
-  return { name: c.name, stage: c.stage ?? "", status: c.status, side, dot: c.dot, budget: c.budget, gci: gciStr, wGci: wGciStr, probLabel: `${c.prob} probability`, address: cur?.address ?? c.name.split("·")[0].trim(), specs: cur?.specs ?? (isInv ? "Commercial asset · OM + rent roll on file" : "On file"), ppsf: cur?.ppsf ?? "—", delivery: cur?.delivery ?? `${c.stage} · ${c.opp}`, contacts, acts, dues };
+  return { name: c.name, stage: c.stage ?? "", status: c.status, side, dot: c.dot, budget: fmtBudget(c.budget), gci: gciStr, wGci: wGciStr, probLabel: `${c.prob} probability`, address: cur?.address ?? c.name.split("·")[0].trim(), specs: cur?.specs ?? (isInv ? "Commercial asset · OM + rent roll on file" : "On file"), ppsf: cur?.ppsf ?? "—", delivery: cur?.delivery ?? `${c.stage} · ${c.opp}`, contacts, acts, dues };
 }
 
 export function Opportunities() {
@@ -107,12 +108,12 @@ export function Opportunities() {
   const feeOf = (pk?: string) => (pk === "investments" ? 0.01 : 0.03);
   const wonCards = oppCards.filter((c) => c.stage === "Won" || c.stage === "Placed");
   const wonRows = wonCards.map((c) => ({
-    name: c.name, asset: c.pipeName ?? "—", closed: c.due || "—", volume: c.budget,
+    name: c.name, asset: c.pipeName ?? "—", closed: c.due || "—", volume: fmtBudget(c.budget),
     gci: `$${Math.round(c.budgetNum * feeOf(c.pipeKey) * 1000)}K`, post: "—", postColor: "#8F8F8F",
   }));
   const wonGciM = wonCards.reduce((s, c) => s + c.budgetNum * feeOf(c.pipeKey), 0);
   const wonGciLabel = wonGciM >= 1 ? `$${wonGciM.toFixed(1)}M` : `$${Math.round(wonGciM * 1000)}K`;
-  const lostRows = oppCards.filter((c) => c.stage === "Lost").map((c) => ({ name: c.name, pipe: c.pipeName ?? "—", budget: c.budget, when: c.due || "—", reason: c.next || "—" }));
+  const lostRows = oppCards.filter((c) => c.stage === "Lost").map((c) => ({ name: c.name, pipe: c.pipeName ?? "—", budget: fmtBudget(c.budget), when: c.due || "—", reason: c.next || "—" }));
 
   // Real values; trend deltas show "—" (no historical snapshots to trend against).
   const r0 = (v: string) => ({ v, d30: "—", dQ: "—", dY: "—" });
@@ -190,7 +191,7 @@ export function Opportunities() {
     const nextAction = DEAL_PLAY[status]?.next ?? play.action ?? "Set the next step";
     const opp: Opportunity = {
       id: newId("opp"), contact_id: newDeal.contactId, pipeline: newDeal.pipeline as Pipeline, stage: status,
-      budget: newDeal.budget.trim() || "$0", probability: Number(newDeal.probability) || 0,
+      budget: newDeal.budget.trim() ? fmtBudget(newDeal.budget.trim()) : "$0", probability: Number(newDeal.probability) || 0,
       heat: status === "Hot" || status === "Won" ? "HOT" : "WARM",
       next_action: nextAction, next_due: dueFromCadence(play.cadence),
       lost_reason: status === "Lost" ? (newDeal.lostReason || "Unspecified") : undefined,
@@ -376,7 +377,7 @@ export function Opportunities() {
                             >
                               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 8 }}>
                                 <span onClick={(e) => { e.stopPropagation(); openDeal(c, cx.stage); }} title="Open deal record" className="op-dealname" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", cursor: "pointer" }}>{c.name}</span>
-                                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", flex: "none" }}>{c.budget}</span>
+                                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", flex: "none" }}>{fmtBudget(c.budget)}</span>
                               </div>
                               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 4 }}>{c.opp}</div>
                               {(c.tags?.length ?? 0) > 0 && (
@@ -425,7 +426,7 @@ export function Opportunities() {
               <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, letterSpacing: "0.02em", color: "#0D0D0D" }}>{c.pipeName}</div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.opp}</div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.stage}</div>
-              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{c.budget}</div>
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{fmtBudget(c.budget)}</div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.prob}</div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{c.next}</div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: c.dueColor }}>{c.due}</div>
@@ -449,7 +450,7 @@ export function Opportunities() {
                     <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, color: "#0D0D0D", lineHeight: 1.35 }}>{c.name}</div>
                     <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#5D5D5D", lineHeight: 1.45, marginTop: 4 }}>{c.next}</div>
                     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8, marginTop: 9, paddingTop: 8, borderTop: "1px solid rgba(0,0,0,0.05)" }}>
-                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#0D0D0D" }}>{c.budget}</span>
+                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#0D0D0D" }}>{fmtBudget(c.budget)}</span>
                       <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.04em", color: c.dueColor }}>{c.due}</span>
                     </div>
                   </div>

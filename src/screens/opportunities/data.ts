@@ -13,8 +13,38 @@ export interface Card {
   id?: string; pipeKey?: string;
 }
 
+/* Parse a budget string to MILLIONS (the unit the card/GCI math expects).
+   Handles suffixes ($6.8M, $950K, $1.2B) AND bare full-dollar amounts the user
+   may type ("3700000" → 3.7). Bare numbers ≥1000 are read as raw dollars (÷1e6);
+   smaller bare numbers ("3.7", "12") are already millions. Monthly rents keep the
+   caller's convention and are handled separately in mkCard. */
+export function parseBudgetM(b?: string): number {
+  if (!b) return 0;
+  const s = String(b);
+  const num = parseFloat(s.replace(/[^0-9.]/g, "")) || 0;
+  if (!num) return 0;
+  if (/b/i.test(s)) return num * 1000;
+  if (/k/i.test(s)) return num / 1000;
+  if (/m/i.test(s)) return num;
+  return num >= 1000 ? num / 1e6 : num; // bare: large → raw dollars, small → millions
+}
+
+/* Canonical display for a budget: $X.XB / $X.XM / $XK (preserves "/mo" rents). */
+export function fmtBudget(b?: string): string {
+  if (!b) return "—";
+  const mo = /\/mo/i.test(String(b)) ? "/mo" : "";
+  const m = parseBudgetM(b);
+  if (!m) return String(b);
+  if (m >= 1000) return `$${(m / 1000).toFixed(m % 1000 === 0 ? 0 : 1)}B${mo}`;
+  if (m >= 1) return `$${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}M${mo}`;
+  return `$${Math.round(m * 1000)}K${mo}`;
+}
+
 export function mkCard(name: string, opp: string, budget: string, hot: boolean, prob: number, next: string, due: string, overdue: boolean): Card {
-  const budgetNum = parseFloat(String(budget).replace(/[^0-9.]/g, "")) || 0;
+  // Rents keep their $K/mo magnitude (peek shows it as one month); sales convert to millions.
+  const budgetNum = /\/mo/i.test(String(budget))
+    ? (parseFloat(String(budget).replace(/[^0-9.]/g, "")) || 0)
+    : parseBudgetM(budget);
   const parts = String(due).split(" ");
   const dueRank = (MONTH_IDX[parts[0]] ?? 12) * 31 + (parseInt(parts[1], 10) || 0);
   return { name, opp, budget, status: hot ? "HOT" : "WARM", prob: prob + "%", dot: hot ? "#0D0D0D" : "#8F8F8F", next, due, dueColor: overdue ? "#D0342C" : "#5D5D5D", budgetNum, probNum: prob, weightedNum: (budgetNum * prob) / 100, dueRank };

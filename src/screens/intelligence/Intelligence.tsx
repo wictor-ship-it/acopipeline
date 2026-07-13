@@ -39,7 +39,7 @@ function Block({ dot, title, badge, hint, open, onToggle, children }: { dot?: st
   );
 }
 
-const budgetM = (b?: string): number => { if (!b || /\/mo/i.test(b)) return 0; const n = parseFloat(b.replace(/[^0-9.]/g, "")) || 0; return /b/i.test(b) ? n * 1000 : /k/i.test(b) ? n / 1000 : n; };
+const budgetM = (b?: string): number => { if (!b || /\/mo/i.test(b)) return 0; const n = parseFloat(b.replace(/[^0-9.]/g, "")) || 0; return /b/i.test(b) ? n * 1000 : /k/i.test(b) ? n / 1000 : /m/i.test(b) ? n : n >= 1000 ? n / 1e6 : n; };
 const fmtM = (m: number): string => (m >= 1000 ? `$${(m / 1000).toFixed(1)}B` : m >= 1 ? `$${m.toFixed(1)}M` : `$${Math.round(m * 1000)}K`);
 
 export function Intelligence() {
