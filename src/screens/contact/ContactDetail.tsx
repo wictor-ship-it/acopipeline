@@ -4,6 +4,7 @@ import { useCollection } from "../../data/hooks";
 import { getById, recordAction, save } from "../../data/repository";
 import type { Contact, Mandate, Opportunity, Settings } from "../../domain/types";
 import { SANS, CONTACT_TOUCHES } from "../contacts/data";
+import { useIsMobile } from "../../app/useIsMobile";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
   DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, INFO_SECTIONS,
@@ -22,6 +23,9 @@ type ChatMsg = { who: "a" | "u"; txt: string };
 
 export function ContactDetail() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  // Collapse multi-column form/vital grids to a single column on phones.
+  const gc = (desktopCols: string, mobileCols = "1fr") => (isMobile ? mobileCols : desktopCols);
   const { id = "" } = useParams();
   const { items: contacts } = useCollection<Contact>("contacts");
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
@@ -340,7 +344,7 @@ export function ContactDetail() {
               <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 9, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5D5D5D", border: "1px solid #E3E3E3", borderRadius: 999, padding: "4px 10px", whiteSpace: "nowrap" }}>fee 25% · §6</span>
             </div>
           )}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", borderTop: "1px solid #E3E3E3", marginTop: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: gc("repeat(4,1fr)", "repeat(2,1fr)"), borderTop: "1px solid #E3E3E3", marginTop: 16 }}>
             {headStats.map((s, i) => (
               <div key={s.label} style={{ padding: `14px 24px 14px ${i === 0 ? "0" : "24px"}`, borderRight: i < 3 ? "1px solid #E3E3E3" : "none" }}>
                 <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 9, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F", whiteSpace: "nowrap" }}>{s.label}</div>
@@ -377,7 +381,7 @@ export function ContactDetail() {
 
       {/* ===== NOW ===== */}
       {seg === "now" && (
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "26px 48px 90px" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "20px 18px 70px" : "26px 48px 90px" }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, marginBottom: 12 }}>
             <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, lineHeight: 1.6, color: "#5D5D5D", flex: 1 }}>{SINCE_LINE[id] ?? "Since your last visit: no new activity — cadence clock running."}</div>
             <button onClick={() => setBriefOpen(true)} className="cd-chip" style={{ flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", background: "rgba(255,255,255,0.55)", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 14px", cursor: "pointer", transition: "all 150ms", whiteSpace: "nowrap" }}>Pre-meeting brief</button>
@@ -441,7 +445,7 @@ export function ContactDetail() {
                     </div>
 
                     <div style={pfSectionHead}>01 · Asset Profile</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: gc("repeat(3,1fr)"), gap: "26px 40px", marginBottom: 44 }}>
                       {pfInputField("Asset Type", "assetType", "e.g. Penthouse")}
                       {pfSelectField("Architectural Style", "style", PROFILE_OPTS.style)}
                       {pfSelectField("Condition", "condition", PROFILE_OPTS.condition)}
@@ -451,20 +455,20 @@ export function ContactDetail() {
                     </div>
 
                     <div style={pfSectionHead}>02 · Location</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: gc("repeat(2,1fr)"), gap: "26px 40px", marginBottom: 44 }}>
                       {pfInputField("Target Areas / Neighborhoods", "areas", "e.g. Brickell, Coconut Grove")}
                       {pfInputField("Proximity Priorities", "proximity", "Schools, waterfront, business district…")}
                     </div>
 
                     <div style={pfSectionHead}>03 · Budget &amp; Financing</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: gc("repeat(3,1fr)"), gap: "26px 40px", marginBottom: 44 }}>
                       {pfInputField("Budget — Min", "budgetMin", "$")}
                       {pfInputField("Budget — Max", "budgetMax", "$")}
                       {pfSelectField("Financing", "financing", PROFILE_OPTS.financing)}
                     </div>
 
                     <div style={pfSectionHead}>04 · Space Requirements</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: "26px 40px", marginBottom: 44 }}>
+                    <div style={{ display: "grid", gridTemplateColumns: gc("repeat(3,1fr)"), gap: "26px 40px", marginBottom: 44 }}>
                       {pfInputField("Bedrooms (min)", "bedsMin", "e.g. 3+")}
                       {pfInputField("Bathrooms (min)", "bathsMin", "e.g. 2.5+")}
                       {pfInputField("Interior SqFt (min)", "sqftMin", "e.g. 2,500")}
@@ -482,7 +486,7 @@ export function ContactDetail() {
                     </div>
 
                     <div style={pfSectionHead}>06 · Must-haves, Dealbreakers &amp; Notes</div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: "26px 40px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: gc("repeat(2,1fr)"), gap: "26px 40px" }}>
                       {pfAreaField("Non-negotiables", "nonNegotiables", "Absolute must-haves…")}
                       {pfAreaField("Dealbreakers", "dealbreakers", "Hard no's…")}
                       {pfAreaField("Additional Notes", "notes", "", true)}
@@ -615,7 +619,7 @@ export function ContactDetail() {
 
       {/* ===== PROFILE ===== */}
       {seg === "profile" && (
-        <div style={{ maxWidth: 960, margin: "0 auto", padding: "30px 48px 90px" }}>
+        <div style={{ maxWidth: 960, margin: "0 auto", padding: isMobile ? "22px 18px 70px" : "30px 48px 90px" }}>
           <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
             <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10A37F", flex: "none" }} />
             <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>Agent's Mandate <span style={{ color: "#10A37F" }}>· active</span></span>
@@ -691,7 +695,7 @@ export function ContactDetail() {
 
       {/* ===== AGENT ===== */}
       {seg === "agent" && (
-        <div style={{ padding: "26px 48px 42px", maxWidth: 1020 }}>
+        <div style={{ padding: isMobile ? "20px 18px 42px" : "26px 48px 42px", maxWidth: 1020 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div style={{ display: "flex", gap: 11, alignItems: "flex-start", maxWidth: 780 }}>
               <span style={{ width: 7, height: 7, flex: "none", borderRadius: "50%", background: "#0D0D0D", marginTop: 8 }} />
@@ -765,7 +769,7 @@ export function ContactDetail() {
               {INFO_SECTIONS.map((sec) => (
                 <div key={sec.title} style={{ padding: "20px 0", borderBottom: "1px solid #E3E3E3" }}>
                   <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", marginBottom: 14 }}>{sec.title}</div>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px 22px" }}>
+                  <div style={{ display: "grid", gridTemplateColumns: gc("1fr 1fr"), gap: "16px 22px" }}>
                     {sec.fields.map((f) => (
                       <div key={f.key} style={{ display: "flex", flexDirection: "column", gap: 6, gridColumn: f.area ? "1 / -1" : undefined }}>
                         <label style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>{f.label}</label>
@@ -795,7 +799,7 @@ export function ContactDetail() {
           <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 91, width: 440, maxWidth: "92vw", background: "rgba(255,255,255,0.94)", backdropFilter: "blur(26px) saturate(1.7)", WebkitBackdropFilter: "blur(26px) saturate(1.7)", border: "1px solid rgba(255,255,255,0.8)", borderRadius: 16, boxShadow: "0 24px 70px rgba(0,0,0,0.22)", overflow: "hidden" }}>
             <div style={{ padding: "20px 24px 14px", borderBottom: "1px solid #E3E3E3", fontFamily: SANS, fontWeight: 600, fontSize: 14, color: "#0D0D0D" }}>{planEdit.index === null ? "Add plan step" : "Edit plan step"}</div>
             <div style={{ padding: "18px 24px", display: "flex", flexDirection: "column", gap: 16 }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div style={{ display: "grid", gridTemplateColumns: gc("1fr 1fr"), gap: 16 }}>
                 <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                   <label style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>Date</label>
                   <input value={planEdit.d} onChange={(e) => setPlanEdit((p) => (p ? { ...p, d: e.target.value } : p))} placeholder="e.g. Jul 20" className="cd-pf" style={{ border: "none", borderBottom: "1px solid #D9D9D9", background: "transparent", padding: "7px 0", fontFamily: SANS, fontSize: 14.5, color: "#303030", outline: "none" }} />

@@ -4,6 +4,7 @@ import { useCollection } from "../../data/hooks";
 import { getAuditLog, onDataChange, save } from "../../data/repository";
 import type { AuditEntry, Contact, Settings as SettingsRec } from "../../domain/types";
 import { useAppState } from "../../app/state";
+import { useIsMobile } from "../../app/useIsMobile";
 import { fetchGmailThreads } from "../../data/adapters/gmail";
 import { fetchCalendarEvents } from "../../data/adapters/calendar";
 import { getAgentStatus, type AgentStatus } from "../../data/adapters/agent";
@@ -124,8 +125,9 @@ const TXT_STYLE: CSSProperties = {
 
 /* Two-column select/input grid — Voice §08, MLS §12, Display §13. */
 function FieldGrid({ fields, vals, onVal }: { fields: Field[]; vals: Record<string, string>; onVal: (id: string, v: string) => void }) {
+  const isMobile = useIsMobile();
   return (
-    <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 60px" }}>
+    <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: isMobile ? "0" : "0 60px" }}>
       {fields.map((f) => {
         const v = vals[f.id] ?? f.value;
         return (
@@ -342,6 +344,8 @@ function SecHead({ num, title, desc }: { num: string; title: string; desc: strin
 const Rows = ({ children }: { children: ReactNode }) => <div style={{ borderTop: "1px solid #E3E3E3" }}>{children}</div>;
 
 export function Settings() {
+  const isMobile = useIsMobile();
+  const gc = (desktopCols: string, mobileCols = "1fr") => (isMobile ? mobileCols : desktopCols);
   const { items: settingsRows } = useCollection<SettingsRec>("settings");
   const { items: contacts } = useCollection<Contact>("contacts");
   const [sec, setSec] = useState("03");
@@ -450,8 +454,8 @@ export function Settings() {
   const addDStep = () => setDSteps([...dSteps, { n: "New action", d: "Effective +0d", o: "You", a: "—" }]);
 
   return (
-    <div style={{ display: "flex", gap: 52, padding: "8px 48px 80px", alignItems: "flex-start" }}>
-      <div style={{ width: 200, flex: "none", position: "sticky", top: 24, paddingTop: 26 }}>
+    <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 16 : 52, padding: isMobile ? "8px 18px 80px" : "8px 48px 80px", alignItems: "flex-start" }}>
+      <div style={{ width: isMobile ? "100%" : 200, flex: "none", position: isMobile ? "static" : "sticky", top: 24, paddingTop: isMobile ? 8 : 26 }}>
         <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", paddingBottom: 12, borderBottom: "1px solid #E3E3E3" }}>Sections</div>
         {NAV.map(([key, label], i) => {
           const on = sec === key;
@@ -495,15 +499,15 @@ export function Settings() {
           {sec === "02" && (
             <>
               <SecHead num={navNumFor("02")} title="Cadence Rules" desc="One cadence per status — the clock and the action plan the agent runs. Drives Touch Today and each contact's next touch; an inbound touch resets the clock. Edit inline, auto-saved." />
-              {/* column header */}
-              <div style={{ display: "grid", gridTemplateColumns: "150px 170px 1fr 26px", gap: 18, alignItems: "center", padding: "0 4px 10px", borderBottom: "1px solid #E3E3E3" }}>
+              {/* column header — hidden on mobile where rows stack into cards */}
+              <div style={{ display: isMobile ? "none" : "grid", gridTemplateColumns: "150px 170px 1fr 26px", gap: 18, alignItems: "center", padding: "0 4px 10px", borderBottom: "1px solid #E3E3E3" }}>
                 {["Status", "Cadence", "Action plan"].map((h) => (
                   <span key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</span>
                 ))}
                 <span />
               </div>
               {cadenceRows.map((r) => (
-                <div key={r.key} style={{ display: "grid", gridTemplateColumns: "150px 170px 1fr 26px", gap: 18, alignItems: "center", padding: "13px 4px", borderBottom: "1px solid #E3E3E3" }}>
+                <div key={r.key} style={{ display: "grid", gridTemplateColumns: gc("150px 170px 1fr 26px"), gap: isMobile ? 10 : 18, alignItems: isMobile ? "start" : "center", padding: "13px 4px", borderBottom: "1px solid #E3E3E3" }}>
                   {r.custom ? (
                     <input value={r.name} onChange={(e) => setCadenceField(r.key, "name", e.target.value)} placeholder="Name" className="st-cadinput" style={{ background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D", padding: "5px 0", outline: "none" }} />
                   ) : (
@@ -527,7 +531,7 @@ export function Settings() {
           {sec === "01" && (
             <>
               <SecHead num={navNumFor("01")} title="Profile" desc="The identity the system writes with — drafts, documents, signatures." />
-              <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 60px" }}>
+              <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: gc("1fr 1fr"), gap: "0 60px" }}>
                 {[["Name", profile.name], ["Role", profile.role], ["Brokerage", profile.brokerage], ["License", profile.license], ["Phone · WhatsApp", profile.phone], ["Email", profile.email], ["Draft languages", profile.draft_languages], ["Signature", profile.signature]].map(([l, v]) => (
                   <div key={l} style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 20, padding: "14px 4px", borderBottom: "1px solid #E3E3E3", minWidth: 0 }}>
                     <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F", flex: "none" }}>{l}</span>
@@ -555,7 +559,7 @@ export function Settings() {
           {sec === "04" && (
             <>
               <SecHead num={navNumFor("04")} title="Economics" desc="Defaults used in every GCI projection. Overridable per deal." />
-              <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 60px" }}>
+              <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: gc("1fr 1fr"), gap: "0 60px" }}>
                 {ECON.map((f) => (
                   <div key={f.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 20, padding: "12px 4px", borderBottom: "1px solid #E3E3E3" }}>
                     <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F", flex: "none" }}>{f.label}</span>
@@ -647,7 +651,7 @@ export function Settings() {
                 </div>
 
                 {/* pipeline name */}
-                <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, padding: "16px 4px 13px", borderBottom: "1px solid #E3E3E3", alignItems: "center" }}>
+                <div style={{ display: "grid", gridTemplateColumns: gc("220px 1fr"), gap: 24, padding: "16px 4px 13px", borderBottom: "1px solid #E3E3E3", alignItems: "center" }}>
                   <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>Pipeline name</span>
                   <input value={pSel} onChange={(e) => renamePipe(e.target.value)} style={{ width: 280, background: "transparent", border: "none", borderBottom: "1px solid #D9D9D9", padding: "4px 0", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", outline: "none" }} />
                 </div>
@@ -676,7 +680,7 @@ export function Settings() {
                 {SET_STAGE_FIELDS.map((f) => {
                   const v = vals[f.id] ?? f.value;
                   return (
-                    <div key={f.id} style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, padding: "13px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center" }}>
+                    <div key={f.id} style={{ display: "grid", gridTemplateColumns: gc("220px 1fr"), gap: 24, padding: "13px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center" }}>
                       <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.04em", color: "#0D0D0D" }}>{f.label}</span>
                       {f.opts ? (
                         <select value={v} onChange={(e) => onVal(f.id, e.target.value)} style={{ ...SEL_STYLE, maxWidth: 320, justifySelf: "start" }}>
@@ -708,7 +712,7 @@ export function Settings() {
               <SecHead num={navNumFor("07")} title="Scoring & Forecast" desc="The formulas behind every number on the Command Center — tunable, never opaque." />
               <div style={{ borderTop: "1px solid #E3E3E3" }}>
                 {SET_SCORING.map((r) => (
-                  <div key={r.label} style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 24, padding: "15px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "baseline" }}>
+                  <div key={r.label} style={{ display: "grid", gridTemplateColumns: gc("220px 1fr"), gap: 24, padding: "15px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "baseline" }}>
                     <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.04em", color: "#0D0D0D" }}>{r.label}</span>
                     <div>
                       <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#303030" }}>{r.value}</div>
@@ -758,7 +762,7 @@ export function Settings() {
               <ToggleList defs={RHYTHM_DEFS} state={rhythm} onToggle={(k) => setRhythm((s) => ({ ...s, [k]: !s[k] }))} />
               <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 12.5, letterSpacing: "0.04em", textTransform: "uppercase", color: "#0D0D0D", margin: "34px 0 4px", paddingBottom: 10, borderBottom: "1px solid #E3E3E3" }}>Field Modes</div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", margin: "8px 0 6px" }}>For the days you are not at the desk — the system adapts, not you.</div>
-              <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 60px" }}>
+              <div style={{ borderTop: "1px solid #E3E3E3", display: "grid", gridTemplateColumns: gc("1fr 1fr"), gap: "0 60px" }}>
                 {FIELD_MODES.map((m) => {
                   const on = !!fieldMode[m.key];
                   return (
@@ -779,7 +783,7 @@ export function Settings() {
           {sec === "14" && (
             <>
               <SecHead num={navNumFor("14")} title="Nurturing Playbooks" desc="Pre-defined action sets attached automatically when a contact is qualified — the playbook follows the status. Every outbound step still requires approval." />
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div style={{ display: "grid", gridTemplateColumns: gc("1fr 1fr"), gap: 14 }}>
                 {GC_PLAYBOOKS.map((p) => (
                   <div key={p.status} style={{ borderRadius: 12, background: "rgba(255,255,255,0.42)", backdropFilter: "blur(22px) saturate(1.7)", WebkitBackdropFilter: "blur(22px) saturate(1.7)", border: "1px solid rgba(255,255,255,0.65)", boxShadow: "0 6px 22px rgba(0,0,0,0.05),inset 0 1px 0 rgba(255,255,255,0.7)", padding: "18px 20px" }}>
                     <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 12 }}>
@@ -827,8 +831,8 @@ export function Settings() {
                 })}
                 <div onClick={addDealType} className="st-pipeadd" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.02em", color: "#8F8F8F", paddingBottom: 7, cursor: "pointer", whiteSpace: "nowrap", transition: "color 150ms" }}>+ New playbook</div>
               </div>
-              {/* header row */}
-              <div style={{ display: "grid", gridTemplateColumns: "34px 2fr 1fr 0.9fr 1.8fr 104px", gap: 14, padding: "12px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)", marginTop: 18 }}>
+              {/* header row — hidden on mobile where each step stacks into a card */}
+              <div style={{ display: isMobile ? "none" : "grid", gridTemplateColumns: "34px 2fr 1fr 0.9fr 1.8fr 104px", gap: 14, padding: "12px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)", marginTop: 18 }}>
                 <div />
                 {["Action", "Due rule", "Owner", "Agent automation"].map((h) => (
                   <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>
@@ -841,7 +845,7 @@ export function Settings() {
                   <input value={val} onChange={(e) => { const a = [...dSteps]; a[i] = { ...a[i], [field]: e.target.value }; setDSteps(a); }} className="st-pbcell" style={{ background: "transparent", border: "none", borderBottom: "0.5px solid transparent", padding: "4px 0", fontFamily: SANS, outline: "none", transition: "border-color 150ms", ...extra }} />
                 );
                 return (
-                  <div key={i} className="st-stagerow" style={{ display: "grid", gridTemplateColumns: "34px 2fr 1fr 0.9fr 1.8fr 104px", gap: 14, padding: "10px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center", transition: "background 150ms" }}>
+                  <div key={i} className="st-stagerow" style={{ display: "grid", gridTemplateColumns: gc("34px 2fr 1fr 0.9fr 1.8fr 104px"), gap: isMobile ? 8 : 14, padding: isMobile ? "14px 4px" : "10px 4px", borderBottom: "1px solid #E3E3E3", alignItems: isMobile ? "start" : "center", transition: "background 150ms" }}>
                     <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 12, letterSpacing: "0.05em", color: "#8F8F8F" }}>{String(i + 1).padStart(2, "0")}</span>
                     {cell(s.n, "n", { fontWeight: 500, fontSize: 13.5, color: "#0D0D0D" })}
                     {cell(s.d, "d", { fontWeight: 400, fontSize: 13, color: "#303030" })}
