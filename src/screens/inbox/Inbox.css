@@ -68,3 +68,14 @@
   border-left: 1px solid #D9D9D9;
   overflow-y: auto;
 }
+.ib-back:hover { background: rgba(255, 255, 255, 0.55); }
+
+/* ---- Mobile (<=820px): master-detail, one pane at a time ---- */
+@media (max-width: 820px) {
+  /* Fit under the sticky mobile header (~65px) + canvas margins (~20px). */
+  .ib-page { height: calc(100vh - 85px); height: calc(100dvh - 85px); }
+  .ib-shell.mob-list .ib-left { width: 100%; border-right: none; }
+  /* !important: the right pane carries an inline display:flex we must beat. */
+  .ib-shell.mob-list .ib-right { display: none !important; }
+  .ib-shell.mob-detail .ib-left { display: none; }
+}

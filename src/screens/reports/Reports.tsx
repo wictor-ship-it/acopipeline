@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { recordAction } from "../../data/repository";
+import { useIsMobile } from "../../app/useIsMobile";
 import { SANS } from "../contacts/data";
 import { PIPES, PIPE_NAMES, tagsFor, type Card, orderedDeals } from "../opportunities/data";
 import {
@@ -21,6 +22,7 @@ const ALL_DEALS: Array<Card & { pipe: string }> = (["purchases", "listings", "re
 const fmtM = (m: number) => (m >= 1000 ? `$${(m / 1000).toFixed(1)}B` : `$${m.toFixed(1)}M`);
 
 export function Reports() {
+  const isMobile = useIsMobile();
   const [sec, setSec] = useState("01");
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const actv = ACTV_DATA[period];
@@ -52,10 +54,10 @@ export function Reports() {
   const crExport = () => void recordAction({ actor: "user", action: `Custom Report · exported — PDF · ${crPipe} · grouped by ${crGroup}` }, "reports/custom", () => {});
 
   return (
-    <div style={{ padding: "0 48px 140px" }}>
-      <div style={{ display: "flex", gap: 30, alignItems: "flex-start" }}>
+    <div style={{ padding: isMobile ? "0 18px 100px" : "0 48px 140px" }}>
+      <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? 14 : 30, alignItems: "flex-start" }}>
         {/* NAV RAIL */}
-        <div style={{ width: 186, flex: "none", position: "sticky", top: 24 }}>
+        <div style={{ width: isMobile ? "100%" : 186, flex: "none", position: isMobile ? "static" : "sticky", top: 24 }}>
           <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F", padding: "0 0 10px" }}>Report categories</div>
           {REP_NAV.map(([key, label], i) => {
             const on = sec === key;
@@ -148,7 +150,7 @@ export function Reports() {
                   ))}
                 </div>
               </section>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1.1fr 1.2fr", gap: 44, alignItems: "start" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1.1fr 1.2fr", gap: isMobile ? 28 : 44, alignItems: "start" }}>
                 <section>
                   <H2>Trailing 12-Month Outcomes</H2>
                   <div style={{ display: "flex", height: 22 }}><div style={{ width: "32%", background: "#0D0D0D" }} /><div style={{ width: "68%", background: "rgba(255,255,255,0.55)" }} /></div>
@@ -226,7 +228,7 @@ export function Reports() {
                   ))}
                 </div>
               </section>
-              <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr 1.2fr", gap: 44, alignItems: "start" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.2fr 1fr 1.2fr", gap: isMobile ? 28 : 44, alignItems: "start" }}>
                 <section>
                   <H2>Sales Velocity</H2>
                   <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -375,7 +377,7 @@ export function Reports() {
                 </div>
                 <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#5D5D5D", marginTop: 12 }}>{INC_TOTAL_LINE}</div>
               </section>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 44, alignItems: "start" }}>
+              <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1.2fr", gap: isMobile ? 28 : 44, alignItems: "start" }}>
                 <section>
                   <H2>Collected · Monthly</H2>
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

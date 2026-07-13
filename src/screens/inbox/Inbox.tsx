@@ -4,6 +4,7 @@ import { useCollection } from "../../data/hooks";
 import { newId, save } from "../../data/repository";
 import type { Message, Thread } from "../../domain/types";
 import { useAppState } from "../../app/state";
+import { useIsMobile } from "../../app/useIsMobile";
 import { fetchGmailThreads, fetchGmailThread, type GmailThread, type GmailThreadDetail } from "../../data/adapters/gmail";
 import { SANS } from "../contacts/data";
 import "./Inbox.css";
@@ -106,6 +107,7 @@ function quickReplies(lang: string, first: string): Array<[string, string]> {
 
 export function Inbox() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const { items: threads } = useCollection<Thread>("threads");
   const { items: messages } = useCollection<Message>("messages");
 
@@ -138,10 +140,14 @@ export function Inbox() {
   const first = prettyName(active.contact_id).split(" ")[0];
   const qrs = quickReplies(lang, first);
 
+  // Mobile master-detail: list until a thread is tapped, then the conversation
+  // full-width with a back control. Desktop keeps the two-pane view.
+  const mobileMode = isMobile ? (selectedId ? "mob-detail" : "mob-list") : "";
+
   return (
     <div className="ib-page">
       <GmailLiveStrip />
-      <div className="ib-shell">
+      <div className={`ib-shell${mobileMode ? " " + mobileMode : ""}`}>
         {/* LEFT · threads */}
         <div className="ib-left">
           <div style={{ padding: "12px 12px 8px" }}>
@@ -189,11 +195,16 @@ export function Inbox() {
         </div>
 
         {/* RIGHT · conversation */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: 0 }}>
+        <div className="ib-right" style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", minHeight: 0 }}>
           <div style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "15px 24px", borderBottom: "1px solid #ECECEC" }}>
-            <div style={{ minWidth: 0 }}>
-              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 16, color: "#0D0D0D" }}>{prettyName(active.contact_id)}</div>
-              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 2 }}>{active.subject} · {CH_LABEL[active.channel] ?? active.channel}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+              {isMobile && (
+                <span onClick={() => setSelectedId(null)} className="ib-back" title="Back to conversations" style={{ flex: "none", display: "flex", alignItems: "center", justifyContent: "center", width: 34, height: 34, borderRadius: 999, border: "1px solid #E3E3E3", color: "#0D0D0D", fontSize: 18, lineHeight: 1, cursor: "pointer" }}>‹</span>
+              )}
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 16, color: "#0D0D0D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{prettyName(active.contact_id)}</div>
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{active.subject} · {CH_LABEL[active.channel] ?? active.channel}</div>
+              </div>
             </div>
             <div style={{ display: "flex", gap: 8 }}>
               <div onClick={() => navigate("/opportunities")} className="ib-hdrbtn" style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 13px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer", transition: "all 150ms" }}>Open deal</div>
