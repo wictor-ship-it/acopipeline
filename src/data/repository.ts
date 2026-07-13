@@ -4,7 +4,8 @@
    pushes an inverse op on the undo stack (Law 3).
    ========================================================================= */
 import type { Actor, AuditEntry } from "../domain/types";
-import { idbBulkPut, idbDelete, idbGet, idbGetAll, idbPut, type StoreName } from "./idb";
+import type { StoreName } from "./idb";
+import { backend } from "./backend";
 
 export type EntityStore = Exclude<StoreName, "audit_log" | "meta">;
 
@@ -43,11 +44,11 @@ async function writeAudit(meta: MutationMeta, entity: string, before: unknown, a
     id: newId("audit"), actor: meta.actor, skill: meta.skill, action: meta.action,
     entity, before: before ?? null, after: after ?? null, created_at: new Date().toISOString(),
   };
-  await idbPut("audit_log", entry);
+  await backend().put("audit_log", entry);
 }
 
 export async function getAuditLog(): Promise<AuditEntry[]> {
-  const all = await idbGetAll<AuditEntry>("audit_log");
+  const all = await backend().getAll<AuditEntry>("audit_log");
   return all.sort((a, b) => b.created_at.localeCompare(a.created_at));
 }
 
@@ -69,18 +70,18 @@ const changeListeners = new Set<ChangeListener>();
 export function onDataChange(fn: ChangeListener): () => void { changeListeners.add(fn); return () => changeListeners.delete(fn); }
 function emitChange(store: EntityStore) { for (const fn of changeListeners) fn(store); }
 
-/* --- CRUD with audit + undo --- */
-export async function getAll<T extends { id: string }>(store: EntityStore): Promise<T[]> { return idbGetAll<T>(store); }
-export async function getById<T extends { id: string }>(store: EntityStore, id: string): Promise<T | undefined> { return idbGet<T>(store, id); }
+/* --- CRUD with audit + undo (writes through the active backend) --- */
+export async function getAll<T extends { id: string }>(store: EntityStore): Promise<T[]> { return backend().getAll<T>(store); }
+export async function getById<T extends { id: string }>(store: EntityStore, id: string): Promise<T | undefined> { return backend().get<T>(store, id); }
 
 export async function save<T extends { id: string }>(store: EntityStore, value: T, meta: MutationMeta): Promise<void> {
-  const before = await idbGet<T>(store, value.id);
-  await idbPut(store, value);
+  const before = await backend().get<T>(store, value.id);
+  await backend().put(store, value);
   await writeAudit(meta, `${store}/${value.id}`, before ?? null, value);
   undoStack.push({
     label: meta.action,
     undo: async () => {
-      if (before === undefined) await idbDelete(store, value.id); else await idbPut(store, before);
+      if (before === undefined) await backend().delete(store, value.id); else await backend().put(store, before);
       await writeAudit({ actor: "user", action: `undo: ${meta.action}` }, `${store}/${value.id}`, value, before ?? null);
       emitChange(store);
     },
@@ -89,14 +90,14 @@ export async function save<T extends { id: string }>(store: EntityStore, value: 
 }
 
 export async function remove<T extends { id: string }>(store: EntityStore, id: string, meta: MutationMeta): Promise<void> {
-  const before = await idbGet<T>(store, id);
+  const before = await backend().get<T>(store, id);
   if (before === undefined) return;
-  await idbDelete(store, id);
+  await backend().delete(store, id);
   await writeAudit(meta, `${store}/${id}`, before, null);
   undoStack.push({
     label: meta.action,
     undo: async () => {
-      await idbPut(store, before);
+      await backend().put(store, before);
       await writeAudit({ actor: "user", action: `undo: ${meta.action}` }, `${store}/${id}`, null, before);
       emitChange(store);
     },
@@ -106,5 +107,5 @@ export async function remove<T extends { id: string }>(store: EntityStore, id: s
 
 /** Seed-only bulk write — no audit/undo (baseline state, not a user/agent action). */
 export async function seedBulk<T extends { id: string }>(store: EntityStore, values: T[]): Promise<void> {
-  await idbBulkPut(store, values);
+  await backend().bulkPut(store, values);
 }

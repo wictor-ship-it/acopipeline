@@ -30,6 +30,10 @@ services:
       # ── set these in the Render dashboard (secrets / your values) ──
       - key: ALLOWED_ORIGIN          # your site's own https origin, e.g. https://aco.onrender.com or your domain
         sync: false
+      - key: ALLOWED_EMAILS          # invitation allowlist — your Google email(s), comma-separated
+        sync: false
+      - key: DATABASE_URL            # Postgres connection string (Neon pooled URL, ?sslmode=require)
+        sync: false
       - key: ANTHROPIC_API_KEY       # from console.anthropic.com (needs credits)
         sync: false
       - key: ANTHROPIC_MODEL

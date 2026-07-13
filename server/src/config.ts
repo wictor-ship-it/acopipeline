@@ -16,6 +16,10 @@ export const config = {
   /* Agent brain (independent of Google auth). */
   anthropicKey: process.env.ANTHROPIC_API_KEY ?? "",
   anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
+  /* Server-side database (Phase 2.3). A Postgres connection string (Neon,
+     Render, Supabase…). Empty ⇒ the SPA falls back to browser-local IndexedDB
+     (Phase 1 demo). Per-user rows are scoped by the authenticated email. */
+  databaseUrl: process.env.DATABASE_URL ?? "",
   /* Invitation allowlist — only these Google emails may sign in. Comma/space
      separated. Empty ⇒ any authenticated Google account is allowed (a loud
      warning is logged; set this in production). */
@@ -35,6 +39,10 @@ export function isEmailAllowed(email: string | undefined | null): boolean {
 /** The agent brain is live only when an Anthropic key is present. Independent
     of Google auth — either can be configured without the other. */
 export const agentConfigured = () => !!config.anthropicKey;
+
+/** The server-side database is live only when DATABASE_URL is present.
+    Independent of Google/agent — the SPA uses IndexedDB when this is empty. */
+export const dbConfigured = () => !!config.databaseUrl;
 
 /** Returns the list of required env vars that are still blank. Empty ⇒ ready. */
 export function missingConfig(): string[] {

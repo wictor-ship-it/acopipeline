@@ -3,11 +3,13 @@ import cors from "cors";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
-import { agentConfigured, config, isConfigured, missingConfig } from "./config.js";
+import { agentConfigured, config, dbConfigured, isConfigured, missingConfig } from "./config.js";
 import { authRouter } from "./routes/auth.js";
 import { gmailRouter } from "./routes/gmail.js";
 import { calendarRouter } from "./routes/calendar.js";
 import { agentRouter } from "./routes/agent.js";
+import { dataRouter } from "./routes/data.js";
+import { initDb } from "./db.js";
 
 /* A/CO Pipeline Intelligence — thin BFF (Phase 2).
    SPA ⇄ this ⇄ Google. Secrets + refresh tokens live here, never in the browser.
@@ -16,16 +18,24 @@ import { agentRouter } from "./routes/agent.js";
 const app = express();
 
 app.use(cors({ origin: config.allowedOrigin, credentials: true }));
-app.use(express.json());
+app.use(express.json({ limit: "5mb" })); // seed bulk-writes can be larger than the 100kb default
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, configured: isConfigured(), missing: missingConfig(), agent: agentConfigured() });
+  res.json({ ok: true, configured: isConfigured(), missing: missingConfig(), agent: agentConfigured(), db: dbConfigured() });
 });
 
 app.use("/auth", authRouter);
 app.use("/api/gmail", gmailRouter);
 app.use("/api/calendar", calendarRouter);
 app.use("/api/agent", agentRouter);
+app.use("/api/data", dataRouter);
+
+// Create the schema once at boot when a database is configured.
+if (dbConfigured()) {
+  initDb()
+    .then(() => console.log("[bff] database ready · schema ensured"))
+    .catch((err) => console.error("[bff] database init failed:", err));
+}
 
 /* Single-origin production (recommended): this same server also serves the
    built SPA, so there's one deploy, one origin, no CORS, and the SameSite=Lax
@@ -62,4 +72,5 @@ app.listen(config.port, () => {
     }
   }
   console.log(agentConfigured() ? `[bff] agent brain · Claude API · model ${config.anthropicModel}` : `[bff] agent brain · not configured (ANTHROPIC_API_KEY) — SPA uses mock agent`);
+  console.log(dbConfigured() ? `[bff] data store · Postgres (server-side, per-user)` : `[bff] data store · not configured (DATABASE_URL) — SPA uses browser IndexedDB`);
 });
