@@ -1,9 +1,11 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
-import { recordAction } from "../../data/repository";
+import { recordAction, save, newId } from "../../data/repository";
+import { useCollection } from "../../data/hooks";
+import type { Opportunity, Contact, Pipeline } from "../../domain/types";
 import { SANS, deltaCell } from "../contacts/data";
 import {
-  ALL_ORDER, type Card, CLOSED_HEAD, CLOSED_ROWS, COLL_PIPES, type Column, OPP_DELTAS,
+  ALL_ORDER, type Card, CLOSED_HEAD, CLOSED_ROWS, COLL_PIPES, type Column, mkCard, OPP_DELTAS,
   PEEK_CURATED, PIPE_NAMES, PIPE_REF, PIPES, tagsFor, WEEK_DAYS,
 } from "./data";
 import "./Opportunities.css";
@@ -35,6 +37,8 @@ function buildPeek(c: Card) {
 
 export function Opportunities() {
   const navigate = useNavigate();
+  const { items: opportunities } = useCollection<Opportunity>("opportunities");
+  const { items: contacts } = useCollection<Contact>("contacts");
   const [collPipe, setCollPipe] = useState("all");
   const [viewSel, setViewSel] = useState<"board" | "list" | "week">("board");
   const sort: Sort = "weighted"; // board is value-ranked; no user-facing sort control here
@@ -49,33 +53,35 @@ export function Opportunities() {
   });
   const setStageOv = (updater: (prev: Record<string, string>) => Record<string, string>) =>
     setStageOvState((prev) => { const next = updater(prev); try { localStorage.setItem(STAGE_OV_KEY, JSON.stringify(next)); } catch { /* ignore */ } return next; });
-  const [dragCard, setDragCard] = useState<{ name: string; from: string } | null>(null);
+  const [dragCard, setDragCard] = useState<{ id?: string; name: string; from: string } | null>(null);
   const [dragOverStage, setDragOverStage] = useState<string | null>(null);
 
   const view = collPipe === "all" ? (viewSel === "week" ? "week" : "list") : viewSel;
   const matchQ = (c: Card) => !query.trim() || (c.name + " " + c.opp).toLowerCase().includes(query.trim().toLowerCase());
 
-  /* current pipeline columns (tag/query filtered + sorted). Board drag applies
-     per-session stage overrides: a card's effective stage = stageOv[name] ?? its
-     seed stage, re-bucketed into the same stage order. */
+  /* Real opportunities → board cards. This is what makes the pipeline reflect
+     your actual deals (created below), not demo seed. */
+  const oppCards: Card[] = useMemo(() => opportunities.map((o) => {
+    const contact = contacts.find((c) => c.id === o.contact_id);
+    const name = o.name ?? o.contact_name ?? contact?.name ?? "Untitled deal";
+    const label = o.card_label ?? o.source ?? "Opportunity";
+    const hot = (o.heat ?? "").toUpperCase() === "HOT";
+    const base = mkCard(name, label, o.budget ?? "$0", hot, o.probability ?? 0, o.next_action ?? "Set the next step", o.next_due ?? "", o.overdue ?? false);
+    return { ...base, stage: o.stage, pipeName: PIPE_NAMES[o.pipeline] ?? o.pipeline, pipeKey: o.pipeline, id: o.id };
+  }), [opportunities, contacts]);
+
+  /* Columns built from the real cards, bucketed into the canonical stage order
+     (reused from the demo pipeline definitions). Board drag applies a per-session
+     stage override keyed by card id. */
   const columns: Column[] = useMemo(() => {
-    const raw = collPipe === "all"
-      ? ALL_ORDER.map((st) => {
-          const cards = (["purchases", "listings", "rentals", "investments", "offmarket"] as const).flatMap((p) => {
-            const c0 = PIPES[p].find((x) => x.stage === st);
-            return c0 ? c0.cards.map((cc) => ({ ...cc, pipeName: PIPE_NAMES[p] })) : [];
-          });
-          return cards.length ? { stage: st, cards } : null;
-        }).filter(Boolean) as Column[]
-      : (PIPES[collPipe] ?? PIPES.purchases).map((c0) => ({ stage: c0.stage, cards: c0.cards.map((c) => ({ ...c, pipeName: PIPE_NAMES[collPipe] })) }));
-    const order = raw.map((c) => c.stage);
-    const flat = raw.flatMap((col) => col.cards.map((c) => ({ ...c, _origStage: col.stage })));
-    const effStage = (c: { name: string; _origStage: string }) => stageOv[c.name] ?? c._origStage;
-    return order.map((st) => ({
+    const stageOrder = collPipe === "all" ? ALL_ORDER : (PIPES[collPipe]?.map((c) => c.stage) ?? PIPES.purchases.map((c) => c.stage));
+    const inScope = oppCards.filter((c) => collPipe === "all" || c.pipeKey === collPipe);
+    const effStage = (c: Card) => (c.id ? stageOv[c.id] : undefined) ?? c.stage ?? stageOrder[0];
+    return stageOrder.map((st) => ({
       stage: st,
-      cards: flat.filter((c) => effStage(c) === st).map((c) => ({ ...c, tags: tagsFor(c) })).filter(matchQ).sort(CMP[sort]),
+      cards: inScope.filter((c) => effStage(c) === st).map((c) => ({ ...c, tags: tagsFor(c) })).filter(matchQ).sort(CMP[sort]),
     }));
-  }, [collPipe, sort, query, stageOv]);
+  }, [oppCards, collPipe, sort, query, stageOv]);
 
   const allCards = columns.flatMap((c) => c.cards);
   const isRent = collPipe === "rentals";
@@ -134,18 +140,42 @@ export function Opportunities() {
   const decideRef = (d: "accepted" | "declined") => { setRefDecided(d); void recordAction({ actor: "user", skill: "compliance", action: `Partner referral ${d} — ${PIPE_REF.name} (§3.3 timestamp priority)` }, "referral/rosen", () => setRefDecided(null)); };
 
   /* Drag a board card to another stage — human action, audited + reversible. */
-  const moveCard = (name: string, from: string, to: string) => {
+  const moveCard = (card: { id?: string; name: string }, from: string, to: string) => {
     if (from === to) return;
-    const prev = stageOv[name];
-    setStageOv((s) => ({ ...s, [name]: to }));
-    void recordAction(
-      { actor: "user", skill: "chief_of_staff", action: `Opportunity moved — ${name} · ${from} → ${to}` },
-      `opp/${name}`,
-      () => setStageOv((s) => { const n = { ...s }; if (prev === undefined) delete n[name]; else n[name] = prev; return n; }),
-    );
+    const key = card.id ?? card.name;
+    const prev = stageOv[key];
+    setStageOv((s) => ({ ...s, [key]: to }));
+    const opp = card.id ? opportunities.find((o) => o.id === card.id) : undefined;
+    if (opp) {
+      // Real deal: persist the stage to the DB (audited + undoable via save).
+      void save<Opportunity>("opportunities", { ...opp, stage: to }, { actor: "user", skill: "chief_of_staff", action: `Opportunity moved — ${card.name} · ${from} → ${to}` });
+    } else {
+      void recordAction(
+        { actor: "user", skill: "chief_of_staff", action: `Opportunity moved — ${card.name} · ${from} → ${to}` },
+        `opp/${card.name}`,
+        () => setStageOv((s) => { const n = { ...s }; if (prev === undefined) delete n[key]; else n[key] = prev; return n; }),
+      );
+    }
   };
-  const onDropStage = (to: string) => { if (dragCard) moveCard(dragCard.name, dragCard.from, to); setDragCard(null); setDragOverStage(null); };
+  const onDropStage = (to: string) => { if (dragCard) moveCard(dragCard, dragCard.from, to); setDragCard(null); setDragOverStage(null); };
   const openDeal = (c: Card, stage: string) => navigate(`/deal/${encodeURIComponent(c.name)}`, { state: { deal: { name: c.name, stage, status: c.status, budget: c.budget, prob: c.prob, opp: c.opp } } });
+
+  /* New Deal — create a real Opportunity from a contact (persisted + audited). */
+  const PIPE_KEYS = ["purchases", "listings", "rentals", "investments", "offmarket"] as const;
+  const [newDeal, setNewDeal] = useState<null | { name: string; contactId: string; pipeline: string; stage: string; budget: string; probability: string; heat: string }>(null);
+  const openNewDeal = () => setNewDeal({ name: "", contactId: contacts[0]?.id ?? "", pipeline: "purchases", stage: PIPES.purchases[0]?.stage ?? "Prospecting", budget: "", probability: "30", heat: "WARM" });
+  const stagesFor = (pk: string) => (PIPES[pk] ?? PIPES.purchases).map((c) => c.stage).filter((s) => s !== "Won" && s !== "Lost");
+  const createDeal = () => {
+    if (!newDeal || !newDeal.contactId) return;
+    const contact = contacts.find((c) => c.id === newDeal.contactId);
+    const opp: Opportunity = {
+      id: newId("opp"), contact_id: newDeal.contactId, pipeline: newDeal.pipeline as Pipeline, stage: newDeal.stage,
+      budget: newDeal.budget.trim() || "$0", probability: Number(newDeal.probability) || 0, heat: newDeal.heat,
+      name: newDeal.name.trim() || undefined, contact_name: contact?.name, next_action: "Set the next step", source: "Manual",
+    };
+    void save<Opportunity>("opportunities", opp, { actor: "user", skill: "chief_of_staff", action: `Opportunity created — ${opp.name ?? contact?.name ?? "deal"} · ${PIPE_NAMES[newDeal.pipeline] ?? newDeal.pipeline} · ${newDeal.stage}` });
+    setNewDeal(null);
+  };
 
   const p = peek ? buildPeek(peek) : null;
 
@@ -183,14 +213,52 @@ export function Opportunities() {
             <div key={id} onClick={() => setCollPipe(id)} style={{ fontFamily: SANS, fontWeight: collPipe === id ? 600 : 400, fontSize: 13, letterSpacing: "0.02em", color: collPipe === id ? "#0D0D0D" : "#8F8F8F", paddingBottom: 5, borderBottom: `1.5px solid ${collPipe === id ? "#0D0D0D" : "transparent"}`, cursor: "pointer", transition: "color 150ms" }}>{label}</div>
           ))}
         </div>
-        {collPipe !== "closed" && (
-          <div style={{ display: "flex", gap: 18 }}>
-            {viewDefs.map(([label, id]) => (
-              <div key={id} onClick={() => setViewSel(id as "board" | "list" | "week")} style={{ fontFamily: SANS, fontWeight: view === id ? 600 : 400, fontSize: 12.5, letterSpacing: "0.02em", color: view === id ? "#0D0D0D" : "#8F8F8F", paddingBottom: 5, borderBottom: `1.5px solid ${view === id ? "#0D0D0D" : "transparent"}`, cursor: "pointer", transition: "color 150ms" }}>{label}</div>
-            ))}
-          </div>
-        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+          <button onClick={openNewDeal} className="op-btn-solid" style={{ background: "#0D0D0D", border: "none", borderRadius: 999, padding: "8px 16px", fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#FFFFFF", cursor: "pointer", transition: "opacity 150ms" }}>+ New Deal</button>
+          {collPipe !== "closed" && (
+            <div style={{ display: "flex", gap: 18 }}>
+              {viewDefs.map(([label, id]) => (
+                <div key={id} onClick={() => setViewSel(id as "board" | "list" | "week")} style={{ fontFamily: SANS, fontWeight: view === id ? 600 : 400, fontSize: 12.5, letterSpacing: "0.02em", color: view === id ? "#0D0D0D" : "#8F8F8F", paddingBottom: 5, borderBottom: `1.5px solid ${view === id ? "#0D0D0D" : "transparent"}`, cursor: "pointer", transition: "color 150ms" }}>{label}</div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+
+      {/* NEW DEAL MODAL */}
+      {newDeal && (
+        <>
+          <div onClick={() => setNewDeal(null)} style={{ position: "fixed", inset: 0, zIndex: 90, background: "rgba(13,13,13,0.34)" }} />
+          <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%,-50%)", zIndex: 91, width: 460, maxWidth: "92vw", background: "rgba(255,255,255,0.96)", backdropFilter: "blur(26px) saturate(1.8)", WebkitBackdropFilter: "blur(26px) saturate(1.8)", border: "1px solid rgba(255,255,255,0.75)", borderRadius: 16, boxShadow: "0 24px 60px rgba(0,0,0,0.22)", padding: "24px 26px" }}>
+            <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 16, color: "#0D0D0D" }}>New deal</div>
+            <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12.5, color: "#8F8F8F", marginTop: 4, marginBottom: 18 }}>Create an opportunity from a contact — it appears on the board and feeds your reports.</div>
+            {contacts.length === 0 ? (
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", padding: "8px 0 18px" }}>Add or import a contact first — a deal belongs to a contact.</div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {([
+                  ["Contact", <select key="c" value={newDeal.contactId} onChange={(e) => setNewDeal({ ...newDeal, contactId: e.target.value })} className="op-field">{contacts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>],
+                  ["Deal name (optional)", <input key="n" value={newDeal.name} onChange={(e) => setNewDeal({ ...newDeal, name: e.target.value })} placeholder="e.g. Continuum South 3902" className="op-field" />],
+                  ["Pipeline", <select key="p" value={newDeal.pipeline} onChange={(e) => setNewDeal({ ...newDeal, pipeline: e.target.value, stage: stagesFor(e.target.value)[0] ?? "Prospecting" })} className="op-field">{PIPE_KEYS.map((pk) => <option key={pk} value={pk}>{PIPE_NAMES[pk]}</option>)}</select>],
+                  ["Stage", <select key="s" value={newDeal.stage} onChange={(e) => setNewDeal({ ...newDeal, stage: e.target.value })} className="op-field">{stagesFor(newDeal.pipeline).map((s) => <option key={s} value={s}>{s}</option>)}</select>],
+                  ["Budget", <input key="b" value={newDeal.budget} onChange={(e) => setNewDeal({ ...newDeal, budget: e.target.value })} placeholder="$6.8M" className="op-field" />],
+                  ["Probability %", <input key="pr" value={newDeal.probability} onChange={(e) => setNewDeal({ ...newDeal, probability: e.target.value.replace(/[^0-9]/g, "") })} placeholder="30" className="op-field" />],
+                  ["Heat", <select key="h" value={newDeal.heat} onChange={(e) => setNewDeal({ ...newDeal, heat: e.target.value })} className="op-field"><option value="WARM">Warm</option><option value="HOT">Hot</option></select>],
+                ] as Array<[string, ReactNode]>).map(([label, field]) => (
+                  <div key={label} style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: 14, alignItems: "center" }}>
+                    <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, color: "#5D5D5D" }}>{label}</span>
+                    {field}
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 22 }}>
+              <button onClick={() => setNewDeal(null)} style={{ background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "8px 16px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#5D5D5D", cursor: "pointer" }}>Cancel</button>
+              <button onClick={createDeal} disabled={!newDeal.contactId} style={{ background: newDeal.contactId ? "#0D0D0D" : "#B8B8B8", border: "none", borderRadius: 999, padding: "8px 18px", fontFamily: SANS, fontWeight: 500, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#FFFFFF", cursor: newDeal.contactId ? "pointer" : "default" }}>Create deal</button>
+            </div>
+          </div>
+        </>
+      )}
 
       {/* BOARD */}
       {view === "board" && collPipe !== "closed" && (
@@ -256,7 +324,7 @@ export function Opportunities() {
                             <div
                               key={c.name}
                               draggable
-                              onDragStart={(e) => { setDragCard({ name: c.name, from: cx.stage }); e.dataTransfer.effectAllowed = "move"; }}
+                              onDragStart={(e) => { setDragCard({ id: c.id, name: c.name, from: cx.stage }); e.dataTransfer.effectAllowed = "move"; }}
                               onDragEnd={() => { setDragCard(null); setDragOverStage(null); }}
                               onClick={() => openCard({ ...c, stage: cx.stage })}
                               className="op-dealcard"

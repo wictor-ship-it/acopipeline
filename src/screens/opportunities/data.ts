@@ -9,6 +9,8 @@ export interface Card {
   name: string; opp: string; budget: string; status: "HOT" | "WARM"; prob: string; dot: string;
   next: string; due: string; dueColor: string; budgetNum: number; probNum: number; weightedNum: number; dueRank: number;
   stage?: string; pipeName?: string; tags?: string[];
+  /* Set when the card is backed by a real Opportunity record (vs demo seed). */
+  id?: string; pipeKey?: string;
 }
 
 export function mkCard(name: string, opp: string, budget: string, hot: boolean, prob: number, next: string, due: string, overdue: boolean): Card {
