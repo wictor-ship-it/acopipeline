@@ -2,17 +2,17 @@ import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getAuditLog, recordAction } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
-import type { AuditEntry, Opportunity, Transaction } from "../../domain/types";
+import type { AuditEntry, Contact, Opportunity, Transaction } from "../../domain/types";
 import { useAgentItems } from "../../agent/useAgentItems";
 import { resolveAgentItem } from "../../agent/resolve";
 import { SKILL_LABELS } from "../../domain/agent";
 import { SANS } from "../contacts/data";
 import { useNavigate } from "react-router-dom";
 import {
-  AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE,
-  LEARNED, NA_ACTIONS, NA_BUCKET_DOT, NA_BUCKET_META,
+  AGENT_LEDGER, DELTAS, fmtK, FORECAST,
+  LEARNED, NA_BUCKET_DOT, NA_BUCKET_META,
   NA_FILTERS, NA_PROPOSALS, NA_SEQUENCES, NET_CADENCE, NET_KPIS, NET_SUMMARY,
-  PLAYS, PROPOSALS, RECIP_HEAD, RECIP_ROWS, RISK_DEFS,
+  PROPOSALS, RECIP_HEAD, RECIP_ROWS,
   TOUCH_TODAY, VENDOR_HEAD, VENDOR_ROWS, WEEKLY_MOVEMENT,
 } from "./data";
 import type { NaTask, RiskItem } from "./data";
@@ -45,6 +45,7 @@ export function Intelligence() {
   const navigate = useNavigate();
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
   const { items: transactions } = useCollection<Transaction>("transactions");
+  const { items: contacts } = useCollection<Contact>("contacts");
 
   /* Hero KPIs computed from the real pipeline (0 until you add deals). */
   const hero = useMemo(() => {
@@ -77,6 +78,42 @@ export function Intelligence() {
   ];
   const morningBrief = `${hero.open.length} open deal${hero.open.length === 1 ? "" : "s"} · ${fmtM(hero.pipeline)} pipeline · ${hero.hot} hot — the agent watches for what needs you`;
   void transactions;
+
+  const isUnclassified = (c: Contact) => (c.directory_status ?? "").toLowerCase() === "not classified" || (!c.directory_status && !c.status);
+
+  /* Risk Radar — real: overdue open deals (empty when none). */
+  const realRisk: RiskItem[] = useMemo(() => hero.open.filter((o) => o.overdue === true).slice(0, 8).map((o) => ({
+    id: o.id, lead: o.name ?? o.contact_name ?? "Deal", sev: "#D0342C", tag: "OVERDUE", clock: o.next_due || "overdue",
+    gciK: Math.round(budgetM(o.budget) * ((o.probability ?? 0) / 100) * 0.03 * 1000),
+    note: `Next action overdue — ${o.next_action ?? "no next step set"}.`, remedy: "Advance the next step or re-touch the contact", act: "Open deal",
+  })), [hero.open]);
+
+  /* Opportunity Plays — real heuristic moves from your book (empty when nothing applies). */
+  const realPlays = useMemo(() => {
+    const out: Array<{ idx: string; title: string; body: string }> = [];
+    const unclassified = contacts.filter(isUnclassified).length;
+    const noNext = hero.open.filter((o) => !o.next_action).length;
+    if (unclassified > 0) out.push({ idx: "01", title: "Classify your book", body: `${unclassified.toLocaleString()} imported contact${unclassified === 1 ? "" : "s"} are unclassified — classifying arms their cadence and surfaces who to touch.` });
+    if (noNext > 0) out.push({ idx: "02", title: "Set next steps", body: `${noNext} open deal${noNext === 1 ? "" : "s"} have no next action — set one to keep momentum.` });
+    if (hero.hot > 0) out.push({ idx: "03", title: "Work the hot deals", body: `${hero.hot} hot deal${hero.hot === 1 ? "" : "s"} in play — prioritize the next touch today.` });
+    return out;
+  }, [contacts, hero.open, hero.hot]);
+
+  /* Pipeline health — real hygiene + classification (0 with no pipeline). */
+  const health = useMemo(() => {
+    const withNext = hero.open.filter((o) => o.next_action && o.next_due).length;
+    const hygiene = hero.open.length ? Math.round((withNext / hero.open.length) * 100) : 0;
+    const classified = contacts.filter((c) => !isUnclassified(c)).length;
+    const coverage = contacts.length ? Math.round((classified / contacts.length) * 100) : 0;
+    const overduePct = hero.open.length ? Math.round((hero.overdue / hero.open.length) * 100) : 0;
+    const score = hero.open.length === 0 ? 0 : Math.round(hygiene * 0.5 + (100 - overduePct) * 0.3 + Math.min(coverage, 100) * 0.2);
+    return { score, factors: [
+      { label: "Deal hygiene", value: `${withNext}/${hero.open.length}`, w: `${hygiene}%` },
+      { label: "Overdue", value: String(hero.overdue), w: `${overduePct}%` },
+      { label: "Book classified", value: `${coverage}%`, w: `${coverage}%` },
+      { label: "Velocity", value: "—", w: "0%" },
+    ] };
+  }, [hero, contacts]);
 
   const [metricsOpen, setMetricsOpen] = useState(false);
   const [sec, setSec] = useState({ act: true, touch: true, next: true, learned: true, risk: true, plays: false, perf: false, agent: false, net: false });
@@ -130,7 +167,7 @@ export function Intelligence() {
   const taskLog = audit.filter((e) => e.created_at.slice(0, 10) === todayISO).slice(0, 20);
 
   /* Ranked task list — user-added + seed, with reschedule overrides applied. */
-  const naAll: NaTask[] = [...userTasks, ...NA_ACTIONS].map((a) => {
+  const naAll: NaTask[] = [...userTasks].map((a) => {
     const r = resched[a.id];
     return r ? { ...a, due: r.due, bucket: r.bucket } : a;
   });
@@ -157,7 +194,7 @@ export function Intelligence() {
   };
 
   /* Risk Radar — live (un-snoozed) items, total GCI exposed, approve/snooze. */
-  const riskLive = RISK_DEFS.filter((d) => !riskSnooze[d.id]);
+  const riskLive = realRisk.filter((d) => !riskSnooze[d.id]);
   const riskExposureK = riskLive.reduce((n, d) => n + d.gciK, 0);
   const riskExposure = riskExposureK >= 1000 ? `$${(riskExposureK / 1000).toFixed(1)}M` : `$${riskExposureK}K`;
   const approveRisk = (d: RiskItem) => {
@@ -259,11 +296,11 @@ export function Intelligence() {
               <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 10, letterSpacing: "0.08em", textTransform: "uppercase", color: "#5D5D5D" }}>Strong ↑</span>
             </div>
             <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 14 }}>
-              <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 44, lineHeight: 1, color: "#0D0D0D" }}>{HEALTH_SCORE}</span>
+              <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 44, lineHeight: 1, color: "#0D0D0D" }}>{health.score}</span>
               <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 16, color: "#8F8F8F" }}>/100</span>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px 20px", marginTop: 20 }}>
-              {HEALTH_FACTORS.map((f) => (
+              {health.factors.map((f) => (
                 <div key={f.label}>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 5 }}>
                     <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 10, letterSpacing: "0.06em", color: "#8F8F8F" }}>{f.label}</span>
@@ -557,10 +594,10 @@ export function Intelligence() {
         </div>
       </Block>
 
-      {/* OPPORTUNITY PLAYS */}
-      <Block title="Opportunity Plays" badge={String(PLAYS.length)} hint="agent-proposed moves" open={sec.plays} onToggle={() => toggle("plays")}>
+      {/* OPPORTUNITY realPlays */}
+      <Block title="Opportunity Plays" badge={String(realPlays.length)} hint="agent-proposed moves" open={sec.plays} onToggle={() => toggle("plays")}>
         <div style={{ padding: "20px 22px 26px", display: "flex", flexDirection: "column", gap: 12 }}>
-          {PLAYS.map((p) => {
+          {realPlays.map((p) => {
             const opened = !!playOpened[p.title];
             return (
               <div key={p.idx} style={{ border: "1px solid #E3E3E3", borderRadius: 10, padding: "22px 26px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 32 }}>
