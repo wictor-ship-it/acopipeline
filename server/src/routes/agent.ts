@@ -39,6 +39,7 @@ agentRouter.post("/chat", async (req, res) => {
     res.json({ reply });
   } catch (err) {
     console.error("[agent] chat failed:", err);
-    res.status(502).json({ error: "agent_upstream" });
+    const e = err as { status?: number; message?: string };
+    res.status(502).json({ error: "agent_upstream", detail: String(e?.message ?? err).slice(0, 300), status: e?.status });
   }
 });
