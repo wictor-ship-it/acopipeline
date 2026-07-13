@@ -100,11 +100,13 @@ export function Opportunities() {
   const wgtM = moneyCards.reduce((s, c) => s + c.weightedNum, 0);
   const sumBudget = allCards.reduce((s, c) => s + c.budgetNum, 0);
   const sumWeighted = allCards.reduce((s, c) => s + c.weightedNum, 0);
-  const feeRate = collPipe === "investments" ? 0.01 : collPipe === "all" ? 0.028 : 0.03;
-  const gciM2 = wgtM * feeRate;
+  // Projected GCI = the FULL potential commission on the pipeline volume (not
+  // weighted), using each deal's own rate; follows the selected pipeline filter.
+  const rateOf = (c: Card) => (c.gciRate ?? (c.pipeKey === "investments" ? 1 : 3)) / 100;
+  const potentialGciM = moneyCards.reduce((s, c) => s + c.budgetNum * rateOf(c), 0);
   const repVal = isRent ? `$${Math.round(sumBudget)}K/mo` : `$${valM.toFixed(1)}M`;
   const repWgt = isRent ? `$${Math.round(sumWeighted)}K/mo` : `$${wgtM.toFixed(1)}M`;
-  const repGci = isRent ? `$${Math.round(sumWeighted)}K` : gciM2 >= 1 ? `$${gciM2.toFixed(1)}M` : `$${Math.round(gciM2 * 1000)}K`;
+  const repGci = isRent ? `$${Math.round(sumWeighted)}K` : potentialGciM >= 1 ? `$${potentialGciM.toFixed(1)}M` : `$${Math.round(potentialGciM * 1000)}K`;
   const winRate = wonCount + lostCount ? Math.round((wonCount * 100) / (wonCount + lostCount)) : 0;
 
   /* Closed deals from real data: opportunities in Won/Placed vs Lost stages. */
@@ -133,7 +135,7 @@ export function Opportunities() {
         { label: "Opportunities", sub: "open · pre-close", m: r0(String(openCount)), inv: false },
         { label: isRent ? "Rent Roll" : "Pipeline Value", sub: isRent ? "monthly · open leases" : "gross volume", m: r0(repVal), inv: false },
         { label: "Weighted Value", sub: "probability-adjusted", m: r0(repWgt), inv: false },
-        { label: "Projected GCI", sub: isRent ? "one-month fee" : "at close", m: r0(repGci), inv: false },
+        { label: "Projected GCI", sub: isRent ? "one-month fee" : "on pipeline volume", m: r0(repGci), inv: false },
         { label: "Win Rate", sub: "won vs. lost · YTD", m: r0(`${winRate}%`), inv: false },
       ];
   const reportMeta = collPipe === "closed" ? "Closed · 2026 YTD · trend vs. same period last year" : `${collPipe === "all" ? "All pipelines" : PIPE_NAMES[collPipe] ?? ""} · ${openCount} open · trend vs. prior period`;
