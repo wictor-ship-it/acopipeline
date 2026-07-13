@@ -20,16 +20,17 @@ export const ROLES: RoleDef[] = [
 
 export interface NavItem { path: string; label: string; badge?: "inbox-unread"; }
 
-/* Standard internal nav — README §5 (Activities is intentionally NOT here) */
+/* Standard internal nav — README §5 (Activities is intentionally NOT here).
+   Marketing is ARCHIVED for a future version (route + code kept; just removed
+   from the nav). Settings lives in the profile menu (click "Wictor Arraes"),
+   not the main nav. Both routes still resolve via App.tsx. */
 const INTERNAL_NAV: NavItem[] = [
   { path: "/welcome", label: "Welcome" },
   { path: "/intelligence", label: "Intelligence" },
   { path: "/contacts", label: "Contacts" },
   { path: "/opportunities", label: "Opportunities" },
   { path: "/inbox", label: "Inbox", badge: "inbox-unread" },
-  { path: "/marketing", label: "Marketing" },
   { path: "/reports", label: "Reports" },
-  { path: "/settings", label: "Settings" },
 ];
 
 /* Referral Partner — README §5: Dashboard · Pipeline · New Referral · Collaterals */

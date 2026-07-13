@@ -16,7 +16,6 @@ const SCREENS: Array<{ label: string; path: string; kw: string }> = [
   { label: "Contacts", path: "/contacts", kw: "people directory touch today queue" },
   { label: "Opportunities", path: "/opportunities", kw: "pipeline deals board list week" },
   { label: "Inbox", path: "/inbox", kw: "messages conversations whatsapp email sms" },
-  { label: "Marketing", path: "/marketing", kw: "campaigns content audiences trends" },
   { label: "Reports", path: "/reports", kw: "analytics forecast gci income" },
   { label: "Settings", path: "/settings", kw: "config integrations cadence autonomy profile" },
 ];
