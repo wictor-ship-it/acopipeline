@@ -65,8 +65,8 @@ export function Sidebar() {
         <div className="sb-status">
           <div className="sb-agent"><span className="sb-agent-dot" /><span>Agent · active</span></div>
           <div className="sb-chips">
-            <span className="sb-chip" title="Shortcuts">?</span>
-            <span className="sb-chip" title="Command palette">⌘K</span>
+            <span className="sb-chip" title="Shortcuts & command palette" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new Event("aco:cmdk"))}>?</span>
+            <span className="sb-chip" title="Command palette (⌘K)" role="button" tabIndex={0} onClick={() => window.dispatchEvent(new Event("aco:cmdk"))}>⌘K</span>
           </div>
         </div>
       </div>

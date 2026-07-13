@@ -89,6 +89,7 @@
 .sb-chips { display: flex; gap: 6px; }
 .sb-chip { font-weight: 400; font-size: 10px; letter-spacing: 0.05em; color: #5d5d5d; border-radius: 12px; background: rgba(255, 255, 255, 0.42); backdrop-filter: blur(22px) saturate(1.7); -webkit-backdrop-filter: blur(22px) saturate(1.7); border: 1px solid rgba(255, 255, 255, 0.65); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.7); padding: 3px 7px; cursor: pointer; }
 .sb-chip:hover { color: #0d0d0d; }
+.cmdk-input::placeholder { color: #8f8f8f; }
 
 /* ---- Main canvas (fragment 210) ---- */
 .app-canvas {

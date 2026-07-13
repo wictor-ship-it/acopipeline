@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { UndoBar } from "./UndoBar";
 import { ErrorBoundary } from "./ErrorBoundary";
+import { CommandPalette } from "./CommandPalette";
 import "./Shell.css";
 
 /* App shell — literal from fragment 00: layout flex (line 130), ambient
@@ -41,6 +42,7 @@ export function Shell() {
       </main>
 
       <UndoBar />
+      <CommandPalette />
     </div>
   );
 }
