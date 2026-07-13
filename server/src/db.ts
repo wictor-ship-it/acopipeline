@@ -18,12 +18,20 @@ export const RECORD_STORES = new Set([
   "settings", "vault", "meta",
 ]);
 
+/* node-postgres doesn't use libpq's `channel_binding` directive; if it's left in
+   the URL (Neon's console adds `&channel_binding=require`) some setups fail SCRAM
+   auth. Strip it so the pasted-as-is Neon string just works. */
+function cleanUrl(url: string): string {
+  return url.replace(/([?&])channel_binding=[^&]*&?/gi, "$1").replace(/[?&]$/, "");
+}
+
 let pool: pg.Pool | null = null;
 export function dbPool(): pg.Pool {
   if (!pool) {
-    const local = /localhost|127\.0\.0\.1/.test(config.databaseUrl);
+    const url = cleanUrl(config.databaseUrl);
+    const local = /localhost|127\.0\.0\.1/.test(url);
     pool = new pg.Pool({
-      connectionString: config.databaseUrl,
+      connectionString: url,
       // Managed Postgres (Neon/Render/Supabase) requires TLS; local dev doesn't.
       ssl: local ? undefined : { rejectUnauthorized: false },
       max: 5,
