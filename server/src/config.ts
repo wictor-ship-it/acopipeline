@@ -16,7 +16,21 @@ export const config = {
   /* Agent brain (independent of Google auth). */
   anthropicKey: process.env.ANTHROPIC_API_KEY ?? "",
   anthropicModel: process.env.ANTHROPIC_MODEL ?? "claude-sonnet-5",
+  /* Invitation allowlist — only these Google emails may sign in. Comma/space
+     separated. Empty ⇒ any authenticated Google account is allowed (a loud
+     warning is logged; set this in production). */
+  allowedEmails: (process.env.ALLOWED_EMAILS ?? "")
+    .split(/[,\s]+/)
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean),
 } as const;
+
+/** True if `email` may enter. An empty allowlist means "no restriction" (dev
+    convenience) — production MUST set ALLOWED_EMAILS to the Principal's email. */
+export function isEmailAllowed(email: string | undefined | null): boolean {
+  if (!config.allowedEmails.length) return true; // fail-open only when unset
+  return !!email && config.allowedEmails.includes(email.trim().toLowerCase());
+}
 
 /** The agent brain is live only when an Anthropic key is present. Independent
     of Google auth — either can be configured without the other. */

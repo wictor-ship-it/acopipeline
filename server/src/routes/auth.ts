@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { config, isConfigured, missingConfig } from "../config.js";
+import { config, isConfigured, isEmailAllowed, missingConfig } from "../config.js";
 import { authUrl, exchangeCode } from "../google.js";
 import { randomId } from "../crypto.js";
 import { saveTokens, clearTokens, getProfile } from "../tokenStore.js";
@@ -29,6 +29,12 @@ authRouter.get("/google/callback", async (req, res) => {
   }
   try {
     const { refreshToken, profile } = await exchangeCode(code);
+    // Invitation gate (Law-adjacent): only allowlisted emails get a session.
+    // Checked BEFORE any token is persisted, so a rejected account leaves no trace.
+    if (!isEmailAllowed(profile.email)) {
+      console.warn(`[auth] denied — ${profile.email ?? "unknown"} is not on ALLOWED_EMAILS`);
+      return res.redirect(`${config.allowedOrigin}/?auth=denied`);
+    }
     if (!refreshToken) {
       // No refresh token ⇒ prior consent without offline access. Force re-consent.
       return res.redirect(`${config.allowedOrigin}/?auth=reconsent`);

@@ -30,7 +30,17 @@ interface AppState {
   google: GoogleConn;
   connectGoogle: () => void;
   disconnectGoogle: () => Promise<void>;
+  /** Sign-in outcome from the OAuth redirect (denied / error / reconsent). */
+  authNotice: string | null;
+  clearAuthNotice: () => void;
 }
+
+/* Human-readable result of the ?auth=… redirect marker. `ok` is silent. */
+const AUTH_NOTICES: Record<string, string> = {
+  denied: "That Google account isn't on the invitation list. Ask the Principal to add your email.",
+  error: "Sign-in didn't complete. Please try again.",
+  reconsent: "Please grant access again to finish signing in.",
+};
 
 const Ctx = createContext<AppState | null>(null);
 
@@ -39,6 +49,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   const [viewAs, setViewAsRaw] = useState<Role>("admin");
   const [inboxUnread] = useState(0);
   const [google, setGoogle] = useState<GoogleConn>(GOOGLE_INIT);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const clearAuthNotice = useCallback(() => setAuthNotice(null), []);
 
   const signIn = useCallback(() => setAuthed(true), []);
   const signOut = useCallback(() => { setAuthed(false); setViewAsRaw("admin"); }, []);
@@ -56,6 +68,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (typeof window !== "undefined" && /[?&]auth=/.test(window.location.search)) {
       const url = new URL(window.location.href);
+      const marker = url.searchParams.get("auth");
+      if (marker && AUTH_NOTICES[marker]) setAuthNotice(AUTH_NOTICES[marker]);
       url.searchParams.delete("auth");
       window.history.replaceState({}, "", url.pathname + url.search + url.hash);
     }
@@ -70,8 +84,8 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<AppState>(
-    () => ({ authed, signIn, signOut, viewAs, setViewAs, viewAsActive: viewAs !== "admin", exitViewAs, inboxUnread, google, connectGoogle, disconnectGoogle }),
-    [authed, signIn, signOut, viewAs, setViewAs, exitViewAs, inboxUnread, google, connectGoogle, disconnectGoogle],
+    () => ({ authed, signIn, signOut, viewAs, setViewAs, viewAsActive: viewAs !== "admin", exitViewAs, inboxUnread, google, connectGoogle, disconnectGoogle, authNotice, clearAuthNotice }),
+    [authed, signIn, signOut, viewAs, setViewAs, exitViewAs, inboxUnread, google, connectGoogle, disconnectGoogle, authNotice, clearAuthNotice],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

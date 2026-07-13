@@ -30,6 +30,29 @@
 .lg-logo { font-family: var(--font-brand); font-weight: 400; font-size: 32px; letter-spacing: 0.06em; color: #0d0d0d; }
 .lg-subtitle { font-weight: 500; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #8f8f8f; margin-top: 7px; }
 
+/* Sign-in outcome banner (denied / error / reconsent) — uses the risk accent. */
+.lg-notice {
+  width: 100%;
+  margin-top: 22px;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: rgba(208, 52, 44, 0.08);
+  border: 1px solid rgba(208, 52, 44, 0.3);
+  font-weight: 400; font-size: 12px; line-height: 1.45; color: #d0342c;
+  text-align: center;
+}
+
+/* Disabled mock path when real Google auth is live. */
+.lg-input:disabled,
+.lg-signin:disabled { opacity: 0.4; cursor: not-allowed; }
+.lg-signin:disabled:hover { opacity: 0.4; }
+.lg-emailoff {
+  width: 100%;
+  margin-top: 12px;
+  text-align: center;
+  font-weight: 400; font-size: 10.5px; letter-spacing: 0.04em; color: #8f8f8f;
+}
+
 .lg-google {
   display: flex; align-items: center; justify-content: center; gap: 11px;
   width: 100%;

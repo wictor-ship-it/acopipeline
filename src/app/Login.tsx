@@ -16,14 +16,17 @@ function GoogleMark() {
 }
 
 export function Login() {
-  const { signIn, google, connectGoogle } = useAppState();
+  const { signIn, google, connectGoogle, authNotice } = useAppState();
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
 
-  /* Real Google when the BFF is up and configured; otherwise the mock sign-in
-     keeps the Phase 1 demo working with no backend. */
+  /* Real Google when the BFF is up and configured. In that mode the email/
+     password path is INERT — sign-in is Google-only (identity), so the mock
+     bypass is disabled. Only when the backend is unconfigured (local demo)
+     does the mock sign-in keep the Phase 1 experience working. */
   const googleReady = google.reachable && google.configured;
   const onGoogle = () => (googleReady ? connectGoogle() : signIn());
+  const onMock = () => { if (!googleReady) signIn(); };
 
   return (
     <div className="lg-bg">
@@ -32,7 +35,9 @@ export function Login() {
         <div className="lg-logo">A/CO</div>
         <div className="lg-subtitle">Pipeline Intelligence</div>
 
-        <button type="button" className="lg-google" onClick={onGoogle} title={googleReady ? "Sign in with your arraes.com Google Workspace account" : "Demo mode — backend not connected"}>
+        {authNotice && <div className="lg-notice">{authNotice}</div>}
+
+        <button type="button" className="lg-google" onClick={onGoogle} title={googleReady ? "Sign in with your authorized Google account" : "Demo mode — backend not connected"}>
           <GoogleMark />
           <span>Continue with Google Workspace</span>
         </button>
@@ -50,6 +55,7 @@ export function Login() {
           placeholder="name@arraes.com"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          disabled={googleReady}
         />
         <input
           className="lg-input"
@@ -59,15 +65,18 @@ export function Login() {
           placeholder="Password"
           value={pass}
           onChange={(e) => setPass(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") signIn(); }}
+          onKeyDown={(e) => { if (e.key === "Enter") onMock(); }}
+          disabled={googleReady}
         />
 
-        <button type="button" className="lg-signin" onClick={signIn}>Sign in</button>
+        <button type="button" className="lg-signin" onClick={onMock} disabled={googleReady}>Sign in</button>
 
         <div className="lg-meta-row">
           <span className="lg-forgot">Forgot password</span>
           <span className="lg-invite">Access is invitation-only</span>
         </div>
+
+        {googleReady && <div className="lg-emailoff">Email sign-in is disabled — continue with Google.</div>}
 
         <div className="lg-2fa">
           <span className="dot" />

@@ -55,6 +55,11 @@ app.listen(config.port, () => {
     console.warn(`[bff] auth routes will 503 until then. See phase2 setup guide.`);
   } else {
     console.log(`[bff] google configured · scopes: ${config.scopes.join(" ")}`);
+    if (!config.allowedEmails.length) {
+      console.warn(`[bff] WARNING: ALLOWED_EMAILS is empty — ANY Google account can sign in. Set it to the Principal's email in production.`);
+    } else {
+      console.log(`[bff] invitation allowlist · ${config.allowedEmails.length} email(s)`);
+    }
   }
   console.log(agentConfigured() ? `[bff] agent brain · Claude API · model ${config.anthropicModel}` : `[bff] agent brain · not configured (ANTHROPIC_API_KEY) — SPA uses mock agent`);
 });
