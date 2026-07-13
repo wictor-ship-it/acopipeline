@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { recordAction, save, newId } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
@@ -6,7 +6,7 @@ import type { Opportunity, Contact, Pipeline, Settings } from "../../domain/type
 import { SANS, deltaCell } from "../contacts/data";
 import {
   type Card, CLOSED_HEAD, COLL_PIPES, type Column, mkCard, DEAL_STATUS, DEAL_PLAY, DEFAULT_LOSS_REASONS, normStatus,
-  PEEK_CURATED, PIPE_NAMES, PIPE_REF, tagsFor, WEEK_DAYS, fmtBudget, dealTypeOf,
+  PEEK_CURATED, PIPE_NAMES, PIPE_REF, tagsFor, WEEK_DAYS, fmtBudget, dealTypeOf, DEAL_TYPES,
 } from "./data";
 import "./Opportunities.css";
 
@@ -49,6 +49,10 @@ export function Opportunities() {
   const sort: Sort = "weighted"; // board is value-ranked; no user-facing sort control here
   const [query, setQuery] = useState("");
   const [peek, setPeek] = useState<Card | null>(null);
+  /* Inline quick-edit inside the peek (real deals only). */
+  const [peekMenu, setPeekMenu] = useState<null | "type" | "status" | "flow">(null);
+  const [peekEdit, setPeekEdit] = useState<null | "budget" | "prob">(null);
+  const [peekDraft, setPeekDraft] = useState("");
   const [refDecided, setRefDecided] = useState<null | "accepted" | "declined">(null);
   const [closedSeg, setClosedSeg] = useState<"won" | "lost">("won");
   /* Board drag-to-stage: stage overrides (card name → stage), persisted to
@@ -151,7 +155,7 @@ export function Opportunities() {
   ];
 
   const colGci = (c: Column) => isRent ? "" : `$${c.cards.reduce((s, x) => s + x.weightedNum, 0).toFixed(1)}M`;
-  const openCard = (c: Card) => setPeek(c);
+  const openCard = (c: Card) => { setPeek(c); setPeekMenu(null); setPeekEdit(null); };
 
   const decideRef = (d: "accepted" | "declined") => { setRefDecided(d); void recordAction({ actor: "user", skill: "compliance", action: `Partner referral ${d} — ${PIPE_REF.name} (§3.3 timestamp priority)` }, "referral/rosen", () => setRefDecided(null)); };
 
@@ -208,6 +212,26 @@ export function Opportunities() {
   };
 
   const p = peek ? buildPeek(peek) : null;
+  /* The live opportunity behind the peek (real deals carry an id) + audited
+     inline edits. Editing a real deal here mirrors the Deal Detail. */
+  const peekOpp = peek?.id ? opportunities.find((o) => o.id === peek.id) : undefined;
+  const patchPeek = (changes: Partial<Opportunity>, action: string) => {
+    if (!peekOpp) return;
+    void save<Opportunity>("opportunities", { ...peekOpp, ...changes }, { actor: "user", skill: "chief_of_staff", action });
+  };
+  const peekTitle = peekOpp?.name ?? peek?.name ?? "";
+  const setPeekType = (pk: string) => { setPeekMenu(null); if (!peekOpp || pk === peekOpp.pipeline) return; patchPeek({ pipeline: pk as Pipeline, flow_stage: dealTypeOf(pk).flow[0] }, `Transaction type → ${dealTypeOf(pk).label} — ${peekTitle}`); };
+  const setPeekStatus = (s: string) => { setPeekMenu(null); if (!peekOpp || s === normStatus(peekOpp.stage)) return; patchPeek({ stage: s, heat: s === "Hot" || s === "Won" ? "HOT" : "WARM" }, `Deal status → ${s} — ${peekTitle}`); };
+  const setPeekFlow = (s: string) => { setPeekMenu(null); if (!peekOpp || s === (peekOpp.flow_stage ?? dealTypeOf(peekOpp.pipeline).flow[0])) return; patchPeek({ flow_stage: s }, `${dealTypeOf(peekOpp.pipeline).label} · flow → ${s} — ${peekTitle}`); };
+  const commitPeekEdit = () => {
+    if (!peekOpp || !peekEdit) { setPeekEdit(null); return; }
+    const v = peekDraft.trim();
+    if (peekEdit === "budget") { const norm = v ? fmtBudget(v) : peekOpp.budget ?? "—"; patchPeek({ budget: norm }, `Deal amount set — ${norm} · ${peekTitle}`); }
+    if (peekEdit === "prob") { const n = Math.max(0, Math.min(100, parseInt(v, 10) || 0)); patchPeek({ probability: n }, `Deal probability set — ${n}% · ${peekTitle}`); }
+    setPeekEdit(null);
+  };
+  const peekMenuBox: CSSProperties = { position: "absolute", top: "calc(100% + 6px)", left: 0, zIndex: 90, background: "rgba(255,255,255,0.97)", backdropFilter: "blur(22px)", border: "1px solid #D9D9D9", borderRadius: 12, boxShadow: "0 10px 30px rgba(0,0,0,0.14)", padding: 5, minWidth: 190 };
+  const peekMenuItem = (on: boolean): CSSProperties => ({ fontFamily: SANS, fontWeight: on ? 500 : 400, fontSize: 12.5, letterSpacing: "normal", textTransform: "none", color: "#0D0D0D", padding: "8px 12px", borderRadius: 8, cursor: "pointer", background: on ? "rgba(0,0,0,0.05)" : "transparent" });
 
   return (
     <div style={{ padding: "0 48px 140px" }}>
@@ -537,27 +561,65 @@ export function Opportunities() {
           <div onClick={() => setPeek(null)} style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.32)", zIndex: 80 }} />
           <div className="op-peek">
             <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid #E3E3E3" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8F8F8F" }}>{p.stage} · {p.side}</span>
-                <span onClick={() => setPeek(null)} className="op-peek-x" style={{ width: 26, height: 26, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", borderRadius: 8, fontFamily: SANS, fontSize: 13, color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>×</span>
+              <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
+                <span style={{ position: "relative", fontFamily: SANS, fontWeight: 400, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: "#8F8F8F", display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+                  {p.stage} · <span onClick={() => peekOpp && setPeekMenu(peekMenu === "type" ? null : "type")} title={peekOpp ? "Change transaction type" : undefined} style={{ cursor: peekOpp ? "pointer" : "default", color: peekOpp ? "#5D5D5D" : "#8F8F8F", borderBottom: peekOpp ? "1px dashed #C9C9C9" : "none" }}>{p.side}{peekOpp ? " ▾" : ""}</span>
+                  {peekMenu === "type" && (
+                    <div style={peekMenuBox}>
+                      <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 8.5, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8F8F8F", padding: "6px 12px 4px" }}>Transaction type</div>
+                      {(Object.keys(DEAL_TYPES) as Pipeline[]).map((pk) => (
+                        <div key={pk} onClick={() => setPeekType(pk)} style={peekMenuItem(pk === peekOpp?.pipeline)} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.05)")} onMouseLeave={(e) => (e.currentTarget.style.background = pk === peekOpp?.pipeline ? "rgba(0,0,0,0.05)" : "transparent")}>{dealTypeOf(pk).label} · {dealTypeOf(pk).side}</div>
+                      ))}
+                    </div>
+                  )}
+                </span>
+                <span onClick={() => setPeek(null)} className="op-peek-x" style={{ width: 26, height: 26, flex: "none", display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", borderRadius: 8, fontFamily: SANS, fontSize: 13, color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>×</span>
               </div>
               <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 22, letterSpacing: "-0.01em", color: "#0D0D0D", marginTop: 8 }}>{p.name}</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 7 }}>
+              <div style={{ position: "relative", display: "flex", alignItems: "center", gap: 9, marginTop: 7, flexWrap: "wrap" }}>
                 <span style={{ width: 6, height: 6, borderRadius: "50%", background: p.dot }} />
-                <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D" }}>{p.status} · {p.probLabel}</span>
+                <span onClick={() => peekOpp && setPeekMenu(peekMenu === "status" ? null : "status")} title={peekOpp ? "Change status" : undefined} style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", cursor: peekOpp ? "pointer" : "default", borderBottom: peekOpp ? "1px dashed #C9C9C9" : "none" }}>{p.status}{peekOpp ? " ▾" : ""}</span>
+                {peekEdit === "prob" ? (
+                  <input autoFocus value={peekDraft} onChange={(e) => setPeekDraft(e.target.value.replace(/[^0-9]/g, ""))} onBlur={commitPeekEdit} onKeyDown={(e) => { if (e.key === "Enter") commitPeekEdit(); if (e.key === "Escape") setPeekEdit(null); }} style={{ width: 54, fontFamily: SANS, fontSize: 11, color: "#0D0D0D", background: "rgba(255,255,255,0.85)", border: "1px solid #0D0D0D", borderRadius: 6, padding: "1px 5px", outline: "none" }} />
+                ) : (
+                  <span onClick={() => { if (peekOpp) { setPeekDraft(String(peekOpp.probability ?? 0)); setPeekEdit("prob"); } }} title={peekOpp ? "Edit probability" : undefined} style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", cursor: peekOpp ? "pointer" : "default", borderBottom: peekOpp ? "1px dashed #C9C9C9" : "none" }}>· {p.probLabel}</span>
+                )}
+                {peekMenu === "status" && (
+                  <div style={peekMenuBox}>
+                    {DEAL_STATUS.map((s) => (
+                      <div key={s} onClick={() => setPeekStatus(s)} style={peekMenuItem(s === p.stage)} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.05)")} onMouseLeave={(e) => (e.currentTarget.style.background = s === p.stage ? "rgba(0,0,0,0.05)" : "transparent")}>{s}</div>
+                    ))}
+                  </div>
+                )}
               </div>
               {p.flowStage && (
-                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", marginTop: 7 }}>{p.typeLabel} flow · <span style={{ fontWeight: 500, color: "#0D0D0D" }}>{p.flowStage}</span></div>
+                <div style={{ position: "relative", fontFamily: SANS, fontWeight: 400, fontSize: 11, color: "#8F8F8F", marginTop: 7 }}>{p.typeLabel} flow · <span onClick={() => peekOpp && setPeekMenu(peekMenu === "flow" ? null : "flow")} title={peekOpp ? "Move flow stage" : undefined} style={{ fontWeight: 500, color: "#0D0D0D", cursor: peekOpp ? "pointer" : "default", borderBottom: peekOpp ? "1px dashed #C9C9C9" : "none" }}>{p.flowStage}{peekOpp ? " ▾" : ""}</span>
+                  {peekMenu === "flow" && peekOpp && (
+                    <div style={peekMenuBox}>
+                      <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 8.5, letterSpacing: "0.12em", textTransform: "uppercase", color: "#8F8F8F", padding: "6px 12px 4px" }}>{dealTypeOf(peekOpp.pipeline).label} · closing flow</div>
+                      {dealTypeOf(peekOpp.pipeline).flow.map((s) => (
+                        <div key={s} onClick={() => setPeekFlow(s)} style={peekMenuItem(s === p.flowStage)} onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,0,0,0.05)")} onMouseLeave={(e) => (e.currentTarget.style.background = s === p.flowStage ? "rgba(0,0,0,0.05)" : "transparent")}>{s}</div>
+                      ))}
+                    </div>
+                  )}
+                </div>
               )}
             </div>
             <div style={{ flex: 1, overflowY: "auto" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", borderBottom: "1px solid #E3E3E3" }}>
-                {[{ l: "Budget", v: p.budget }, { l: "Est. GCI", v: p.gci }, { l: "Weighted GCI", v: p.wGci }].map((n, i) => (
+                {[{ l: "Budget", v: p.budget }, { l: "Est. GCI", v: p.gci }, { l: "Weighted GCI", v: p.wGci }].map((n, i) => {
+                  const budEditable = i === 0 && !!peekOpp;
+                  return (
                   <div key={n.l} style={{ padding: i === 0 ? "16px 0 16px 28px" : "16px 0 16px 20px", borderRight: i < 2 ? "1px solid #E3E3E3" : "none" }}>
                     <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>{n.l}</div>
-                    <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 19, color: "#0D0D0D", marginTop: 5 }}>{n.v}</div>
+                    {i === 0 && peekEdit === "budget" ? (
+                      <input autoFocus value={peekDraft} onChange={(e) => setPeekDraft(e.target.value)} onBlur={commitPeekEdit} onKeyDown={(e) => { if (e.key === "Enter") commitPeekEdit(); if (e.key === "Escape") setPeekEdit(null); }} placeholder="$3.7M" style={{ width: "90%", fontFamily: SANS, fontWeight: 300, fontSize: 19, color: "#0D0D0D", marginTop: 5, background: "rgba(255,255,255,0.85)", border: "1px solid #0D0D0D", borderRadius: 6, padding: "0 5px", outline: "none" }} />
+                    ) : (
+                      <div onClick={() => { if (budEditable && peekOpp) { setPeekDraft(peekOpp.budget ?? ""); setPeekEdit("budget"); } }} title={budEditable ? "Click to edit" : undefined} style={{ fontFamily: SANS, fontWeight: 300, fontSize: 19, color: "#0D0D0D", marginTop: 5, cursor: budEditable ? "text" : "default" }}>{n.v}</div>
+                    )}
                   </div>
-                ))}
+                  );
+                })}
               </div>
               <div style={{ padding: "18px 28px", borderBottom: "1px solid #E3E3E3" }}>
                 <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.06em", textTransform: "uppercase", color: "#5D5D5D", marginBottom: 10 }}>Due dates</div>
