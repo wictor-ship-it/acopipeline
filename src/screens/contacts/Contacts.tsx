@@ -2,9 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CSSProperties } from "react";
 import { useCollection } from "../../data/hooks";
-import { recordAction, bulkImport, newId, mergeContacts } from "../../data/repository";
+import { recordAction, mergeContacts } from "../../data/repository";
 import { useAppState } from "../../app/state";
-import { fetchGoogleContacts, ReconnectNeeded } from "../../data/adapters/googleContacts";
+import { syncGoogleContacts } from "../../data/googleSync";
 import type { Contact, Opportunity, Settings } from "../../domain/types";
 import { toCanonStatus } from "../contact/data";
 import {
@@ -114,7 +114,6 @@ export function Contacts() {
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<string | null>(null);
   // Normalized phone for dedup — only ≥7 digits counts as an identifying key.
-  const normPhone = (p?: string) => { const d = (p ?? "").replace(/\D/g, ""); return d.length >= 7 ? d : ""; };
 
   /* Duplicate detection + merge suggestions (CRM-side hygiene). */
   const [dupOpen, setDupOpen] = useState(false);
@@ -130,37 +129,17 @@ export function Contacts() {
   const importGoogle = async () => {
     setImporting(true);
     setImportMsg(null);
-    try {
-      const gcs = await fetchGoogleContacts();
-      if (gcs === null) { setImportMsg("Couldn't reach Google — reconnect in Settings."); return; }
-      const haveEmail = new Set(contacts.map((c) => (c.email ?? "").toLowerCase()).filter(Boolean));
-      const havePhone = new Set(contacts.map((c) => normPhone(c.phone)).filter(Boolean));
-      const seen = new Set<string>();
-      const toImport: Contact[] = [];
-      for (const g of gcs) {
-        const email = (g.email ?? "").toLowerCase();
-        const phone = normPhone(g.phone);
-        const key = email || phone || g.name.toLowerCase();
-        if (seen.has(key)) continue;
-        seen.add(key);
-        if (email && haveEmail.has(email)) continue;
-        if (!email && phone && havePhone.has(phone)) continue;
-        toImport.push({
-          id: newId("ct"), name: g.name, category: "sphere", status: "SPHERE",
-          directory_status: "Not classified", language: ["EN"],
-          email: g.email, phone: g.phone, company: g.company, title: g.title,
-          birthday: g.birthday, location: g.location, linkedin: g.linkedin, source: "Google Contacts",
-        });
-      }
-      if (!toImport.length) { setImportMsg("No new contacts — your directory is already up to date."); return; }
-      await bulkImport("contacts", toImport, { actor: "user", action: `Imported ${toImport.length} contact${toImport.length === 1 ? "" : "s"} from Google Contacts` });
-      const skipped = gcs.length - toImport.length;
-      setImportMsg(`Imported ${toImport.length} contact${toImport.length === 1 ? "" : "s"}${skipped > 0 ? ` · ${skipped} skipped (duplicates)` : ""}.`);
-    } catch (e) {
-      setImportMsg(e instanceof ReconnectNeeded ? "Reconnect Google with Contacts access in Settings." : "Import failed — please try again.");
-    } finally {
-      setImporting(false);
+    const r = await syncGoogleContacts("user");
+    if (r.ok) {
+      setImportMsg(r.imported === 0
+        ? "No new contacts — your directory is already up to date."
+        : `Imported ${r.imported} contact${r.imported === 1 ? "" : "s"}${r.skipped > 0 ? ` · ${r.skipped} skipped (duplicates)` : ""}.`);
+    } else {
+      setImportMsg(r.reason === "reconnect" ? "Reconnect Google with Contacts access in Settings."
+        : r.reason === "unreachable" ? "Couldn't reach Google — reconnect in Settings."
+        : "Import failed — please try again.");
     }
+    setImporting(false);
   };
 
   const [view, setView] = useState<"directory" | "queue">(searchParams.get("view") === "queue" ? "queue" : "directory");
@@ -374,7 +353,10 @@ export function Contacts() {
             </div>
             <div style={{ flex: 1 }} />
             {google.connected && (
-              <button onClick={importGoogle} disabled={importing} className="ct-btn-outline" style={{ flex: "none", background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 15px", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: importing ? "#8F8F8F" : "#0D0D0D", cursor: importing ? "default" : "pointer", whiteSpace: "nowrap", transition: "all 150ms" }}>{importing ? "Importing…" : "Import from Google"}</button>
+              <div style={{ display: "flex", alignItems: "center", gap: 10, flex: "none" }}>
+                <span title="Google Contacts sync in the background, one-way, every 5 minutes" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontFamily: SANS, fontWeight: 400, fontSize: 9.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", whiteSpace: "nowrap" }}><span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10A37F", flex: "none" }} />Auto-sync · 5 min</span>
+                <button onClick={importGoogle} disabled={importing} className="ct-btn-outline" style={{ flex: "none", background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 15px", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: importing ? "#8F8F8F" : "#0D0D0D", cursor: importing ? "default" : "pointer", whiteSpace: "nowrap", transition: "all 150ms" }}>{importing ? "Syncing…" : "Sync now"}</button>
+              </div>
             )}
             <div onClick={() => setTagsOpen((o) => !o)} onMouseEnter={() => setTagsOpen(true)} className="ct-later" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", whiteSpace: "nowrap", paddingBottom: 5, transition: "color 150ms" }}>{tagSel !== "all" ? `Tags · ${tagSel}` : "Tags"} {tagsOpen ? "⌃" : "⌄"}</div>
           </div>

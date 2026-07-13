@@ -7,6 +7,7 @@ import { TopBar } from "./TopBar";
 import { UndoBar } from "./UndoBar";
 import { ErrorBoundary } from "./ErrorBoundary";
 import { CommandPalette } from "./CommandPalette";
+import { useGoogleAutoSync } from "./useGoogleAutoSync";
 import "./Shell.css";
 
 /* App shell — literal from fragment 00: layout flex (line 130), ambient
@@ -19,6 +20,7 @@ export function Shell() {
   const vaRole = ROLES.find((r) => r.id === viewAs)?.label ?? "";
   const { pathname } = useLocation();
   const [navOpen, setNavOpen] = useState(false);
+  useGoogleAutoSync(); // 5-min background Google Contacts → CRM sync (real account)
 
   // Close the mobile drawer whenever the route changes.
   useEffect(() => { setNavOpen(false); }, [pathname]);
