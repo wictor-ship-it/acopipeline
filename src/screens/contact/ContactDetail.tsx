@@ -21,6 +21,32 @@ const initialsOf = (n: string) => n.split(/\s+/).map((w) => w[0]).join("").slice
 
 type ChatMsg = { who: "a" | "u"; txt: string };
 
+/* Turn a cadence label ("Every 2 weeks", "Quarterly", "Paused") into days. */
+function cadenceToDays(cadence: string): number {
+  const c = (cadence || "").toLowerCase();
+  if (/paus/.test(c)) return 0;
+  const wk = /(\d+)\s*week/.exec(c); if (wk) return parseInt(wk[1], 10) * 7;
+  const dy = /(\d+)\s*day/.exec(c); if (dy) return parseInt(dy[1], 10);
+  const mo = /(\d+)\s*month/.exec(c); if (mo) return parseInt(mo[1], 10) * 30;
+  if (/quarter/.test(c)) return 90;
+  if (/annual|year/.test(c)) return 365;
+  if (/month/.test(c)) return 30;
+  if (/week/.test(c)) return 7;
+  return 14;
+}
+/* On classification, generate a starter "plan ahead" from the status's cadence,
+   with REAL dates from today (no demo dates). Not classified ⇒ empty plan. */
+function generatePlan(status: string, cadence: string): PlanItem[] {
+  if (status === "Not classified") return [];
+  const days = cadenceToDays(cadence) || 7;
+  const now = new Date();
+  const at = (n: number) => { const d = new Date(now); d.setDate(d.getDate() + n); return d.toLocaleDateString("en-US", { month: "short", day: "2-digit" }); };
+  return [
+    { d: at(days), what: "Value touch — tailored market intel", why: `cadence · ${cadence.toLowerCase()} · agent drafts in the contact language`, st: "Scheduled", c: "#0D0D0D" },
+    { d: at(days * 2), what: "Re-qualify goals against the mandate", why: "relationship check · agent prepares the brief", st: "Planned", c: "#B45309" },
+  ];
+}
+
 export function ContactDetail() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
@@ -145,8 +171,11 @@ export function ContactDetail() {
      The plan persists to preferences.plan; edits audit + are undoable via save. */
   const PLAN_STATUS = ["Scheduled", "Planned", "Armed", "Done"];
   const PLAN_STATUS_COLOR: Record<string, string> = { Scheduled: "#0D0D0D", Planned: "#B45309", Armed: "#8F8F8F", Done: "#10A37F" };
+  // Classification drives the plan: unclassified contacts (e.g. fresh Google
+  // imports) carry NO plan until you classify them — no demo fallback.
+  const classNow = statusLocal || ct.directory_status || toCanonStatus(ct.status);
   const seedPlan: PlanItem[] = PLAN_AHEAD[id] ?? DEFAULT_PLAN;
-  const plan: PlanItem[] = planLocal[id] ?? (ct.preferences?.plan as PlanItem[] | undefined) ?? seedPlan;
+  const plan: PlanItem[] = planLocal[id] ?? (ct.preferences?.plan as PlanItem[] | undefined) ?? (classNow === "Not classified" ? [] : seedPlan);
   const shiftDate = (label: string, days: number) => { const mm = /([A-Za-z]{3}) (\d+)/.exec(label); return mm ? `${mm[1]} ${parseInt(mm[2], 10) + days}` : label; };
   const persistPlan = (next: PlanItem[], action: string) => {
     setPlanLocal((s) => ({ ...s, [id]: next }));
@@ -191,14 +220,21 @@ export function ContactDetail() {
   };
 
   const statusVal = toCanonStatus(ct.status);
-  const statusSel = statusLocal || statusVal;
+  // directory_status is the classification the user sets — it must win over the
+  // raw status so a classification persists across reloads.
+  const statusSel = statusLocal || ct.directory_status || statusVal;
   const statusCadenceCfg = settingsRows[0]?.status_cadence;
   const play = statusCadenceCfg?.[statusSel] ?? STATUS_PLAY[statusSel] ?? STATUS_PLAY["Not classified"];
   const onStatus = (v: string) => {
     setStatusLocal(v);
-    if (v === statusVal) return;
+    if (v === statusSel) return;
     const cad = statusCadenceCfg?.[v]?.cadence ?? STATUS_PLAY[v]?.cadence ?? "armed";
-    void getById<Contact>("contacts", id).then((cur) => { if (cur) void save<Contact>("contacts", { ...cur, directory_status: v }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · cadence ${cad}` }); });
+    // Classifying arms a fresh plan from the cadence (real dates); unclassifying clears it.
+    const nextPlan = generatePlan(v, cad);
+    setPlanLocal((s) => ({ ...s, [id]: nextPlan }));
+    void getById<Contact>("contacts", id).then((cur) => {
+      if (cur) void save<Contact>("contacts", { ...cur, directory_status: v, preferences: { ...(cur.preferences ?? {}), plan: nextPlan } }, { actor: "user", skill: "chief_of_staff", action: `Status → ${v} — ${ct.name} · cadence ${cad} · plan armed` });
+    });
   };
 
   /* Auto-status by momentum (§03 "status" autonomy). The agent reads momentum;

@@ -116,7 +116,8 @@ export function Contacts() {
         if (email && haveEmail.has(email)) continue;
         if (!email && phone && havePhone.has(phone)) continue;
         toImport.push({
-          id: newId("ct"), name: g.name, category: "sphere", status: "SPHERE", language: ["EN"],
+          id: newId("ct"), name: g.name, category: "sphere", status: "SPHERE",
+          directory_status: "Not classified", language: ["EN"],
           email: g.email, phone: g.phone, company: g.company, title: g.title,
           birthday: g.birthday, location: g.location, linkedin: g.linkedin, source: "Google Contacts",
         });
