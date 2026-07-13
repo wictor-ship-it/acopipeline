@@ -7,7 +7,12 @@ import { encrypt, decrypt } from "./crypto.js";
    /auth/session response. PRODUCTION: replace the file with a real DB (Postgres,
    KMS-wrapped keys). The interface below is what the swap must preserve. */
 
-const FILE = path.join(process.cwd(), ".tokens.json");
+/* Path is configurable so a deploy can point it at a persistent disk
+   (e.g. TOKEN_STORE_PATH=/data/.tokens.json on a Render disk); defaults to the
+   working directory. Still swap for a DB in a real multi-instance prod. */
+const FILE = process.env.TOKEN_STORE_PATH
+  ? path.resolve(process.env.TOKEN_STORE_PATH)
+  : path.join(process.cwd(), ".tokens.json");
 
 export interface Profile { email?: string; name?: string }
 interface Entry { enc: string; email?: string; name?: string; createdAt: number }

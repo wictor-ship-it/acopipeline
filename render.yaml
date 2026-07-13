@@ -1,0 +1,49 @@
+# Render blueprint — single-service deploy (SPA + BFF on one origin).
+# In Render: New → Blueprint → pick this repo. It provisions the service below.
+# Fill the `sync: false` secrets in the dashboard after the first deploy;
+# SESSION_SECRET / TOKEN_ENCRYPTION_KEY are generated for you.
+# Docs: design_handoff_fase1/phase2/02-deploy-and-handoff.md §5.0
+services:
+  - type: web
+    name: aco-pipeline-intelligence
+    runtime: node
+    plan: starter          # "free" also works (sleeps when idle, ephemeral disk)
+    region: oregon         # pick the region closest to you
+    branch: main
+    autoDeploy: true       # every push to main redeploys
+    buildCommand: npm install && VITE_BFF_URL="" npm run build && npm --prefix server install && npm --prefix server run build
+    startCommand: SERVE_SPA=true node server/dist/index.js
+    healthCheckPath: /health
+    # Persistent disk so a Google connection survives restarts (token store).
+    # Remove this block on the free plan (free has no persistent disk).
+    disk:
+      name: tokens
+      mountPath: /data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: SERVE_SPA
+        value: "true"
+      # token store on the persistent disk (see disk above)
+      - key: TOKEN_STORE_PATH
+        value: /data/.tokens.json
+      # generated once by Render — never shown, never in git
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: TOKEN_ENCRYPTION_KEY
+        generateValue: true
+      # ── set these in the Render dashboard (secrets / your values) ──
+      - key: ALLOWED_ORIGIN          # your site's own https origin, e.g. https://aco.onrender.com or your domain
+        sync: false
+      - key: ANTHROPIC_API_KEY       # from console.anthropic.com (needs credits)
+        sync: false
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5
+      # Google (optional — leave blank to run the mock agent + no Google connect)
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: GOOGLE_REDIRECT_URI     # https://<your-site>/auth/google/callback
+        sync: false
