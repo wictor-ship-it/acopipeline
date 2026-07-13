@@ -37,7 +37,7 @@ export async function exchangeCode(code: string): Promise<ExchangeResult> {
 
 /** Mint a fresh access token for a session's stored refresh token. */
 export async function accessTokenFor(sid: string): Promise<string | null> {
-  const refreshToken = getRefreshToken(sid);
+  const refreshToken = await getRefreshToken(sid);
   if (!refreshToken) return null;
   const client = oauthClient();
   client.setCredentials({ refresh_token: refreshToken });

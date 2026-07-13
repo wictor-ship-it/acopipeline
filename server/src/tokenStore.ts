@@ -1,15 +1,15 @@
 import fs from "node:fs";
 import path from "node:path";
 import { encrypt, decrypt } from "./crypto.js";
+import { dbConfigured } from "./config.js";
+import { saveSession, getSession, deleteSession } from "./db.js";
 
-/* Dev-grade token store: an encrypted JSON file keyed by session id. Refresh
-   tokens are stored encrypted (AES-256-GCM); the profile is kept plain for the
-   /auth/session response. PRODUCTION: replace the file with a real DB (Postgres,
-   KMS-wrapped keys). The interface below is what the swap must preserve. */
+/* Session token store. When a database is configured (production), sessions live
+   in Postgres so they SURVIVE restarts / redeploys / free-tier sleep — the user
+   stays signed in. Without a DB (local dev) it falls back to an encrypted JSON
+   file. Refresh tokens are always AES-256-GCM encrypted; the profile is kept
+   plain for the /auth/session response. */
 
-/* Path is configurable so a deploy can point it at a persistent disk
-   (e.g. TOKEN_STORE_PATH=/data/.tokens.json on a Render disk); defaults to the
-   working directory. Still swap for a DB in a real multi-instance prod. */
 const FILE = process.env.TOKEN_STORE_PATH
   ? path.resolve(process.env.TOKEN_STORE_PATH)
   : path.join(process.cwd(), ".tokens.json");
@@ -18,31 +18,36 @@ export interface Profile { email?: string; name?: string }
 interface Entry { enc: string; email?: string; name?: string; createdAt: number }
 type Store = Record<string, Entry>;
 
-function load(): Store {
+function loadFile(): Store {
   try { return JSON.parse(fs.readFileSync(FILE, "utf8")) as Store; } catch { return {}; }
 }
-function persist(store: Store): void {
+function persistFile(store: Store): void {
   fs.writeFileSync(FILE, JSON.stringify(store), { mode: 0o600 });
 }
 
-export function saveTokens(sid: string, refreshToken: string, profile: Profile): void {
-  const store = load();
-  store[sid] = { enc: encrypt(refreshToken), email: profile.email, name: profile.name, createdAt: Date.now() };
-  persist(store);
+export async function saveTokens(sid: string, refreshToken: string, profile: Profile): Promise<void> {
+  const enc = encrypt(refreshToken);
+  if (dbConfigured()) { await saveSession(sid, enc, profile.email, profile.name); return; }
+  const store = loadFile();
+  store[sid] = { enc, email: profile.email, name: profile.name, createdAt: Date.now() };
+  persistFile(store);
 }
 
-export function getRefreshToken(sid: string): string | null {
-  const e = load()[sid];
+export async function getRefreshToken(sid: string): Promise<string | null> {
+  if (dbConfigured()) { const s = await getSession(sid); return s ? decrypt(s.enc) : null; }
+  const e = loadFile()[sid];
   return e ? decrypt(e.enc) : null;
 }
 
-export function getProfile(sid: string): Profile | null {
-  const e = load()[sid];
+export async function getProfile(sid: string): Promise<Profile | null> {
+  if (dbConfigured()) { const s = await getSession(sid); return s ? { email: s.email, name: s.name } : null; }
+  const e = loadFile()[sid];
   return e ? { email: e.email, name: e.name } : null;
 }
 
-export function clearTokens(sid: string): void {
-  const store = load();
+export async function clearTokens(sid: string): Promise<void> {
+  if (dbConfigured()) { await deleteSession(sid); return; }
+  const store = loadFile();
   delete store[sid];
-  persist(store);
+  persistFile(store);
 }

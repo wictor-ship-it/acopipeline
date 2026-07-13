@@ -40,7 +40,7 @@ authRouter.get("/google/callback", async (req, res) => {
       return res.redirect(`${config.allowedOrigin}/?auth=reconsent`);
     }
     const sid = randomId();
-    saveTokens(sid, refreshToken, profile);
+    await saveTokens(sid, refreshToken, profile);
     setSession(res, sid);
     res.redirect(`${config.allowedOrigin}/?auth=ok`);
   } catch (err) {
@@ -50,16 +50,16 @@ authRouter.get("/google/callback", async (req, res) => {
 });
 
 /* GET /auth/session — SPA polls this to learn if it's signed in. */
-authRouter.get("/session", (req, res) => {
+authRouter.get("/session", async (req, res) => {
   const sid = readSession(req);
-  const profile = sid ? getProfile(sid) : null;
+  const profile = sid ? await getProfile(sid) : null;
   res.json({ authed: !!profile, email: profile?.email ?? null, name: profile?.name ?? null, configured: isConfigured() });
 });
 
 /* POST /auth/logout — drop the tokens + session cookie. */
-authRouter.post("/logout", (req, res) => {
+authRouter.post("/logout", async (req, res) => {
   const sid = readSession(req);
-  if (sid) clearTokens(sid);
+  if (sid) await clearTokens(sid);
   clearSession(res);
   res.json({ ok: true });
 });

@@ -66,7 +66,31 @@ async function doInit(): Promise<void> {
       created_at timestamptz NOT NULL DEFAULT now()
     );
     CREATE INDEX IF NOT EXISTS audit_user ON audit_log (user_id, seq);
+    CREATE TABLE IF NOT EXISTS sessions (
+      sid        text        PRIMARY KEY,
+      enc        text        NOT NULL,
+      email      text,
+      name       text,
+      created_at timestamptz NOT NULL DEFAULT now()
+    );
   `);
+}
+
+/* --- sessions (durable token store; survives restarts/redeploys/sleep) --- */
+export async function saveSession(sid: string, enc: string, email?: string, name?: string): Promise<void> {
+  await dbPool().query(
+    `INSERT INTO sessions (sid, enc, email, name) VALUES ($1,$2,$3,$4)
+     ON CONFLICT (sid) DO UPDATE SET enc = EXCLUDED.enc, email = EXCLUDED.email, name = EXCLUDED.name`,
+    [sid, enc, email ?? null, name ?? null],
+  );
+}
+export async function getSession(sid: string): Promise<{ enc: string; email?: string; name?: string } | null> {
+  const r = await dbPool().query("SELECT enc, email, name FROM sessions WHERE sid=$1", [sid]);
+  const row = r.rows[0];
+  return row ? { enc: row.enc, email: row.email ?? undefined, name: row.name ?? undefined } : null;
+}
+export async function deleteSession(sid: string): Promise<void> {
+  await dbPool().query("DELETE FROM sessions WHERE sid=$1", [sid]);
 }
 
 /** Lightweight connectivity probe (SELECT 1). Used by /health so the database

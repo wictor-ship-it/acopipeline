@@ -73,7 +73,7 @@ gmailRouter.get("/threads/:id", async (req, res) => {
   try {
     const accessToken = await accessTokenFor(sid);
     if (!accessToken) return res.status(401).json({ error: "unauthenticated" });
-    const me = (getProfile(sid)?.email ?? "").toLowerCase();
+    const me = ((await getProfile(sid))?.email ?? "").toLowerCase();
     const t = await googleGet<GApiThread>(
       accessToken,
       `https://gmail.googleapis.com/gmail/v1/users/me/threads/${encodeURIComponent(req.params.id)}?format=full`,

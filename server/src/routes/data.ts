@@ -13,24 +13,25 @@ import {
    only (Law 2): it has no PUT/DELETE — only GET /audit and POST /audit. */
 export const dataRouter = Router();
 
-function currentUser(req: Request): string | null {
+async function currentUser(req: Request): Promise<string | null> {
   const sid = readSession(req);
-  const profile = sid ? getProfile(sid) : null;
+  const profile = sid ? await getProfile(sid) : null;
   return profile?.email ? profile.email.toLowerCase() : null;
 }
 
 /* Public probe — the SPA calls this at boot to choose its data backend. */
-dataRouter.get("/status", (req, res) => {
-  res.json({ configured: dbConfigured(), authed: !!currentUser(req) });
+dataRouter.get("/status", async (req, res) => {
+  res.json({ configured: dbConfigured(), authed: !!(await currentUser(req)) });
 });
 
 /* Auth gate for everything else. */
 dataRouter.use((req: Request, res: Response, next: NextFunction) => {
   if (!dbConfigured()) return res.status(503).json({ error: "db_not_configured" });
-  const user = currentUser(req);
-  if (!user) return res.status(401).json({ error: "unauthenticated" });
-  res.locals.userId = user;
-  next();
+  void currentUser(req).then((user) => {
+    if (!user) return res.status(401).json({ error: "unauthenticated" });
+    res.locals.userId = user;
+    next();
+  }).catch(next);
 });
 
 const uid = (res: Response): string => res.locals.userId as string;
