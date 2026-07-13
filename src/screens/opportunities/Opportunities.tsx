@@ -169,8 +169,8 @@ export function Opportunities() {
 
   /* New Deal — create a real Opportunity from a contact (persisted + audited). */
   const PIPE_KEYS = ["purchases", "listings", "rentals", "investments", "offmarket"] as const;
-  const [newDeal, setNewDeal] = useState<null | { name: string; contactId: string; pipeline: string; stage: string; budget: string; probability: string; heat: string }>(null);
-  const openNewDeal = () => setNewDeal({ name: "", contactId: contacts[0]?.id ?? "", pipeline: "purchases", stage: PIPES.purchases[0]?.stage ?? "Prospecting", budget: "", probability: "30", heat: "WARM" });
+  const [newDeal, setNewDeal] = useState<null | { name: string; contactId: string; contactQuery: string; pipeline: string; stage: string; budget: string; probability: string; heat: string }>(null);
+  const openNewDeal = () => setNewDeal({ name: "", contactId: "", contactQuery: "", pipeline: "purchases", stage: PIPES.purchases[0]?.stage ?? "Prospecting", budget: "", probability: "30", heat: "WARM" });
   const stagesFor = (pk: string) => (PIPES[pk] ?? PIPES.purchases).map((c) => c.stage).filter((s) => s !== "Won" && s !== "Lost");
   const createDeal = () => {
     if (!newDeal || !newDeal.contactId) return;
@@ -243,8 +243,26 @@ export function Opportunities() {
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D", padding: "8px 0 18px" }}>Add or import a contact first — a deal belongs to a contact.</div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+                {/* Searchable contact picker — a native <select> is unusable with thousands of contacts. */}
+                <div style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: 14, alignItems: "start" }}>
+                  <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, color: "#5D5D5D", paddingTop: 9 }}>Contact</span>
+                  <div style={{ position: "relative" }}>
+                    <input value={newDeal.contactQuery} onChange={(e) => setNewDeal({ ...newDeal, contactQuery: e.target.value, contactId: "" })} placeholder="Search a contact by name…" className="op-field" />
+                    {newDeal.contactQuery.trim() && !newDeal.contactId && (() => {
+                      const q = newDeal.contactQuery.trim().toLowerCase();
+                      const matches = contacts.filter((c) => c.name.toLowerCase().includes(q)).slice(0, 12);
+                      return (
+                        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 5, marginTop: 4, background: "#FFFFFF", border: "1px solid #D9D9D9", borderRadius: 8, maxHeight: 220, overflowY: "auto", boxShadow: "0 10px 28px rgba(0,0,0,0.14)" }}>
+                          {matches.map((c) => (
+                            <div key={c.id} onClick={() => setNewDeal({ ...newDeal, contactId: c.id, contactQuery: c.name })} className="op-menu-item" style={{ padding: "9px 12px", cursor: "pointer", fontFamily: SANS, fontSize: 13, color: "#0D0D0D" }}>{c.name}</div>
+                          ))}
+                          {matches.length === 0 && <div style={{ padding: "9px 12px", fontFamily: SANS, fontSize: 12.5, color: "#8F8F8F" }}>No contact matches “{newDeal.contactQuery}”.</div>}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
                 {([
-                  ["Contact", <select key="c" value={newDeal.contactId} onChange={(e) => setNewDeal({ ...newDeal, contactId: e.target.value })} className="op-field">{contacts.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select>],
                   ["Deal name (optional)", <input key="n" value={newDeal.name} onChange={(e) => setNewDeal({ ...newDeal, name: e.target.value })} placeholder="e.g. Continuum South 3902" className="op-field" />],
                   ["Pipeline", <select key="p" value={newDeal.pipeline} onChange={(e) => setNewDeal({ ...newDeal, pipeline: e.target.value, stage: stagesFor(e.target.value)[0] ?? "Prospecting" })} className="op-field">{PIPE_KEYS.map((pk) => <option key={pk} value={pk}>{PIPE_NAMES[pk]}</option>)}</select>],
                   ["Stage", <select key="s" value={newDeal.stage} onChange={(e) => setNewDeal({ ...newDeal, stage: e.target.value })} className="op-field">{stagesFor(newDeal.pipeline).map((s) => <option key={s} value={s}>{s}</option>)}</select>],
