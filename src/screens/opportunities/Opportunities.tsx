@@ -5,7 +5,7 @@ import { useCollection } from "../../data/hooks";
 import type { Opportunity, Contact, Pipeline } from "../../domain/types";
 import { SANS, deltaCell } from "../contacts/data";
 import {
-  ALL_ORDER, type Card, CLOSED_HEAD, CLOSED_ROWS, COLL_PIPES, type Column, mkCard, OPP_DELTAS,
+  ALL_ORDER, type Card, CLOSED_HEAD, COLL_PIPES, type Column, mkCard,
   PEEK_CURATED, PIPE_NAMES, PIPE_REF, PIPES, tagsFor, WEEK_DAYS,
 } from "./data";
 import "./Opportunities.css";
@@ -100,33 +100,40 @@ export function Opportunities() {
   const repGci = isRent ? `$${Math.round(sumWeighted)}K` : gciM2 >= 1 ? `$${gciM2.toFixed(1)}M` : `$${Math.round(gciM2 * 1000)}K`;
   const winRate = wonCount + lostCount ? Math.round((wonCount * 100) / (wonCount + lostCount)) : 0;
 
-  const dl = OPP_DELTAS[collPipe] ?? OPP_DELTAS.all;
-  const mkD = (v: string, arr: string[]) => ({ v, d30: arr[0], dQ: arr[1], dY: arr[2] });
+  /* Closed deals from real data: opportunities in Won/Placed vs Lost stages. */
+  const feeOf = (pk?: string) => (pk === "investments" ? 0.01 : 0.03);
+  const wonCards = oppCards.filter((c) => c.stage === "Won" || c.stage === "Placed");
+  const wonRows = wonCards.map((c) => ({
+    name: c.name, asset: c.pipeName ?? "—", closed: c.due || "—", volume: c.budget,
+    gci: `$${Math.round(c.budgetNum * feeOf(c.pipeKey) * 1000)}K`, post: "—", postColor: "#8F8F8F",
+  }));
+  const wonGciM = wonCards.reduce((s, c) => s + c.budgetNum * feeOf(c.pipeKey), 0);
+  const wonGciLabel = wonGciM >= 1 ? `$${wonGciM.toFixed(1)}M` : `$${Math.round(wonGciM * 1000)}K`;
+  const lostRows = oppCards.filter((c) => c.stage === "Lost").map((c) => ({ name: c.name, pipe: c.pipeName ?? "—", budget: c.budget, when: c.due || "—", reason: c.next || "—" }));
+
+  // Real values; trend deltas show "—" (no historical snapshots to trend against).
+  const r0 = (v: string) => ({ v, d30: "—", dQ: "—", dY: "—" });
+  const wonVolM = wonCards.reduce((s, c) => s + c.budgetNum, 0);
   const reports = collPipe === "closed"
     ? [
-        { label: "Closed Deals", sub: "2026 year to date", m: { v: "14", d30: "+2", dQ: "+5", dY: "+14" }, inv: false },
-        { label: "Closed Volume", sub: "realized · YTD", m: { v: "$128M", d30: "+9.8%", dQ: "+24.0%", dY: "+36.5%" }, inv: false },
-        { label: "Realized GCI", sub: "booked · YTD", m: { v: "$3.1M", d30: "+8.9%", dQ: "+22.3%", dY: "+34.8%" }, inv: false },
-        { label: "Avg Days to Close", sub: "contract → close", m: { v: "41", d30: "-3", dQ: "-6", dY: "-9" }, inv: true },
-        { label: "Referrals from Closed", sub: "post-sale engine", m: { v: "9", d30: "+1", dQ: "+3", dY: "+6" }, inv: false },
+        { label: "Closed Deals", sub: "2026 year to date", m: r0(String(wonRows.length)), inv: false },
+        { label: "Closed Volume", sub: "realized · YTD", m: r0(`$${wonVolM.toFixed(1)}M`), inv: false },
+        { label: "Realized GCI", sub: "booked · YTD", m: r0(wonGciLabel), inv: false },
+        { label: "Avg Days to Close", sub: "contract → close", m: r0("—"), inv: true },
+        { label: "Referrals from Closed", sub: "post-sale engine", m: r0("—"), inv: false },
       ]
     : [
-        { label: "Opportunities", sub: "open · pre-close", m: mkD(String(openCount), dl.opps), inv: false },
-        { label: isRent ? "Rent Roll" : "Pipeline Value", sub: isRent ? "monthly · open leases" : "gross volume", m: mkD(repVal, dl.value), inv: false },
-        { label: "Weighted Value", sub: "probability-adjusted", m: mkD(repWgt, dl.weighted), inv: false },
-        { label: "Projected GCI", sub: isRent ? "one-month fee" : "at close", m: mkD(repGci, dl.gci), inv: false },
-        { label: "Win Rate", sub: "won vs. lost · YTD", m: mkD(`${winRate}%`, dl.win), inv: false },
+        { label: "Opportunities", sub: "open · pre-close", m: r0(String(openCount)), inv: false },
+        { label: isRent ? "Rent Roll" : "Pipeline Value", sub: isRent ? "monthly · open leases" : "gross volume", m: r0(repVal), inv: false },
+        { label: "Weighted Value", sub: "probability-adjusted", m: r0(repWgt), inv: false },
+        { label: "Projected GCI", sub: isRent ? "one-month fee" : "at close", m: r0(repGci), inv: false },
+        { label: "Win Rate", sub: "won vs. lost · YTD", m: r0(`${winRate}%`), inv: false },
       ];
   const reportMeta = collPipe === "closed" ? "Closed · 2026 YTD · trend vs. same period last year" : `${collPipe === "all" ? "All pipelines" : PIPE_NAMES[collPipe] ?? ""} · ${openCount} open · trend vs. prior period`;
 
   const showClosedSec = collPipe === "all" || collPipe === "closed";
   const secPipes = collPipe === "all" ? [] : collPipe === "closed" ? [] : [collPipe];
   const viewDefs: Array<[string, string]> = collPipe === "all" ? [["List", "list"], ["Week", "week"]] : [["Board", "board"], ["List", "list"], ["Week", "week"]];
-
-  const lostRows = (["purchases", "listings", "rentals", "investments", "offmarket"] as const).flatMap((p) => {
-    const c0 = PIPES[p].find((x) => x.stage === "Lost");
-    return c0 ? c0.cards.map((cc) => ({ name: cc.name, pipe: PIPE_NAMES[p], budget: cc.budget, when: cc.due, reason: cc.next })) : [];
-  });
 
   const allDeals = columns.flatMap((c) => c.cards.map((cc) => ({ ...cc, stage: c.stage }))).sort(CMP[sort]);
   const weekCols = [
@@ -422,7 +429,7 @@ export function Opportunities() {
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, paddingBottom: 11, borderBottom: "1px solid #0D0D0D", marginBottom: 2 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
               <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>Closed</span>
-              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>2026 YTD · 14 won · $3.1M GCI realized · {lostRows.length} lost</span>
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F" }}>2026 YTD · {wonRows.length} won · {wonGciLabel} GCI realized · {lostRows.length} lost</span>
             </div>
             <div style={{ display: "flex", gap: 6 }}>
               {([["Won", "won"], ["Lost", "lost"]] as const).map(([label, id]) => {
@@ -437,7 +444,7 @@ export function Opportunities() {
                 <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1.2fr 0.8fr 0.8fr 0.8fr 1.4fr", padding: "13px 4px", borderBottom: "1px solid #E3E3E3", background: "rgba(255,255,255,0.55)" }}>
                   {CLOSED_HEAD.map((h) => <div key={h} style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{h}</div>)}
                 </div>
-                {CLOSED_ROWS.map((r) => (
+                {wonRows.map((r) => (
                   <div key={r.name} className="op-listrow" style={{ display: "grid", gridTemplateColumns: "1.5fr 1.2fr 0.8fr 0.8fr 0.8fr 1.4fr", padding: "16px 4px", borderBottom: "1px solid #E3E3E3", alignItems: "center", transition: "background 150ms" }}>
                     <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D" }}>{r.name}</div>
                     <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.asset}</div>
@@ -447,6 +454,7 @@ export function Opportunities() {
                     <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: r.postColor }}>{r.post}</div>
                   </div>
                 ))}
+                {wonRows.length === 0 && <div style={{ padding: "34px 4px", textAlign: "center", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F" }}>No won deals yet — move a deal to “Won” on the board.</div>}
               </div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, lineHeight: 1.6, color: "#8F8F8F", marginTop: 16 }}>Closed relationships feed referral mining · anniversary gestures · cross-sell radar. Post-sale cadence: quarterly.</div>
             </>
@@ -465,6 +473,7 @@ export function Opportunities() {
                     <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{r.reason}</div>
                   </div>
                 ))}
+                {lostRows.length === 0 && <div style={{ padding: "34px 4px", textAlign: "center", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F" }}>No lost deals — nothing here yet.</div>}
               </div>
               <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, lineHeight: 1.6, color: "#8F8F8F", marginTop: 16 }}>Lost deals move to quarterly nurture — the agent tags loss reasons and watches for re-entry signals.</div>
             </>
