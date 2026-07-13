@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { getAuditLog, recordAction } from "../../data/repository";
-import type { AuditEntry } from "../../domain/types";
+import { useCollection } from "../../data/hooks";
+import type { AuditEntry, Opportunity, Transaction } from "../../domain/types";
 import { useAgentItems } from "../../agent/useAgentItems";
 import { resolveAgentItem } from "../../agent/resolve";
 import { SKILL_LABELS } from "../../domain/agent";
 import { SANS } from "../contacts/data";
 import { useNavigate } from "react-router-dom";
 import {
-  AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE, HERO_SUB,
-  LEARNED, MONEY_STRIP, MORNING_BRIEF, NA_ACTIONS, NA_BUCKET_DOT, NA_BUCKET_META,
+  AGENT_LEDGER, DELTAS, fmtK, FORECAST, HEALTH_FACTORS, HEALTH_SCORE,
+  LEARNED, NA_ACTIONS, NA_BUCKET_DOT, NA_BUCKET_META,
   NA_FILTERS, NA_PROPOSALS, NA_SEQUENCES, NET_CADENCE, NET_KPIS, NET_SUMMARY,
   PLAYS, PROPOSALS, RECIP_HEAD, RECIP_ROWS, RISK_DEFS,
   TOUCH_TODAY, VENDOR_HEAD, VENDOR_ROWS, WEEKLY_MOVEMENT,
@@ -37,8 +38,46 @@ function Block({ dot, title, badge, hint, open, onToggle, children }: { dot?: st
   );
 }
 
+const budgetM = (b?: string): number => { if (!b || /\/mo/i.test(b)) return 0; const n = parseFloat(b.replace(/[^0-9.]/g, "")) || 0; return /b/i.test(b) ? n * 1000 : /k/i.test(b) ? n / 1000 : n; };
+const fmtM = (m: number): string => (m >= 1000 ? `$${(m / 1000).toFixed(1)}B` : m >= 1 ? `$${m.toFixed(1)}M` : `$${Math.round(m * 1000)}K`);
+
 export function Intelligence() {
   const navigate = useNavigate();
+  const { items: opportunities } = useCollection<Opportunity>("opportunities");
+  const { items: transactions } = useCollection<Transaction>("transactions");
+
+  /* Hero KPIs computed from the real pipeline (0 until you add deals). */
+  const hero = useMemo(() => {
+    const isOpen = (o: Opportunity) => !["Won", "Lost", "Placed"].includes(o.stage);
+    const open = opportunities.filter(isOpen);
+    const won = opportunities.filter((o) => o.stage === "Won" || o.stage === "Placed");
+    const lost = opportunities.filter((o) => o.stage === "Lost");
+    const pipeline = open.reduce((s, o) => s + budgetM(o.budget), 0);
+    const weightedGci = open.reduce((s, o) => s + budgetM(o.budget) * ((o.probability ?? 0) / 100), 0) * 0.03;
+    const closedYtd = won.reduce((s, o) => s + budgetM(o.budget), 0) * 0.03;
+    const hot = open.filter((o) => (o.heat ?? "").toUpperCase() === "HOT" || o.stage === "Hot").length;
+    const overdue = open.filter((o) => o.overdue === true).length;
+    const winRate = won.length + lost.length ? Math.round((won.length * 100) / (won.length + lost.length)) : 0;
+    return { open, won, lost, pipeline, weightedGci, closedYtd, hot, overdue, winRate };
+  }, [opportunities]);
+
+  const moneyStrip = [
+    { label: "Pipeline", value: fmtM(hero.pipeline), sub: `${hero.open.length} open` },
+    { label: "Weighted GCI", value: fmtM(hero.weightedGci), sub: "probability-adj" },
+    { label: "Closed YTD", value: fmtM(hero.closedYtd), sub: `${hero.won.length} won` },
+    { label: "Next 30 Days", value: "—", sub: "closings" },
+  ];
+  const heroSub = [
+    { label: "HOT Leads", value: String(hero.hot), sub: `of ${hero.open.length}` },
+    { label: "Overdue Actions", value: String(hero.overdue), sub: "in pipeline" },
+    { label: "Win Rate · YTD", value: `${hero.winRate}%`, sub: `${hero.won.length} of ${hero.won.length + hero.lost.length}` },
+    { label: "Avg Deal Cycle", value: "—", sub: "offer → close" },
+    { label: "Referral Share", value: "—", sub: "of new pipeline" },
+    { label: "Agent · Overnight", value: "—", sub: "actions logged" },
+  ];
+  const morningBrief = `${hero.open.length} open deal${hero.open.length === 1 ? "" : "s"} · ${fmtM(hero.pipeline)} pipeline · ${hero.hot} hot — the agent watches for what needs you`;
+  void transactions;
+
   const [metricsOpen, setMetricsOpen] = useState(false);
   const [sec, setSec] = useState({ act: true, touch: true, next: true, learned: true, risk: true, plays: false, perf: false, agent: false, net: false });
   const toggle = (k: keyof typeof sec) => setSec((s) => ({ ...s, [k]: !s[k] }));
@@ -206,7 +245,7 @@ export function Intelligence() {
       <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 16, padding: "2px 0 18px", flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "baseline", gap: 14 }}>
           <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 16, color: "#0D0D0D" }}>Morning brief</span>
-          <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{MORNING_BRIEF}</span>
+          <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#5D5D5D" }}>{morningBrief}</span>
         </div>
         <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#B8B8B8" }}>scroll = the whole day · decide → do → discoveries → log</span>
       </div>
@@ -235,7 +274,7 @@ export function Intelligence() {
               ))}
             </div>
           </div>
-          {MONEY_STRIP.map((m) => (
+          {moneyStrip.map((m) => (
             <div key={m.label} style={{ padding: "26px 22px 24px", borderRight: "1px solid #E3E3E3" }}>
               <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{m.label}</div>
               <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 30, lineHeight: 1, marginTop: 16, color: "#0D0D0D" }}>{m.value}</div>
@@ -245,7 +284,7 @@ export function Intelligence() {
         </div>
         {metricsOpen && (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6,1fr)", borderTop: "1px solid #F0F0F0", padding: "16px 22px 18px" }}>
-            {HERO_SUB.map((s) => (
+            {heroSub.map((s) => (
               <div key={s.label} style={{ paddingRight: 20 }}>
                 <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 9, letterSpacing: "0.16em", textTransform: "uppercase", color: "#5D5D5D" }}>{s.label}</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 6, marginTop: 7 }}>

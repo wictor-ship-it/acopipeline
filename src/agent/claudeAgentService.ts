@@ -16,14 +16,20 @@ import { MockAgentService } from "./mockAgentService";
 /* Compact the persisted records into the context the agent reasons over. Keep
    it lean — only the fields the skills need. */
 async function buildContext() {
-  const [contacts, drafts, opportunities, transactions] = await Promise.all([
+  const [allContacts, drafts, opportunities, transactions] = await Promise.all([
     getAll<Contact>("contacts"),
     getAll<Draft>("drafts"),
     getAll<Opportunity>("opportunities"),
     getAll<Transaction>("transactions"),
   ]);
+  // With large contact books (thousands imported), only send CLASSIFIED/active
+  // contacts — unclassified ones have a paused cadence, so there's nothing for
+  // the agent to act on — and cap to keep the prompt lean, fast and affordable.
+  const active = allContacts.filter((c) => (c.directory_status ?? "").toLowerCase() !== "not classified" && !!(c.directory_status || c.status));
+  const contacts = (active.length ? active : allContacts).slice(0, 60);
   return {
-    contacts: contacts.map((c) => ({ id: c.id, name: c.name, status: c.status, relationship: c.relationship, language: c.language, last_touch: c.last_touch, active_deals: c.active_deals, referral_of: c.referral_of, agent_note: c.agent_note })),
+    meta: { total_contacts: allContacts.length, showing_contacts: contacts.length },
+    contacts: contacts.map((c) => ({ id: c.id, name: c.name, status: c.directory_status ?? c.status, relationship: c.relationship, language: c.language, last_touch: c.last_touch, active_deals: c.active_deals, referral_of: c.referral_of, agent_note: c.agent_note })),
     drafts: drafts.map((d) => ({ id: d.id, target: d.target, name: d.name_label, subject: d.subject, plan: d.plan, body: d.body, channel: d.channel, language: d.language })),
     opportunities: opportunities.map((o) => ({ id: o.id, name: o.name, contact_id: o.contact_id, pipeline: o.pipeline, stage: o.stage, heat: o.heat, probability: o.probability, next_action: o.next_action, next_due: o.next_due })),
     transactions: transactions.map((t) => ({ id: t.id, opportunity_id: t.opportunity_id, property: t.property, next_peek: t.next_peek, milestones_label: t.milestones_label, close_date: t.close_date, at_risk: t.status_color === "#D0342C" })),
