@@ -20,6 +20,29 @@ export function mkCard(name: string, opp: string, budget: string, hot: boolean, 
   return { name, opp, budget, status: hot ? "HOT" : "WARM", prob: prob + "%", dot: hot ? "#0D0D0D" : "#8F8F8F", next, due, dueColor: overdue ? "#D0342C" : "#5D5D5D", budgetNum, probNum: prob, weightedNum: (budgetNum * prob) / 100, dueRank };
 }
 
+/* Unified deal status (drives the board columns + cadence). A deal's status is
+   like a contact's classification: pick one → the agent arms the cadence + next
+   action. Any legacy/seed stage normalizes into one of these five. */
+export const DEAL_STATUS = ["Prospecting", "Warm", "Hot", "Won", "Lost"] as const;
+export function normStatus(stage?: string): string {
+  const s = (stage ?? "").toLowerCase();
+  if (/won|placed|closed/.test(s)) return "Won";
+  if (/lost/.test(s)) return "Lost";
+  if (/hot|contract|negotiat|offer/.test(s)) return "Hot";
+  if (/warm|qualif|nurtur/.test(s)) return "Warm";
+  return "Prospecting";
+}
+/* Cadence + first next-action per status (defaults; Settings §02 can override
+   per canonical status name). */
+export const DEAL_PLAY: Record<string, { cadence: string; next: string }> = {
+  Prospecting: { cadence: "Every 3 days", next: "Qualify budget, timeline & motivation" },
+  Warm: { cadence: "Weekly", next: "Send a curated set · advance the search" },
+  Hot: { cadence: "Every 2 days", next: "Push to offer / contract — close the next step" },
+  Won: { cadence: "Quarterly", next: "Post-sale: referral ask + anniversary gesture" },
+  Lost: { cadence: "Quarterly", next: "Nurture — watch for re-entry signals" },
+};
+export const DEFAULT_LOSS_REASONS = ["Price / valuation gap", "Timeline / delivery", "Chose competitor", "Financing fell through", "Went quiet", "Other"];
+
 export interface Column { stage: string; cards: Card[] }
 const col = (stage: string, cards: Card[]): Column => ({ stage, cards });
 

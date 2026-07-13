@@ -9,6 +9,7 @@ import { fetchGmailThreads } from "../../data/adapters/gmail";
 import { fetchCalendarEvents } from "../../data/adapters/calendar";
 import { getAgentStatus, type AgentStatus } from "../../data/adapters/agent";
 import { SANS } from "../contacts/data";
+import { DEFAULT_LOSS_REASONS } from "../opportunities/data";
 import { CANON_STATUS, STATUS_PLAY } from "../contact/data";
 import "./Settings.css";
 
@@ -675,6 +676,19 @@ export function Settings() {
 
                 {/* add stage */}
                 <div onClick={addStage} className="st-addstage" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 4px", borderBottom: "1px solid #E3E3E3", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>+ Add stage</div>
+
+                {/* Loss reasons — the dropdown shown when a deal is marked Lost. */}
+                <div style={{ padding: "22px 4px 4px" }}>
+                  <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 10.5, letterSpacing: "0.08em", textTransform: "uppercase", color: "#8F8F8F", marginBottom: 4 }}>Loss reasons</div>
+                  <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#8F8F8F", marginBottom: 12 }}>Offered when a deal is marked Lost — the agent tags them for win/loss analysis.</div>
+                  {(settings.loss_reasons ?? DEFAULT_LOSS_REASONS).map((r, i) => (
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "9px 4px", borderBottom: "1px solid #E3E3E3" }}>
+                      <input value={r} onChange={(e) => persist({ ...settings, loss_reasons: (settings.loss_reasons ?? DEFAULT_LOSS_REASONS).map((x, idx) => (idx === i ? e.target.value : x)) }, "Loss reasons · edited")} style={{ flex: 1, background: "transparent", border: "none", borderBottom: "0.5px solid transparent", padding: "3px 0", fontFamily: SANS, fontWeight: 400, fontSize: 14, color: "#0D0D0D", outline: "none" }} />
+                      <span onClick={() => persist({ ...settings, loss_reasons: (settings.loss_reasons ?? DEFAULT_LOSS_REASONS).filter((_, idx) => idx !== i) }, "Loss reasons · removed")} title="Delete" className="st-stagedel" style={{ width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", border: "1px solid #E3E3E3", fontFamily: SANS, fontSize: 12, color: "#8F8F8F", cursor: "pointer" }}>×</span>
+                    </div>
+                  ))}
+                  <div onClick={() => persist({ ...settings, loss_reasons: [...(settings.loss_reasons ?? DEFAULT_LOSS_REASONS), "New reason"] }, "Loss reasons · added")} className="st-addstage" style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 4px", fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", transition: "all 150ms" }}>+ Add loss reason</div>
+                </div>
 
                 {/* stage-level rules */}
                 {SET_STAGE_FIELDS.map((f) => {

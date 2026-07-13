@@ -2,11 +2,11 @@ import { useMemo, useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { recordAction, save, newId } from "../../data/repository";
 import { useCollection } from "../../data/hooks";
-import type { Opportunity, Contact, Pipeline } from "../../domain/types";
+import type { Opportunity, Contact, Pipeline, Settings } from "../../domain/types";
 import { SANS, deltaCell } from "../contacts/data";
 import {
-  ALL_ORDER, type Card, CLOSED_HEAD, COLL_PIPES, type Column, mkCard,
-  PEEK_CURATED, PIPE_NAMES, PIPE_REF, PIPES, tagsFor, WEEK_DAYS,
+  type Card, CLOSED_HEAD, COLL_PIPES, type Column, mkCard, DEAL_STATUS, DEAL_PLAY, DEFAULT_LOSS_REASONS, normStatus,
+  PEEK_CURATED, PIPE_NAMES, PIPE_REF, tagsFor, WEEK_DAYS,
 } from "./data";
 import "./Opportunities.css";
 
@@ -39,6 +39,8 @@ export function Opportunities() {
   const navigate = useNavigate();
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
   const { items: contacts } = useCollection<Contact>("contacts");
+  const { items: settingsRows } = useCollection<Settings>("settings");
+  const lossReasons = settingsRows[0]?.loss_reasons ?? DEFAULT_LOSS_REASONS;
   const [collPipe, setCollPipe] = useState("all");
   const [viewSel, setViewSel] = useState<"board" | "list" | "week">("board");
   const sort: Sort = "weighted"; // board is value-ranked; no user-facing sort control here
@@ -65,18 +67,19 @@ export function Opportunities() {
     const contact = contacts.find((c) => c.id === o.contact_id);
     const name = o.name ?? o.contact_name ?? contact?.name ?? "Untitled deal";
     const label = o.card_label ?? o.source ?? "Opportunity";
-    const hot = (o.heat ?? "").toUpperCase() === "HOT";
+    const st = normStatus(o.stage);
+    const hot = st === "Hot" || st === "Won";
     const base = mkCard(name, label, o.budget ?? "$0", hot, o.probability ?? 0, o.next_action ?? "Set the next step", o.next_due ?? "", o.overdue ?? false);
-    return { ...base, stage: o.stage, pipeName: PIPE_NAMES[o.pipeline] ?? o.pipeline, pipeKey: o.pipeline, id: o.id };
+    return { ...base, stage: st, pipeName: PIPE_NAMES[o.pipeline] ?? o.pipeline, pipeKey: o.pipeline, id: o.id };
   }), [opportunities, contacts]);
 
   /* Columns built from the real cards, bucketed into the canonical stage order
      (reused from the demo pipeline definitions). Board drag applies a per-session
      stage override keyed by card id. */
   const columns: Column[] = useMemo(() => {
-    const stageOrder = collPipe === "all" ? ALL_ORDER : (PIPES[collPipe]?.map((c) => c.stage) ?? PIPES.purchases.map((c) => c.stage));
+    const stageOrder = [...DEAL_STATUS];
     const inScope = oppCards.filter((c) => collPipe === "all" || c.pipeKey === collPipe);
-    const effStage = (c: Card) => (c.id ? stageOv[c.id] : undefined) ?? c.stage ?? stageOrder[0];
+    const effStage = (c: Card) => normStatus((c.id ? stageOv[c.id] : undefined) ?? c.stage);
     return stageOrder.map((st) => ({
       stage: st,
       cards: inScope.filter((c) => effStage(c) === st).map((c) => ({ ...c, tags: tagsFor(c) })).filter(matchQ).sort(CMP[sort]),
@@ -167,20 +170,33 @@ export function Opportunities() {
   const onDropStage = (to: string) => { if (dragCard) moveCard(dragCard, dragCard.from, to); setDragCard(null); setDragOverStage(null); };
   const openDeal = (c: Card, stage: string) => navigate(`/deal/${encodeURIComponent(c.name)}`, { state: { deal: { name: c.name, stage, status: c.status, budget: c.budget, prob: c.prob, opp: c.opp } } });
 
-  /* New Deal — create a real Opportunity from a contact (persisted + audited). */
+  /* New Deal — create a real Opportunity from a contact (persisted + audited).
+     The status field arms the cadence + next action (like a contact's classification). */
   const PIPE_KEYS = ["purchases", "listings", "rentals", "investments", "offmarket"] as const;
-  const [newDeal, setNewDeal] = useState<null | { name: string; contactId: string; contactQuery: string; pipeline: string; stage: string; budget: string; probability: string; heat: string }>(null);
-  const openNewDeal = () => setNewDeal({ name: "", contactId: "", contactQuery: "", pipeline: "purchases", stage: PIPES.purchases[0]?.stage ?? "Prospecting", budget: "", probability: "30", heat: "WARM" });
-  const stagesFor = (pk: string) => (PIPES[pk] ?? PIPES.purchases).map((c) => c.stage).filter((s) => s !== "Won" && s !== "Lost");
+  const [newDeal, setNewDeal] = useState<null | { name: string; contactId: string; contactQuery: string; pipeline: string; status: string; budget: string; probability: string; lostReason: string }>(null);
+  const openNewDeal = () => setNewDeal({ name: "", contactId: "", contactQuery: "", pipeline: "purchases", status: "Prospecting", budget: "", probability: "30", lostReason: "" });
+  const dueFromCadence = (cadence: string): string => {
+    const c = cadence.toLowerCase();
+    const wk = /(\d+)\s*week/.exec(c), dy = /(\d+)\s*day/.exec(c);
+    const days = wk ? +wk[1] * 7 : dy ? +dy[1] : /quarter/.test(c) ? 90 : /week/.test(c) ? 7 : /month/.test(c) ? 30 : 3;
+    const d = new Date(); d.setDate(d.getDate() + days);
+    return d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+  };
   const createDeal = () => {
     if (!newDeal || !newDeal.contactId) return;
     const contact = contacts.find((c) => c.id === newDeal.contactId);
+    const status = newDeal.status;
+    const play = settingsRows[0]?.status_cadence?.[status] ?? { cadence: DEAL_PLAY[status]?.cadence ?? "Weekly", action: DEAL_PLAY[status]?.next };
+    const nextAction = DEAL_PLAY[status]?.next ?? play.action ?? "Set the next step";
     const opp: Opportunity = {
-      id: newId("opp"), contact_id: newDeal.contactId, pipeline: newDeal.pipeline as Pipeline, stage: newDeal.stage,
-      budget: newDeal.budget.trim() || "$0", probability: Number(newDeal.probability) || 0, heat: newDeal.heat,
-      name: newDeal.name.trim() || undefined, contact_name: contact?.name, next_action: "Set the next step", source: "Manual",
+      id: newId("opp"), contact_id: newDeal.contactId, pipeline: newDeal.pipeline as Pipeline, stage: status,
+      budget: newDeal.budget.trim() || "$0", probability: Number(newDeal.probability) || 0,
+      heat: status === "Hot" || status === "Won" ? "HOT" : "WARM",
+      next_action: nextAction, next_due: dueFromCadence(play.cadence),
+      lost_reason: status === "Lost" ? (newDeal.lostReason || "Unspecified") : undefined,
+      name: newDeal.name.trim() || undefined, contact_name: contact?.name, source: "Manual",
     };
-    void save<Opportunity>("opportunities", opp, { actor: "user", skill: "chief_of_staff", action: `Opportunity created — ${opp.name ?? contact?.name ?? "deal"} · ${PIPE_NAMES[newDeal.pipeline] ?? newDeal.pipeline} · ${newDeal.stage}` });
+    void save<Opportunity>("opportunities", opp, { actor: "user", skill: "chief_of_staff", action: `Opportunity created — ${opp.name ?? contact?.name ?? "deal"} · ${PIPE_NAMES[newDeal.pipeline] ?? newDeal.pipeline} · ${status} · cadence ${play.cadence}` });
     setNewDeal(null);
   };
 
@@ -264,17 +280,20 @@ export function Opportunities() {
                 </div>
                 {([
                   ["Deal name (optional)", <input key="n" value={newDeal.name} onChange={(e) => setNewDeal({ ...newDeal, name: e.target.value })} placeholder="e.g. Continuum South 3902" className="op-field" />],
-                  ["Pipeline", <select key="p" value={newDeal.pipeline} onChange={(e) => setNewDeal({ ...newDeal, pipeline: e.target.value, stage: stagesFor(e.target.value)[0] ?? "Prospecting" })} className="op-field">{PIPE_KEYS.map((pk) => <option key={pk} value={pk}>{PIPE_NAMES[pk]}</option>)}</select>],
-                  ["Stage", <select key="s" value={newDeal.stage} onChange={(e) => setNewDeal({ ...newDeal, stage: e.target.value })} className="op-field">{stagesFor(newDeal.pipeline).map((s) => <option key={s} value={s}>{s}</option>)}</select>],
+                  ["Pipeline", <select key="p" value={newDeal.pipeline} onChange={(e) => setNewDeal({ ...newDeal, pipeline: e.target.value })} className="op-field">{PIPE_KEYS.map((pk) => <option key={pk} value={pk}>{PIPE_NAMES[pk]}</option>)}</select>],
+                  ["Status", <select key="s" value={newDeal.status} onChange={(e) => setNewDeal({ ...newDeal, status: e.target.value })} className="op-field">{DEAL_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}</select>],
+                  ...(newDeal.status === "Lost" ? [["Lost reason", <select key="lr" value={newDeal.lostReason} onChange={(e) => setNewDeal({ ...newDeal, lostReason: e.target.value })} className="op-field"><option value="">Select a reason…</option>{lossReasons.map((r) => <option key={r} value={r}>{r}</option>)}</select>] as [string, ReactNode]] : []),
                   ["Budget", <input key="b" value={newDeal.budget} onChange={(e) => setNewDeal({ ...newDeal, budget: e.target.value })} placeholder="$6.8M" className="op-field" />],
                   ["Probability %", <input key="pr" value={newDeal.probability} onChange={(e) => setNewDeal({ ...newDeal, probability: e.target.value.replace(/[^0-9]/g, "") })} placeholder="30" className="op-field" />],
-                  ["Heat", <select key="h" value={newDeal.heat} onChange={(e) => setNewDeal({ ...newDeal, heat: e.target.value })} className="op-field"><option value="WARM">Warm</option><option value="HOT">Hot</option></select>],
                 ] as Array<[string, ReactNode]>).map(([label, field]) => (
                   <div key={label} style={{ display: "grid", gridTemplateColumns: "150px 1fr", gap: 14, alignItems: "center" }}>
                     <span style={{ fontFamily: SANS, fontWeight: 500, fontSize: 12, color: "#5D5D5D" }}>{label}</span>
                     {field}
                   </div>
                 ))}
+                <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, lineHeight: 1.5, color: "#8F8F8F", paddingLeft: 164 }}>
+                  Arms cadence <span style={{ color: "#0D0D0D", fontWeight: 500 }}>{DEAL_PLAY[newDeal.status]?.cadence}</span> · next: {DEAL_PLAY[newDeal.status]?.next}
+                </div>
               </div>
             )}
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginTop: 22 }}>

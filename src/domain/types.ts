@@ -63,6 +63,8 @@ export interface Opportunity {
   next_due?: string;
   search_criteria?: Record<string, unknown>;
   heat?: string;
+  /* Why a deal was lost (set when status → Lost). */
+  lost_reason?: string;
   /* v5 display fields */
   name?: string;
   contact_name?: string;
@@ -204,6 +206,8 @@ export interface Settings {
      ⇒ defaults from STATUS_PLAY). Custom cadences use a synthetic key and carry
      their own display `name`. */
   status_cadence?: Record<string, { name?: string; cadence: string; action: string }>;
+  /* Customizable "lost reason" options for deals (Settings · Pipeline & Stages). */
+  loss_reasons?: string[];
 }
 
 export interface VaultEntry { id: string; contact_id: string; fields: Record<string, unknown>; }
