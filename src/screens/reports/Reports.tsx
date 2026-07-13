@@ -1,13 +1,15 @@
 import { useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { recordAction } from "../../data/repository";
+import { useCollection } from "../../data/hooks";
 import { useIsMobile } from "../../app/useIsMobile";
+import type { Opportunity, Transaction, Contact } from "../../domain/types";
 import { SANS } from "../contacts/data";
 import { PIPES, PIPE_NAMES, tagsFor, type Card, orderedDeals } from "../opportunities/data";
 import {
   ACTV_DATA, ASSET_MIX, DIVISION_GCI, FORECAST, FUNNEL, GEOGRAPHY, INC_HIST, INC_KPIS,
   INC_PAID, INC_RECV, INC_TOTAL_LINE, LOSS_REASONS, MKT_ATTR, MKT_CHANNELS, MKT_KPIS,
-  PRICE_BANDS, REP_NAV, REPORT_KPIS, SOURCES, VELOCITY,
+  PRICE_BANDS, REP_NAV, SOURCES, VELOCITY,
 } from "./data";
 import "./Reports.css";
 
@@ -21,8 +23,53 @@ const Bar = ({ w, bg = "#0D0D0D", h = 8 }: { w: string; bg?: string; h?: number 
 const ALL_DEALS: Array<Card & { pipe: string }> = (["purchases", "listings", "rentals", "investments", "offmarket"] as const).flatMap((p) => PIPES[p].flatMap((c) => c.cards.map((card) => ({ ...card, stage: c.stage, pipe: PIPE_NAMES[p], tags: tagsFor(card) }))));
 const fmtM = (m: number) => (m >= 1000 ? `$${(m / 1000).toFixed(1)}B` : `$${m.toFixed(1)}M`);
 
+/* Parse a budget string ("$6.8M", "$950K", "$1.2B") to millions. Recurring
+   ("/mo") and unparseable values → 0 (excluded from pipeline totals). */
+function budgetM(b?: string): number {
+  if (!b || /\/mo/i.test(b)) return 0;
+  const n = parseFloat(b.replace(/[^0-9.]/g, "")) || 0;
+  if (/b/i.test(b)) return n * 1000;
+  if (/k/i.test(b)) return n / 1000;
+  return n; // assume millions
+}
+const GCI_RATE = 0.03; // 3% commission basis (matches Custom Report)
+
 export function Reports() {
   const isMobile = useIsMobile();
+  const { items: opportunities } = useCollection<Opportunity>("opportunities");
+  const { items: transactions } = useCollection<Transaction>("transactions");
+  const { items: contacts } = useCollection<Contact>("contacts");
+
+  /* Overview KPIs computed from the real collections (0 until you add deals). */
+  const overviewKpis = useMemo(() => {
+    const open = opportunities.filter((o) => !["Won", "Lost", "Placed"].includes(o.stage));
+    const pipeline = open.reduce((s, o) => s + budgetM(o.budget), 0);
+    const weighted = open.reduce((s, o) => s + budgetM(o.budget) * ((o.probability ?? 0) / 100), 0);
+    const hot = open.filter((o) => (o.heat ?? "").toUpperCase() === "HOT").length;
+    const now = new Date();
+    const cutoff = new Date(now); cutoff.setDate(cutoff.getDate() - 30);
+    const closings30 = transactions.filter((t) => { const d = t.close_date ? new Date(t.close_date) : null; return d && !isNaN(d.getTime()) && d >= cutoff && d <= now; }).length;
+    const overdue = open.filter((o) => o.overdue === true).length;
+    const avg = open.length ? pipeline / open.length : 0;
+    return [
+      { label: "Pipeline Value", value: fmtM(pipeline) },
+      { label: "Weighted Value", value: fmtM(weighted) },
+      { label: "Potential GCI", value: fmtM(pipeline * GCI_RATE) },
+      { label: "Weighted GCI", value: fmtM(weighted * GCI_RATE) },
+      { label: "HOT Leads", value: String(hot) },
+      { label: "Closings · 30d", value: String(closings30) },
+      { label: "Overdue Follow-ups", value: String(overdue) },
+      { label: "Average Ticket", value: fmtM(avg) },
+    ];
+  }, [opportunities, transactions]);
+
+  /* Annual GCI: achieved = sum of closed transaction GCI; target from Settings. */
+  const gci = useMemo(() => {
+    const achieved = transactions.reduce((s, t) => s + budgetM(t.gci), 0);
+    return { achieved };
+  }, [transactions]);
+  void contacts; // reserved for the contact-based sections (next increment)
+
   const [sec, setSec] = useState("01");
   const [period, setPeriod] = useState<"week" | "month" | "quarter">("month");
   const actv = ACTV_DATA[period];
@@ -86,7 +133,7 @@ export function Reports() {
           {sec === "01" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 44 }}>
               <div className="rp-kpigrid">
-                {REPORT_KPIS.map((k) => (
+                {overviewKpis.map((k) => (
                   <div key={k.label} style={{ padding: "24px 22px 22px", borderRight: "1px solid #E3E3E3", borderBottom: "1px solid #E3E3E3" }}>
                     <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 11.5, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{k.label}</div>
                     <div style={{ fontFamily: SANS, fontWeight: 300, fontSize: 34, lineHeight: 1, marginTop: 16, color: "#0D0D0D" }}>{k.value}</div>
@@ -96,26 +143,15 @@ export function Reports() {
               <div style={{ marginTop: 6, borderTop: "1px solid #E3E3E3", paddingTop: 28 }}>
                 <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between" }}>
                   <div>
-                    <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 16, color: "#0D0D0D" }}>Annual GCI Target · 2026</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 600, fontSize: 16, color: "#0D0D0D" }}>Annual GCI · 2026</div>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 14, marginTop: 16 }}>
-                      <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 48, lineHeight: 1, color: "#0D0D0D" }}>$3.8M</span>
-                      <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 18, color: "#8F8F8F" }}>of $6.5M</span>
+                      <span style={{ fontFamily: SANS, fontWeight: 200, fontSize: 48, lineHeight: 1, color: "#0D0D0D" }}>{fmtM(gci.achieved)}</span>
+                      <span style={{ fontFamily: SANS, fontWeight: 300, fontSize: 18, color: "#8F8F8F" }}>closed to date</span>
                     </div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontFamily: SANS, fontWeight: 200, fontSize: 40, lineHeight: 1, color: "#0D0D0D" }}>58%</div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 7, justifyContent: "flex-end", marginTop: 8 }}>
-                      <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#0D0D0D" }} />
-                      <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#0D0D0D" }}>On pace · +$0.3M vs plan</span>
-                    </div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.05em", color: "#8F8F8F", maxWidth: 200 }}>Set an annual GCI target in Settings · Economics to track pace here.</div>
                   </div>
-                </div>
-                <div style={{ height: 10, background: "rgba(255,255,255,0.55)", position: "relative", marginTop: 22 }}>
-                  <div style={{ position: "absolute", left: 0, top: 0, height: "100%", width: "58%", background: "#0D0D0D" }} />
-                  <div style={{ position: "absolute", left: "50%", top: -6, bottom: -6, width: 0.5, background: "#5D5D5D" }} />
-                </div>
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8 }}>
-                  {["Jan", "Plan · 50% by Jul", "Dec"].map((l) => <span key={l} style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase", color: "#8F8F8F" }}>{l}</span>)}
                 </div>
               </div>
             </div>
