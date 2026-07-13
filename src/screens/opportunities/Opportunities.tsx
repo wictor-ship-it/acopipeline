@@ -37,7 +37,7 @@ export function Opportunities() {
   const navigate = useNavigate();
   const [collPipe, setCollPipe] = useState("all");
   const [viewSel, setViewSel] = useState<"board" | "list" | "week">("board");
-  const [sort, setSort] = useState<Sort>("weighted");
+  const sort: Sort = "weighted"; // board is value-ranked; no user-facing sort control here
   const [query, setQuery] = useState("");
   const [peek, setPeek] = useState<Card | null>(null);
   const [refDecided, setRefDecided] = useState<null | "accepted" | "declined">(null);
