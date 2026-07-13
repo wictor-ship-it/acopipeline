@@ -190,9 +190,13 @@ export const STATUS_PLAY: Record<string, { cadence: string; action: string }> = 
 
 /* Contact information editor — sections & fields. Keys in TOP_KEYS write to the
    contact record (header reads them); the rest live in preferences.info. */
-export const INFO_TOP_KEYS = ["name", "email", "phone", "company", "title", "linkedin", "birthday", "spouse", "location", "since"] as const;
+export const INFO_TOP_KEYS = ["name", "email", "phone", "company", "title", "linkedin", "birthday", "spouse", "location", "since", "relationship", "narrative"] as const;
 export interface InfoField { key: string; label: string; area?: boolean }
 export const INFO_SECTIONS: Array<{ title: string; fields: InfoField[] }> = [
+  { title: "Relationship", fields: [
+    { key: "relationship", label: "Relationship" }, { key: "role", label: "Role / how you know them" },
+    { key: "narrative", label: "Objective & notes", area: true },
+  ] },
   { title: "Personal", fields: [
     { key: "name", label: "Full name" }, { key: "nickname", label: "Preferred name" },
     { key: "email", label: "Email" }, { key: "phone", label: "Phone · WhatsApp" },
