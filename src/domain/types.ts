@@ -74,6 +74,9 @@ export interface Opportunity {
   /* Where the deal sits in its TYPE's closing flow (see DEAL_TYPES) — distinct
      from `stage` (the qualification heat that buckets the board). */
   flow_stage?: string;
+  /* Commission basis for this deal, in PERCENT (e.g. 3 = 3%). Editable inline;
+     defaults to 3% (1% on investments). Drives Potential GCI = price × rate. */
+  gci_rate?: number;
   /* v5 display fields */
   name?: string;
   contact_name?: string;
