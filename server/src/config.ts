@@ -8,7 +8,7 @@ export const config = {
   clientId: process.env.GOOGLE_CLIENT_ID ?? "",
   clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
   redirectUri: process.env.GOOGLE_REDIRECT_URI ?? "http://localhost:8787/auth/google/callback",
-  scopes: (process.env.OAUTH_SCOPES ?? "openid email profile").split(/\s+/).filter(Boolean),
+  scopes: (process.env.OAUTH_SCOPES ?? "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/contacts.readonly").split(/\s+/).filter(Boolean),
   sessionSecret: process.env.SESSION_SECRET ?? "",
   tokenKey: process.env.TOKEN_ENCRYPTION_KEY ?? "",
   port: Number(process.env.PORT ?? 8787),

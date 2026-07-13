@@ -109,3 +109,21 @@ export async function remove<T extends { id: string }>(store: EntityStore, id: s
 export async function seedBulk<T extends { id: string }>(store: EntityStore, values: T[]): Promise<void> {
   await backend().bulkPut(store, values);
 }
+
+/** Bulk import (e.g. Google Contacts) — one bulk write, one audit row for the
+    batch (Law 2), and a batch Undo that removes the imported ids (Law 3). */
+export async function bulkImport<T extends { id: string }>(store: EntityStore, values: T[], meta: MutationMeta): Promise<void> {
+  if (!values.length) return;
+  await backend().bulkPut(store, values);
+  await writeAudit(meta, `${store} (bulk ${values.length})`, null, { imported: values.length });
+  const ids = values.map((v) => v.id);
+  undoStack.push({
+    label: meta.action,
+    undo: async () => {
+      for (const id of ids) await backend().delete(store, id);
+      await writeAudit({ actor: "user", action: `undo: ${meta.action}` }, `${store} (bulk ${ids.length})`, { imported: ids.length }, null);
+      emitChange(store);
+    },
+  });
+  emitChange(store);
+}

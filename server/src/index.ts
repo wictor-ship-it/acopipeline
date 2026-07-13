@@ -8,6 +8,7 @@ import { authRouter } from "./routes/auth.js";
 import { gmailRouter } from "./routes/gmail.js";
 import { calendarRouter } from "./routes/calendar.js";
 import { agentRouter } from "./routes/agent.js";
+import { peopleRouter } from "./routes/people.js";
 import { dataRouter } from "./routes/data.js";
 import { initDb, dbPing } from "./db.js";
 
@@ -29,6 +30,7 @@ app.use("/auth", authRouter);
 app.use("/api/gmail", gmailRouter);
 app.use("/api/calendar", calendarRouter);
 app.use("/api/agent", agentRouter);
+app.use("/api/contacts", peopleRouter);
 app.use("/api/data", dataRouter);
 
 // Create the schema once at boot when a database is configured.

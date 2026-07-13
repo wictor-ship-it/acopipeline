@@ -2,7 +2,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import type { CSSProperties } from "react";
 import { useCollection } from "../../data/hooks";
-import { recordAction } from "../../data/repository";
+import { recordAction, bulkImport, newId } from "../../data/repository";
+import { useAppState } from "../../app/state";
+import { fetchGoogleContacts, ReconnectNeeded } from "../../data/adapters/googleContacts";
 import type { Contact, Opportunity } from "../../domain/types";
 import {
   BASE_COLS, CONTACT_TASKS, CONTACT_TOUCHES, deltaCell, EXTRA_COL_DEFS,
@@ -46,6 +48,47 @@ export function Contacts() {
   const [searchParams] = useSearchParams();
   const { items: contacts } = useCollection<Contact>("contacts");
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
+  const { google } = useAppState();
+
+  /* Google Contacts import — pull all, dedupe by email/phone against the
+     directory, create the new ones in one audited batch (Undo removes them). */
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const normPhone = (p?: string) => (p ?? "").replace(/\D/g, "");
+  const importGoogle = async () => {
+    setImporting(true);
+    setImportMsg(null);
+    try {
+      const gcs = await fetchGoogleContacts();
+      if (gcs === null) { setImportMsg("Couldn't reach Google — reconnect in Settings."); return; }
+      const haveEmail = new Set(contacts.map((c) => (c.email ?? "").toLowerCase()).filter(Boolean));
+      const havePhone = new Set(contacts.map((c) => normPhone(c.phone)).filter(Boolean));
+      const seen = new Set<string>();
+      const toImport: Contact[] = [];
+      for (const g of gcs) {
+        const email = (g.email ?? "").toLowerCase();
+        const phone = normPhone(g.phone);
+        const key = email || phone || g.name.toLowerCase();
+        if (seen.has(key)) continue;
+        seen.add(key);
+        if (email && haveEmail.has(email)) continue;
+        if (!email && phone && havePhone.has(phone)) continue;
+        toImport.push({
+          id: newId("ct"), name: g.name, category: "sphere", status: "SPHERE", language: ["EN"],
+          email: g.email, phone: g.phone, company: g.company, title: g.title,
+          birthday: g.birthday, location: g.location, linkedin: g.linkedin, source: "Google Contacts",
+        });
+      }
+      if (!toImport.length) { setImportMsg("No new contacts — your directory is already up to date."); return; }
+      await bulkImport("contacts", toImport, { actor: "user", action: `Imported ${toImport.length} contact${toImport.length === 1 ? "" : "s"} from Google Contacts` });
+      const skipped = gcs.length - toImport.length;
+      setImportMsg(`Imported ${toImport.length} contact${toImport.length === 1 ? "" : "s"}${skipped > 0 ? ` · ${skipped} skipped (duplicates)` : ""}.`);
+    } catch (e) {
+      setImportMsg(e instanceof ReconnectNeeded ? "Reconnect Google with Contacts access in Settings." : "Import failed — please try again.");
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const [view, setView] = useState<"directory" | "queue">(searchParams.get("view") === "queue" ? "queue" : "directory");
   const [seg, setSeg] = useState("all");
@@ -210,8 +253,9 @@ export function Contacts() {
         <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, letterSpacing: "0.1em", textTransform: "uppercase", color: "#8F8F8F" }}>{rows.length} contacts</span>
       </div>
 
-      {/* GOOGLE CONTACTS SYNC · TRIAGE BANNER */}
-      {!gcHidden && (
+      {/* GOOGLE CONTACTS SYNC · TRIAGE BANNER (mock — demo only; real import is
+          the toolbar button below when Google is connected) */}
+      {!gcHidden && !google.connected && (
         <div style={{ display: "flex", alignItems: "center", gap: 16, border: "1px solid #E3E3E3", borderLeft: "2px solid #D0342C", background: "rgba(255,255,255,0.55)", padding: "14px 18px", marginTop: 18 }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
@@ -247,8 +291,14 @@ export function Contacts() {
               ))}
             </div>
             <div style={{ flex: 1 }} />
+            {google.connected && (
+              <button onClick={importGoogle} disabled={importing} className="ct-btn-outline" style={{ flex: "none", background: "transparent", border: "1px solid #E3E3E3", borderRadius: 999, padding: "7px 15px", fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: importing ? "#8F8F8F" : "#0D0D0D", cursor: importing ? "default" : "pointer", whiteSpace: "nowrap", transition: "all 150ms" }}>{importing ? "Importing…" : "Import from Google"}</button>
+            )}
             <div onClick={() => setTagsOpen((o) => !o)} onMouseEnter={() => setTagsOpen(true)} className="ct-later" style={{ fontFamily: SANS, fontWeight: 400, fontSize: 10.5, letterSpacing: "0.06em", textTransform: "uppercase", color: "#8F8F8F", cursor: "pointer", whiteSpace: "nowrap", paddingBottom: 5, transition: "color 150ms" }}>{tagSel !== "all" ? `Tags · ${tagSel}` : "Tags"} {tagsOpen ? "⌃" : "⌄"}</div>
           </div>
+          {importMsg && (
+            <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#10A37F", padding: "0 0 12px" }}>{importMsg}</div>
+          )}
 
           {tagsOpen && (
             <div style={{ display: "flex", gap: 8, flexWrap: "wrap", padding: "0 0 20px" }}>

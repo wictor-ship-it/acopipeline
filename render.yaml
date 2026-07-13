@@ -45,3 +45,5 @@ services:
         sync: false
       - key: GOOGLE_REDIRECT_URI     # https://<your-site>/auth/google/callback
         sync: false
+      - key: OAUTH_SCOPES            # read scopes: identity + Gmail + Calendar + Contacts (not secret)
+        value: openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/contacts.readonly
