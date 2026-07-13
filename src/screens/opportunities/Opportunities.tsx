@@ -285,7 +285,7 @@ export function Opportunities() {
                 </div>
                 {([
                   ["Deal name (optional)", <input key="n" value={newDeal.name} onChange={(e) => setNewDeal({ ...newDeal, name: e.target.value })} placeholder="e.g. Continuum South 3902" className="op-field" />],
-                  ["Pipeline", <select key="p" value={newDeal.pipeline} onChange={(e) => setNewDeal({ ...newDeal, pipeline: e.target.value })} className="op-field">{PIPE_KEYS.map((pk) => <option key={pk} value={pk}>{PIPE_NAMES[pk]}</option>)}</select>],
+                  ["Transaction type", <select key="p" value={newDeal.pipeline} onChange={(e) => setNewDeal({ ...newDeal, pipeline: e.target.value })} className="op-field">{PIPE_KEYS.map((pk) => <option key={pk} value={pk}>{dealTypeOf(pk).label} · {dealTypeOf(pk).side}</option>)}</select>],
                   ["Status", <select key="s" value={newDeal.status} onChange={(e) => setNewDeal({ ...newDeal, status: e.target.value })} className="op-field">{DEAL_STATUS.map((s) => <option key={s} value={s}>{s}</option>)}</select>],
                   ...(newDeal.status === "Lost" ? [["Lost reason", <select key="lr" value={newDeal.lostReason} onChange={(e) => setNewDeal({ ...newDeal, lostReason: e.target.value })} className="op-field"><option value="">Select a reason…</option>{lossReasons.map((r) => <option key={r} value={r}>{r}</option>)}</select>] as [string, ReactNode]] : []),
                   ["Budget", <input key="b" value={newDeal.budget} onChange={(e) => setNewDeal({ ...newDeal, budget: e.target.value })} placeholder="$6.8M" className="op-field" />],
