@@ -31,7 +31,7 @@ async function buildContext() {
     meta: { total_contacts: allContacts.length, showing_contacts: contacts.length },
     contacts: contacts.map((c) => ({ id: c.id, name: c.name, status: c.directory_status ?? c.status, relationship: c.relationship, language: c.language, last_touch: c.last_touch, active_deals: c.active_deals, referral_of: c.referral_of, agent_note: c.agent_note })),
     drafts: drafts.map((d) => ({ id: d.id, target: d.target, name: d.name_label, subject: d.subject, plan: d.plan, body: d.body, channel: d.channel, language: d.language })),
-    opportunities: opportunities.map((o) => ({ id: o.id, name: o.name, contact_id: o.contact_id, pipeline: o.pipeline, stage: o.stage, heat: o.heat, probability: o.probability, next_action: o.next_action, next_due: o.next_due })),
+    opportunities: opportunities.map((o) => ({ id: o.id, name: o.name, contact_id: o.contact_id, related_contact_ids: o.related_contact_ids, pipeline: o.pipeline, stage: o.stage, heat: o.heat, probability: o.probability, budget: o.budget, next_action: o.next_action, next_due: o.next_due, brief: o.agent_context })),
     transactions: transactions.map((t) => ({ id: t.id, opportunity_id: t.opportunity_id, property: t.property, next_peek: t.next_peek, milestones_label: t.milestones_label, close_date: t.close_date, at_risk: t.status_color === "#D0342C" })),
   };
 }

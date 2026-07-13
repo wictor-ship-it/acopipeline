@@ -7,6 +7,7 @@ import { SANS, CONTACT_TOUCHES } from "../contacts/data";
 import { useIsMobile } from "../../app/useIsMobile";
 import { agentChat } from "../../data/adapters/agent";
 import { isRemote } from "../../data/backend";
+import { fmtBudget, PIPE_NAMES } from "../opportunities/data";
 import {
   AMENITIES, BRIEF, buildProfile, type BuyerProfile, CANON_STATUS, CHAT_CHIPS,
   DEFAULT_PLAN, enrichRows, ESSENCE, GENERIC_BRIEF, hasProfile, INFO_SECTIONS,
@@ -110,7 +111,10 @@ export function ContactDetail() {
   const typeVal = (ct.relationship ?? "").split("·")[0].trim() || ct.category;
   const essence = ESSENCE[id] ?? (ct.narrative ?? "").split(". ").slice(0, 1).join(".") + ".";
   const won = parseInt(ct.deals_won ?? "0", 10) || 0;
-  const active = parseInt(ct.active_deals ?? "0", 10) || 0;
+  // Real linked pipeline: count the opportunities actually pointing at this
+  // contact (not a stale seed string), excluding closed ones.
+  const openDeals = deals.filter((d) => !["Won", "Lost", "Placed"].includes(d.stage));
+  const active = openDeals.length;
   const q7 = touches.length;
   const qtr7 = q7 + won * 2 + 2;
   const yr7 = qtr7 + won * 6 + 4;
@@ -118,7 +122,7 @@ export function ContactDetail() {
   const headStats = [
     { label: "Lifetime GCI", value: ct.lifetime_gci ?? "—", periods: [] as Array<{ p: string; v: string }>, sub: "" },
     { label: "Last Contact", value: ct.last_touch ?? "—", periods: [], sub: "" },
-    { label: "Active Deals", value: String(active), periods: [{ p: "QTR", v: `↑+${active}` }, { p: "1 YR", v: `↑+${active + won}` }], sub: deals.length ? `${deals[0].budget} · ${deals[0].stage}` : "no live pipeline" },
+    { label: "Active Deals", value: String(active), periods: [{ p: "QTR", v: `↑+${active}` }, { p: "1 YR", v: `↑+${active + won}` }], sub: deals.length ? `${fmtBudget(deals[0].budget)} · ${deals[0].stage}` : "no live pipeline" },
     { label: "Interactions", value: String(yr7 + 9), periods: [{ p: "QTR", v: `↑+${qtr7}` }, { p: "1 YR", v: `↑+${yr7}` }], sub: "" },
   ];
 
@@ -597,6 +601,31 @@ export function ContactDetail() {
                 </div>
               </div>
             ))}
+          </div>
+
+          {/* Related opportunities — the deals actually linked to this contact. */}
+          <div style={{ marginTop: 30 }}>
+            <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 14, paddingBottom: 11, borderBottom: "1px solid #E3E3E3", marginBottom: 4 }}>
+              <span style={{ fontFamily: SANS, fontWeight: 600, fontSize: 13, letterSpacing: "0.08em", textTransform: "uppercase", color: "#0D0D0D" }}>Related opportunities</span>
+              <span style={{ fontFamily: SANS, fontWeight: 400, fontSize: 11.5, color: "#8F8F8F" }}>{deals.length ? `${deals.length} linked` : ""}</span>
+            </div>
+            {deals.length === 0 && (
+              <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#8F8F8F", padding: "12px 0" }}>No opportunities yet — create one in Opportunities and link {ct.name.split(" ")[0]}.</div>
+            )}
+            {deals.map((d) => {
+              const dealName = d.name ?? d.contact_name ?? ct.name;
+              return (
+                <div key={d.id} onClick={() => navigate(`/deal/${encodeURIComponent(d.id)}`, { state: { deal: { name: dealName, stage: d.stage, status: d.heat, budget: d.budget, prob: d.probability != null ? `${d.probability}%` : undefined, opp: d.contact_name ?? ct.name } } })} className="cd-planrow" style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 0", borderBottom: "1px solid #E3E3E3", cursor: "pointer", transition: "background 150ms" }}>
+                  <span style={{ width: 7, height: 7, flex: "none", borderRadius: "50%", background: ["Won", "Placed"].includes(d.stage) ? "#10A37F" : d.stage === "Lost" ? "#D0342C" : "#0D0D0D" }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontFamily: SANS, fontWeight: 500, fontSize: 13.5, color: "#0D0D0D", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{dealName}</div>
+                    <div style={{ fontFamily: SANS, fontWeight: 400, fontSize: 12, color: "#5D5D5D", marginTop: 2 }}>{PIPE_NAMES[d.pipeline] ?? d.pipeline} · {d.stage}{d.next_action ? ` · ${d.next_action}` : ""}</div>
+                  </div>
+                  <span style={{ flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 13, color: "#0D0D0D" }}>{fmtBudget(d.budget)}</span>
+                  <span style={{ flex: "none", fontFamily: SANS, fontWeight: 400, fontSize: 16, color: "#B8B8B8" }}>›</span>
+                </div>
+              );
+            })}
           </div>
 
           {/* FUTURE · The plan ahead (editable) */}

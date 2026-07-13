@@ -65,6 +65,12 @@ export interface Opportunity {
   heat?: string;
   /* Why a deal was lost (set when status → Lost). */
   lost_reason?: string;
+  /* Extra related contacts beyond the primary contact_id (people involved in
+     the deal — co-buyer, attorney, referral partner). */
+  related_contact_ids?: string[];
+  /* Principal's free-form brief for the agent: context, constraints and what to
+     watch on this opportunity. Fed into the agent's per-deal context. */
+  agent_context?: string;
   /* v5 display fields */
   name?: string;
   contact_name?: string;
