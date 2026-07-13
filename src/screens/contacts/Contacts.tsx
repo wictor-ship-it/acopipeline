@@ -5,10 +5,11 @@ import { useCollection } from "../../data/hooks";
 import { recordAction, bulkImport, newId, mergeContacts } from "../../data/repository";
 import { useAppState } from "../../app/state";
 import { fetchGoogleContacts, ReconnectNeeded } from "../../data/adapters/googleContacts";
-import type { Contact, Opportunity } from "../../domain/types";
+import type { Contact, Opportunity, Settings } from "../../domain/types";
+import { toCanonStatus } from "../contact/data";
 import {
   BASE_COLS, CONTACT_TASKS, CONTACT_TOUCHES, deltaCell, EXTRA_COL_DEFS,
-  GC_BANNER, REL_DATA, SANS, SEG_KEY, SEGMENTS, TOUCH_QUEUE, type QueueItem,
+  GC_BANNER, REL_DATA, SANS, SEG_KEY, SEGMENTS, type QueueItem,
 } from "./data";
 import "./Contacts.css";
 
@@ -77,7 +78,36 @@ export function Contacts() {
   const [searchParams] = useSearchParams();
   const { items: contacts, loading: contactsLoading } = useCollection<Contact>("contacts");
   const { items: opportunities } = useCollection<Opportunity>("opportunities");
+  const { items: settingsRows } = useCollection<Settings>("settings");
   const { google } = useAppState();
+
+  /* Touch Today queue — real, computed from CLASSIFIED contacts (unclassified =
+     paused cadence, excluded). Ranked by status urgency. Fills as you classify;
+     empty until then. The rich agent fields (drafts/briefs) are minimal here —
+     the live agent generates them on demand. */
+  const touchQueue: QueueItem[] = useMemo(() => {
+    const cad = settingsRows[0]?.status_cadence;
+    const CLASS_Q: Record<string, string> = { Hot: "HOT", Warm: "WARM", Nurturing: "WARM", Won: "PAST", Lost: "PAST" };
+    const RANK: Record<string, number> = { HOT: 0, WARM: 1, PAST: 2 };
+    const cadShort = (c: string) => { const m = /(\d+)\s*(day|week)/i.exec(c || ""); if (m) return m[2][0].toLowerCase() === "w" ? `${+m[1] * 7}d` : `${m[1]}d`; return /quarter/i.test(c || "") ? "90d" : "—"; };
+    return contacts
+      .map((c) => ({ c, cls: c.directory_status || toCanonStatus(c.status) }))
+      .filter((x) => x.cls && x.cls !== "Not classified")
+      .sort((a, b) => (RANK[CLASS_Q[a.cls] ?? "WARM"] ?? 3) - (RANK[CLASS_Q[b.cls] ?? "WARM"] ?? 3))
+      .slice(0, 40)
+      .map(({ c, cls }): QueueItem => {
+        const cadence = cad?.[cls]?.cadence ?? "";
+        const plan = (c.preferences?.plan as Array<{ what?: string }> | undefined)?.[0]?.what;
+        const ctx = plan ?? cad?.[cls]?.action ?? "Cadence touch due";
+        const q = CLASS_Q[cls] ?? "WARM";
+        return {
+          id: c.id, name: c.name, status: q, cycle: cadShort(cadence), clock: cadence || "cadence due",
+          overdue: false, ctx, wgci: c.lifetime_gci ?? "—", draft: false,
+          min: q === "HOT" ? 8 : q === "WARM" ? 5 : 3, mode: "You", channel: q === "HOT" ? "Call" : "WhatsApp",
+          brief: { last: c.last_touch ?? "—", goal: ctx, draft: "" },
+        };
+      });
+  }, [contacts, settingsRows]);
 
   /* Google Contacts import — pull all, dedupe by email/phone against the
      directory, create the new ones in one audited batch (Undo removes them). */
@@ -200,18 +230,19 @@ export function Contacts() {
 
   /* ---- queue derived ---- */
   const isActive = (q: QueueItem) => !touched[q.id] && !snoozed[q.id];
-  const plannedMin = TOUCH_QUEUE.filter(isActive).reduce((s, q) => s + q.min, 0);
-  const doneMin = TOUCH_QUEUE.filter((q) => touched[q.id]).reduce((s, q) => s + q.min, 0);
-  const defended = TOUCH_QUEUE.filter((q) => touched[q.id]).reduce((s, q) => s + (parseFloat((q.wgci || "").replace(/[^0-9.]/g, "")) || 0), 0);
-  const openCount = TOUCH_QUEUE.filter(isActive).length;
-  const doneCount = TOUCH_QUEUE.filter((q) => touched[q.id]).length;
+  const plannedMin = touchQueue.filter(isActive).reduce((s, q) => s + q.min, 0);
+  const doneMin = touchQueue.filter((q) => touched[q.id]).reduce((s, q) => s + q.min, 0);
+  const defended = touchQueue.filter((q) => touched[q.id]).reduce((s, q) => s + (parseFloat((q.wgci || "").replace(/[^0-9.]/g, "")) || 0), 0);
+  const openCount = touchQueue.filter(isActive).length;
+  const doneCount = touchQueue.filter((q) => touched[q.id]).length;
   const budgetLine = `Attention budget · ${plannedMin} min planned`;
-  const defendedLine = defended > 0 ? `Defended today · $${Math.round(defended)}K weighted GCI in ${doneMin} min` : "Nothing touched yet — the queue is worth $1.39M weighted";
-  const allDone = TOUCH_QUEUE.every((q) => !isActive(q));
+  void defended;
+  const defendedLine = doneCount > 0 ? `Defended today · ${doneCount} touched in ${doneMin} min` : openCount > 0 ? `${openCount} contact${openCount === 1 ? "" : "s"} due — nothing touched yet` : "No contacts due — classify contacts to build the queue";
+  const allDone = touchQueue.every((q) => !isActive(q));
   const waSelectable = (q: QueueItem) => q.channel === "WhatsApp" && isActive(q) && !sent[q.id];
 
   const groups = (["Call", "WhatsApp", "Field"] as const).map((ch) => {
-    const list = TOUCH_QUEUE.filter((q) => q.channel === ch);
+    const list = touchQueue.filter((q) => q.channel === ch);
     if (!list.length) return null;
     const mins = list.filter(isActive).reduce((s, q) => s + q.min, 0);
     const isWa = ch === "WhatsApp";
@@ -246,8 +277,8 @@ export function Contacts() {
   };
   /* One-tap day: send every sendable WhatsApp draft + log the rest. */
   const approveDay = () => {
-    const wa = TOUCH_QUEUE.filter((q) => q.channel === "WhatsApp" && isActive(q) && !sent[q.id]);
-    const rest = TOUCH_QUEUE.filter((q) => q.channel !== "WhatsApp" && isActive(q));
+    const wa = touchQueue.filter((q) => q.channel === "WhatsApp" && isActive(q) && !sent[q.id]);
+    const rest = touchQueue.filter((q) => q.channel !== "WhatsApp" && isActive(q));
     if (!wa.length && !rest.length) return;
     const prevSent = { ...sent }, prevTouched = { ...touched };
     const ns = { ...sent }, nt = { ...touched };
@@ -648,7 +679,7 @@ function QueueView(p: QueueViewProps) {
                 const clockColor = !active ? "#8F8F8F" : q.overdue ? "#D0342C" : "#5D5D5D";
                 const modeChip = q.mode === "You" ? "YOU" : q.mode === "Assisted" ? "ASSISTED" : "AGENT-RUN";
                 const modeColor = q.mode === "You" ? "#0D0D0D" : "#8F8F8F";
-                const idx = TOUCH_QUEUE.findIndex((x) => x.id === q.id);
+                const idx = p.groups.flatMap((g) => g.rows).findIndex((x: QueueItem) => x.id === q.id);
                 const showDraftLine = !!q.brief.draft && q.channel === "WhatsApp" && active && !p.sent[q.id];
                 const selectable = p.waSelectable(q);
                 return (
